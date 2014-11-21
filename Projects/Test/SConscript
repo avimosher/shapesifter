@@ -1,0 +1,3 @@
+Import('env')
+print(Dir('.').path)
+env.Program('hello.cpp')
