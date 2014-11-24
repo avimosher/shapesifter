@@ -20,6 +20,10 @@ class RIGID_STRUCTURE_EVOLUTION:public STRUCTURE_EVOLUTION_TYPE<TV>
 public:
     RIGID_STRUCTURE_EVOLUTION();
     ~RIGID_STRUCTURE_EVOLUTION();
+
+    virtual void Position_Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)=0;
+    virtual void Velocity_Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)=0;
+    virtual void Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)=0;
 };
 }
 #endif
