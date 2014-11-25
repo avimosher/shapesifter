@@ -20,19 +20,20 @@ Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T target_time)
 template<class TV> void EVOLUTION<TV>::
 Position_Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
 {
-    // loop on position step until done
-    for(EVOLUTION_TYPE<TV>& evolution : evolution_collection) {
-        evolution.Initialize_Position_Step(data,force,dt,time);
-    }
-    do{
-        for(EVOLUTION_TYPE<TV>& evolution : evolution_collection) {
-            evolution.Update_Position(data,force,dt,time);
-        }
-        // for noninertial: this means solve the update system and apply it
-        // for inertial: this is a nop?
-        Solve_System();
+    // for inertial:
+    // advance position with current-ish velocities (possibly update to t+1/2 first)
+    // so, compute forces to correct time, do velocity solve (enforce constraints)
+    // for non-inertial:
+    // compute forces to correct time, do position solve (enforce constraints)
+    // solve must operate on correct unknowns
 
-    } while(!Position_Step_Done());
+    EQUATION<TV> equation;
+    do{
+        // sets up structure but does not solve for variables (forces and data)
+        equation.Linearize(data,dt,time); // make force balance a force as well?
+        // solve for variables
+        equation.Solve(data,force,dt,time);
+    } while(!equation.Satisfied(data,force,dt,time));
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void EVOLUTION<TV>::
