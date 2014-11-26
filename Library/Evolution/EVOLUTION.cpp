@@ -30,7 +30,7 @@ Position_Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
     EQUATION<TV> equation;
     do{
         // sets up structure but does not solve for variables (forces and data)
-        equation.Linearize(data,dt,time); // make force balance a force as well?
+        equation.Linearize(data,force,dt,time); // make force balance a force as well?
         // solve for variables
         equation.Solve(data,force,dt,time);
     } while(!equation.Satisfied(data,force,dt,time));
