@@ -32,15 +32,20 @@ Position_Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
         // sets up structure but does not solve for variables (forces and data)
         equation.Linearize(data,force,dt,time); // make force balance a force as well?
         // solve for variables
-        equation.Solve(data,force,dt,time);
+        solve_result=equation.Solve(data,force,dt,time);
+
+        // step data according to result
+        data.Step(solve_quality,solve_result);
     } while(!equation.Satisfied(data,force,dt,time));
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void EVOLUTION<TV>::
-Velocity_Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
+Evolution_Step(EVOLUTION_STEP<TV>& step,DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
 {
-    force.Compute(data,dt,time);
-    Explicit_Velocity_Step(data,force,dt,time);
-    Implicit_Velocity_Step(data,force,dt,time);
+    for(STEP step : step.prerequisites) {
+        if(!step.Satisfied(data,force,dt,time)) {
+            Evolution_Step(step,data,force,dt,time);
+        }
+    }
 }
 GENERIC_TYPE_DEFINITION(EVOLUTION)
