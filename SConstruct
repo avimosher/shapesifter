@@ -32,10 +32,14 @@ for name,lib in external_libraries.items():
 #                       (name+'_libs','Libraries for '+name,0),
 #                       (name+'_linkflags','Linker flags for '+name,0))
 
+conf=Configure(env)
+print(conf.CheckLib('jsoncpp'))
 
 env.Append(CCFLAGS="-std=c++11")
 env.Append(CPPPATH="#Library")
-SConscript('Library/SConscript',variant_dir='build/Library',exports={'env': env})
-SConscript('Projects/SConscript',variant_dir='build/Projects',exports={'env': env})
+Install('bin',SConscript('Library/SConscript',variant_dir='build/Library',
+                         exports={'env': env}))
+Install('bin',SConscript('Projects/SConscript',variant_dir='build/Projects',
+                         exports={'env': env}))
 #SConscript('Tests/SConscript',variant_dir='build/Tests')
 

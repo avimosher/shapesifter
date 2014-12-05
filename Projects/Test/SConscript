@@ -1,3 +1,5 @@
 Import('env')
 print(Dir('.').path)
-env.Program('hello.cpp')
+nodes=env.Program(target='hello',source=['hello.cpp'])
+Return('nodes')
+#Return(env.Program(target='hello',source=['hello.cpp']))

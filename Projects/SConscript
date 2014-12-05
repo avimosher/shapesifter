@@ -1,3 +1,5 @@
 Import('env')
 
-SConscript('Test/SConscript',exports={'env': env})
+nodes=SConscript('Test/SConscript',exports={'env': env})
+Return('nodes')
+
