@@ -1,25 +1,24 @@
 //#####################################################################
 // Copyright 2014, Avi Robinson-Mosher.
 //#####################################################################
-// Class SIMPLE_REPULSION_FORCE
+// Class TEST_FORCE
 //#####################################################################
-#ifndef __SIMPLE_REPULSION_FORCE__
-#define __SIMPLE_REPULSION_FORCE__
+#ifndef __TEST_FORCE__
+#define __TEST_FORCE__
 
 #include <Force/FORCE_TYPE.h>
 
 namespace Mechanics{
 template<class TV> class DATA;
-template<class TV> class FORCE;
 
 template<class TV>
-class SIMPLE_REPULSION_FORCE : public FORCE_TYPE<TV>
+class TEST_FORCE : public FORCE_TYPE<TV>
 {
     typedef typename TV::Scalar T;
 
 public:
-    SIMPLE_REPULSION_FORCE();
-    ~SIMPLE_REPULSION_FORCE();
+    TEST_FORCE();
+    ~TEST_FORCE();
 
     T Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T target_time);
     void Linearize(DATA<TV>& data,const T dt,const T time,std::vector<Triplet<T>>& force_terms,std::vector<Triplet<T>>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side);

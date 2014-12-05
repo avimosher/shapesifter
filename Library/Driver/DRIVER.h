@@ -6,6 +6,8 @@
 #ifndef __DRIVER__
 #define __DRIVER__
 
+#include <Utilities/TYPE_UTILITIES.h>
+
 namespace Mechanics{
 template<class TV> class DATA;
 template<class TV> class EVOLUTION;
@@ -22,15 +24,17 @@ public:
     FORCE<TV>& force;
     int output_number;
     int current_frame;
-    const T time;
+    int restart_frame;
+    T time;
+    T last_time;
 
     DRIVER(DATA<TV>& data,EVOLUTION<TV>& evolution,FORCE<TV>& force);
     ~DRIVER();
 
-    void Initialize() PHYSBAM_OVERRIDE;
+    void Initialize();
     void Advance_One_Time_Step(const T target_time,bool &done);
-    void Advance_To_Target_Time(const T target_time) PHYSBAM_OVERRIDE;
-    void Execute_Main_Program() PHYSBAM_OVERRIDE;
+    void Advance_To_Target_Time(const T target_time);
+    void Execute_Main_Program();
 };
 }
 #endif

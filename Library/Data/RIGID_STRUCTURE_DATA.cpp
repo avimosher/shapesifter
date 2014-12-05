@@ -5,11 +5,13 @@
 ///////////////////////////////////////////////////////////////////////
 #include <Data/RIGID_STRUCTURE_DATA.h>
 using namespace Mechanics;
+///////////////////////////////////////////////////////////////////////
 template<class TV> RIGID_STRUCTURE_DATA<TV>::
 RIGID_STRUCTURE_DATA()
 {
 }
 ///////////////////////////////////////////////////////////////////////
+#if 0
 template<class TV> Matrix<typename TV::Scalar,Dynamic,1> RIGID_STRUCTURE_DATA<TV>::
 Pack()
 {
@@ -19,7 +21,9 @@ Pack()
     }
     return packed;
 }
+#endif
 ///////////////////////////////////////////////////////////////////////
+#if 0
 template<class TV> Matrix<typename TV::Scalar,Dynamic,1> RIGID_STRUCTURE_DATA<TV>::
 Unpack(Matrix<T,Dynamic,1>& packed)
 {
@@ -27,5 +31,6 @@ Unpack(Matrix<T,Dynamic,1>& packed)
         structure.Unpack(packed.block<blockSize,1>());
     }
 }
+#endif
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(RIGID_STRUCTURE_DATA)

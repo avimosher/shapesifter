@@ -1,26 +1,31 @@
 //#####################################################################
 // Copyright 2014, Avi Robinson-Mosher.
 //#####################################################################
-// Class NONINERTIAL_SYSTEM
+// Class FORCE
 //#####################################################################
-#ifndef __NONINERTIAL_SYSTEM__
-#define __NONINERTIAL_SYSTEM__
+#ifndef __FORCE__
+#define __FORCE__
+
+#include <Utilities/TYPE_UTILITIES.h>
+#include <Eigen/SparseCore>
+#include <vector>
 
 namespace Mechanics{
 template<class TV> class DATA;
+template<class TV> class FORCE_TYPE;
+
 
 template<class TV>
-class NONINERTIAL_SYSTEM
+class FORCE:public std::vector<FORCE_TYPE<TV>*>
 {
     typedef typename TV::Scalar T;
 
 public:
-    NONINERTIAL_SYSTEM();
-    ~NONINERTIAL_SYSTEM();
+    FORCE();
+    ~FORCE();
 
     T Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T target_time);
-    void Position_Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time);
-    void Velocity_Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time);
+    void Linearize(DATA<TV>& data,const T dt,const T time,Triplet<T>& force_terms,Triplet<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side);
 };
 }
 #endif

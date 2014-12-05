@@ -6,22 +6,24 @@
 #ifndef __EQUATION__
 #define __EQUATION__
 
+#include <Utilities/TYPE_UTILITIES.h>
+
 namespace Mechanics{
 template<class TV> class DATA;
+template<class TV> class FORCE;
 
 template<class TV>
 class EQUATION
 {
     typedef typename TV::Scalar T;
 
-    std::vector<EQUATION_TYPE*> evolution;
 public:
     EQUATION();
     ~EQUATION();
 
-    T Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T target_time);
-    void Position_Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time);
-    void Velocity_Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time);
+    virtual void Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)=0;
+    virtual Matrix<T,Dynamic,1> Solve(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)=0;
+    virtual bool Satisfied(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)=0;
 };
 }
 #endif

@@ -1,25 +1,30 @@
 //////////////////////////////////////////////////////////////////////
 // Copyright 2014, Avi Robinson-Mosher.
 ///////////////////////////////////////////////////////////////////////
-// Class DATA_TYPE
+// Class TEST_DATA
 ///////////////////////////////////////////////////////////////////////
-#ifndef __DATA_TYPE__
-#define __DATA_TYPE__
+#ifndef __TEST_DATA__
+#define __TEST_DATA__
 
 #include <Data/DATA_TYPE.h>
-#include <Utilities/TYPE_UTILITIES.h>
 
 namespace Mechanics{
 
 template<class TV>
-class DATA_TYPE
+class TEST_DATA:public DATA_TYPE<TV>
 {
     typedef typename TV::Scalar T;
 
+    T internal_data; // v. simple
 public:
-    DATA_TYPE();
-    ~DATA_TYPE();
-    virtual Matrix<T,Dynamic,1> Variables()=0;
+    TEST_DATA(){}
+    ~TEST_DATA(){}
+
+    virtual Matrix<T,Dynamic,1> Variables() {
+        Matrix<T,Dynamic,1> variables(1,1);
+        variables(0,0)=internal_data;
+        return variables;
+    };
 };
 }
 #endif

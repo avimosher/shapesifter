@@ -7,9 +7,11 @@
 #define __RIGID_STRUCTURE_DATA__
 
 #include <Data/DATA_TYPE.h>
+#include <Data/RIGID_STRUCTURE.h>
+#include <Utilities/TYPE_UTILITIES.h>
 
 namespace Mechanics{
-template<class TV> RIGID_STRUCTURE;
+template<class TV> class RIGID_STRUCTURE;
 
 template<class TV>
 class RIGID_STRUCTURE_DATA:public DATA_TYPE<TV>

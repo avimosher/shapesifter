@@ -1,25 +1,29 @@
 //////////////////////////////////////////////////////////////////////
 // Copyright 2014, Avi Robinson-Mosher.
 ///////////////////////////////////////////////////////////////////////
-// Class DATA_TYPE
+// Class EVOLUTION_STEP
 ///////////////////////////////////////////////////////////////////////
-#ifndef __DATA_TYPE__
-#define __DATA_TYPE__
+#ifndef __EVOLUTION_STEP__
+#define __EVOLUTION_STEP__
 
-#include <Data/DATA_TYPE.h>
 #include <Utilities/TYPE_UTILITIES.h>
 
 namespace Mechanics{
+template<class TV> class EQUATION;
 
 template<class TV>
-class DATA_TYPE
+class EVOLUTION_STEP
 {
     typedef typename TV::Scalar T;
 
 public:
-    DATA_TYPE();
-    ~DATA_TYPE();
-    virtual Matrix<T,Dynamic,1> Variables()=0;
+    EQUATION<TV>* equation;
+    std::vector<EVOLUTION_STEP<TV>*> prerequisites;
+
+    EVOLUTION_STEP();
+    ~EVOLUTION_STEP();
+
+    bool Satisfied(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time);
 };
 }
 #endif

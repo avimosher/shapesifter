@@ -3,8 +3,14 @@
 ///////////////////////////////////////////////////////////////////////
 // Class NONLINEAR_EQUATION
 ///////////////////////////////////////////////////////////////////////
-#include <Evolution/NONLINEAR_EQUATION.h>
+#include <Data/DATA.h>
+#include <Equation/NONLINEAR_EQUATION.h>
+#include <Force/FORCE.h>
+#include <Force/FORCE_TYPE.h>
+#include <iostream>
+#include <vector>
 #include <Eigen/IterativeSolvers>
+
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> NONLINEAR_EQUATION<TV>::
@@ -15,28 +21,33 @@ NONLINEAR_EQUATION()
 template<class TV> void NONLINEAR_EQUATION<TV>::
 Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
 {
-    Triplet<T> force_terms;
-    Matrix<T,Dynamic,1> right_hand_side;
+    std::vector<Triplet<T>> force_terms;
+    right_hand_side=data.Variables();
     for(FORCE_TYPE<TV>* force_type : force){
         // Eigen nicely sums duplicate entries in a Triplet list - perfect.
-        Triple<T> constraint_terms;
-        force_type.Linearize(data,dt,time,force_terms,constraint_terms,right_hand_side);
+        std::vector<Triplet<T>> constraint_terms;
+        force_type->Linearize(data,dt,time,force_terms,constraint_terms,right_hand_side);
     }
-    // build matrix fromo force terms and constraint terms.  Not that this is sufficiently general...
+    // build matrix from force terms and constraint terms.  Not that this is sufficiently general...
+    matrix.setFromTriplets(force_terms.begin(),force_terms.end());
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>::
 Solve(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
 {
-    const int newton_iterations=40;
     const int solve_iterations=200;
     MINRES<SparseMatrix<T> > solver;
     solver.setMaxIterations(solve_iterations);
 
-    for(int i=0;i<newton_iterations;i++){
-        solver.compute(A);
-        x=solver.solve(b);
-    }
+    solver.compute(matrix);
+    return solver.solve(right_hand_side);
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> bool NONLINEAR_EQUATION<TV>::
+Satisfied(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
+{
+    Matrix<T,Dynamic,1> x=data.Variables(); // TODO: this should probably be per solve type
+    return (matrix*x-right_hand_side).squaredNorm()<1e-8;
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(NONLINEAR_EQUATION)

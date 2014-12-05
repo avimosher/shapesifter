@@ -33,6 +33,8 @@ for name,lib in external_libraries.items():
 #                       (name+'_linkflags','Linker flags for '+name,0))
 
 
+env.Append(CCFLAGS="-std=c++11")
+env.Append(CPPPATH="#Library")
 SConscript('Library/SConscript',variant_dir='build/Library',exports={'env': env})
 SConscript('Projects/SConscript',variant_dir='build/Projects',exports={'env': env})
 #SConscript('Tests/SConscript',variant_dir='build/Tests')

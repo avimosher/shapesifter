@@ -6,9 +6,11 @@
 #ifndef __EVOLUTION_TYPE__
 #define __EVOLUTION_TYPE__
 
-#include <Data/EVOLUTION_TYPE.h>
+#include <Utilities/TYPE_UTILITIES.h>
 
 namespace Mechanics{
+template<class TV> class DATA;
+template<class TV> class FORCE;
 
 template<class TV>
 class EVOLUTION_TYPE
@@ -21,7 +23,7 @@ public:
 
     virtual void Position_Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)=0;
     virtual void Velocity_Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)=0;
-    virtual void Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)=0;
+    virtual T Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)=0;
 };
 }
 #endif
