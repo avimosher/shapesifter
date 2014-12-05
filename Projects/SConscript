@@ -1,5 +1,6 @@
 Import('env')
 
 nodes=SConscript('Test/SConscript',exports={'env': env})
+nodes.append(SConscript('Test_Integration/SConscript',exports={'env': env}))
 Return('nodes')
 

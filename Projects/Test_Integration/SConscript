@@ -1,0 +1,5 @@
+Import('env')
+
+nodes=env.Program(target='test_integration',source=['main.cpp'])
+Return('nodes')
+
