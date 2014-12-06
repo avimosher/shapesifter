@@ -18,8 +18,8 @@ class EQUATION
     typedef typename TV::Scalar T;
 
 public:
-    EQUATION();
-    ~EQUATION();
+    EQUATION(){};
+    ~EQUATION(){};
 
     virtual void Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)=0;
     virtual Matrix<T,Dynamic,1> Solve(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)=0;

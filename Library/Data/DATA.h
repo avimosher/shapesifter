@@ -14,18 +14,17 @@ namespace Mechanics{
 class QUALITY;
 
 template<class TV>
-class DATA
+class DATA : public std::vector<DATA_TYPE<TV>*>
 {
     typedef typename TV::Scalar T;
 
-    std::vector<DATA_TYPE<TV>*> data;
 public:
     bool restart;
 
     DATA();
     ~DATA();
 
-    Matrix<T,Dynamic,1> Variables();
+    void Variables(Matrix<T,Dynamic,1>& variables);
     void Step(QUALITY& step_quality,Matrix<T,Dynamic,1> solve_result);
 };
 }

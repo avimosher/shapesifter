@@ -1,7 +1,7 @@
 import os
 import json
 
-Import('env')
+Import('env Automatic_Library')
 
 ignore=[]
 
@@ -41,10 +41,10 @@ def Find_Sources(dirs,sources=[],ignore=[]):
 def Sublibrary(env,name):
     cpps,headers=Find_Sources([name])
     objects=Automatic_Objects(env,cpps)
-    return env.SharedLibrary(target=name,source=objects)
+    return Automatic_Library(target=name,source=objects,env=env)
 
 libraries=[]
 for d in directories:
     libraries.append(Sublibrary(env,d))
 
-Return('libraries','directories')
+Return('directories')

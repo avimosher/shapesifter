@@ -32,22 +32,31 @@ for name,lib in external_libraries.items():
 #                       (name+'_libs','Libraries for '+name,0),
 #                       (name+'_linkflags','Linker flags for '+name,0))
 
-conf=Configure(env)
-print(conf.CheckLib('jsoncpp'))
+#conf=Configure(env)
+#print(conf.CheckLib('jsoncpp'))
 
-env.Append(CCFLAGS="-std=c++11")
+def Automatic_Program(target,source,env):
+    env.Program(target=target,source=source)
+    env.Install('#bin',target)
+
+def Automatic_Library(target,source,env):
+    library=env.SharedLibrary(target=target,source=source)
+    print(library)
+    env.Install('#bin',library)
+
+env.Append(CCFLAGS="-std=c++11 -g")
 env.Append(CPPPATH="#Library")
-(libraries,directories)=SConscript('Library/SConscript',variant_dir='build/Library',exports={'env': env})
-print(libraries)
-print(directories)
+directories=SConscript('Library/SConscript',variant_dir='build/Library',exports={'env': env,'Automatic_Library': Automatic_Library})
+
 env_projects=env.Copy()
-env_projects.Append(LIBS=directories)
 env_projects.Append(LIBPATH=['#build/Library'])
-Install('bin',libraries)
+env_projects.Append(LIBS=directories)
+#print(libraries)
+#env.Install('#bin',libraries)
 
-executables=SConscript('Projects/SConscript',variant_dir='build/Projects',
-                       exports={'env': env_projects})
-print(executables)
-Install('bin',executables)
+SConscript('Projects/SConscript',variant_dir='build/Projects',
+                       exports={'env': env_projects,
+                                'Automatic_Program': Automatic_Program})
+#print(executables)
+#env_projects.Install('#bin',executables)
 #SConscript('Tests/SConscript',variant_dir='build/Tests')
-

@@ -21,8 +21,8 @@ class NONLINEAR_EQUATION : public EQUATION<TV>
     SparseMatrix<T> matrix;
     Matrix<T,Dynamic,1> right_hand_side;
 public:
-    NONLINEAR_EQUATION();
-    ~NONLINEAR_EQUATION();
+    NONLINEAR_EQUATION(){};
+    ~NONLINEAR_EQUATION(){};
 
     void Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time);
     Matrix<T,Dynamic,1> Solve(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time);

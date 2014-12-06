@@ -1,6 +1,6 @@
-Import('env')
+Import('env Automatic_Program')
 
 nodes=SConscript('Test/SConscript',exports={'env': env})
-nodes.append(SConscript('Test_Integration/SConscript',exports={'env': env}))
-Return('nodes')
+nodes.append(SConscript('Test_Integration/SConscript',exports={'env': env,'Automatic_Program': Automatic_Program}))
+#Return('nodes')
 

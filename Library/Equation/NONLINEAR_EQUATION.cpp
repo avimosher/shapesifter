@@ -13,16 +13,13 @@
 
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
-template<class TV> NONLINEAR_EQUATION<TV>::
-NONLINEAR_EQUATION()
-{
-}
-///////////////////////////////////////////////////////////////////////
 template<class TV> void NONLINEAR_EQUATION<TV>::
 Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
 {
     std::vector<Triplet<T>> force_terms;
-    right_hand_side=data.Variables();
+    data.Variables(right_hand_side);
+    std::cout<<right_hand_side<<std::endl;
+    matrix.resize(1,1);
     for(FORCE_TYPE<TV>* force_type : force){
         // Eigen nicely sums duplicate entries in a Triplet list - perfect.
         std::vector<Triplet<T>> constraint_terms;
@@ -30,6 +27,8 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
     }
     // build matrix from force terms and constraint terms.  Not that this is sufficiently general...
     matrix.setFromTriplets(force_terms.begin(),force_terms.end());
+    std::cout<<"Matrix"<<std::endl;
+    std::cout<<matrix<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>::
@@ -38,7 +37,6 @@ Solve(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
     const int solve_iterations=200;
     MINRES<SparseMatrix<T> > solver;
     solver.setMaxIterations(solve_iterations);
-
     solver.compute(matrix);
     return solver.solve(right_hand_side);
 }
@@ -46,7 +44,8 @@ Solve(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
 template<class TV> bool NONLINEAR_EQUATION<TV>::
 Satisfied(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
 {
-    Matrix<T,Dynamic,1> x=data.Variables(); // TODO: this should probably be per solve type
+    Matrix<T,Dynamic,1> x;
+    data.Variables(x); // TODO: this should probably be per solve type
     return (matrix*x-right_hand_side).squaredNorm()<1e-8;
 }
 ///////////////////////////////////////////////////////////////////////

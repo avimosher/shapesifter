@@ -9,6 +9,7 @@
 #include <Evolution/EVOLUTION_STEP.h>
 #include <Evolution/EVOLUTION_TYPE.h>
 #include <Evolution/QUALITY.h>
+#include <iostream>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> EVOLUTION<TV>::
@@ -24,19 +25,22 @@ template<class TV> EVOLUTION<TV>::
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> typename TV::Scalar EVOLUTION<TV>::
-Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T target_time)
+Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T time,const T target_time,bool& done)
 {
-
+    T dt=.1;
+    done=time+dt>=target_time;
+    return dt;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void EVOLUTION<TV>::
 Evolution_Step(EVOLUTION_STEP<TV>& step,DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
 {
-    for(EVOLUTION_STEP<TV>* step : step->prerequisites) {
+    /*for(EVOLUTION_STEP<TV>* step : step->prerequisites) {
         if(!step->Satisfied(data,force,dt,time)) {
             Evolution_Step(*step,data,force,dt,time);
         }
-    }
+        }*/
+    std::cout<<"ey"<<std::endl;
     EQUATION<TV>& equation=*step.equation;
     do{
         // sets up structure but does not solve for variables (forces and data)
@@ -54,7 +58,7 @@ Evolution_Step(EVOLUTION_STEP<TV>& step,DATA<TV>& data,FORCE<TV>& force,const T 
 template<class TV> void EVOLUTION<TV>::
 Advance_One_Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
 {
-    for(EVOLUTION_STEP<TV>* step : steps) {
+    for(EVOLUTION_STEP<TV>* step : (*this)) {
         if(!step->Satisfied(data,force,dt,time)) {
             Evolution_Step(*step,data,force,dt,time);
         }

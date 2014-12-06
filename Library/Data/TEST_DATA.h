@@ -17,7 +17,7 @@ class TEST_DATA:public DATA_TYPE<TV>
 
     T internal_data; // v. simple
 public:
-    TEST_DATA(){}
+    TEST_DATA(){internal_data=5;}
     ~TEST_DATA(){}
 
     virtual Matrix<T,Dynamic,1> Variables() {
