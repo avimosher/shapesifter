@@ -5,10 +5,15 @@
 ///////////////////////////////////////////////////////////////////////
 #include <Force/SIMPLE_REPULSION_FORCE.h>
 using namespace Mechanics;
+///////////////////////////////////////////////////////////////////////
 template<class TV> SIMPLE_REPULSION_FORCE<TV>::
 SIMPLE_REPULSION_FORCE()
 {
 }
+///////////////////////////////////////////////////////////////////////
+template<class TV> SIMPLE_REPULSION_FORCE<TV>::
+~SIMPLE_REPULSION_FORCE()
+{}
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void SIMPLE_REPULSION_FORCE<TV>::
 Linearize(DATA<TV>& data,const T dt,const T time,std::vector<Triplet<T>>& force_terms,std::vector<Triplet<T>>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side)

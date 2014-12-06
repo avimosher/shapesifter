@@ -37,9 +37,17 @@ print(conf.CheckLib('jsoncpp'))
 
 env.Append(CCFLAGS="-std=c++11")
 env.Append(CPPPATH="#Library")
-Install('bin',SConscript('Library/SConscript',variant_dir='build/Library',
-                         exports={'env': env}))
-Install('bin',SConscript('Projects/SConscript',variant_dir='build/Projects',
-                         exports={'env': env}))
+(libraries,directories)=SConscript('Library/SConscript',variant_dir='build/Library',exports={'env': env})
+print(libraries)
+print(directories)
+env_projects=env.Copy()
+env_projects.Append(LIBS=directories)
+env_projects.Append(LIBPATH=['#build/Library'])
+Install('bin',libraries)
+
+executables=SConscript('Projects/SConscript',variant_dir='build/Projects',
+                       exports={'env': env_projects})
+print(executables)
+Install('bin',executables)
 #SConscript('Tests/SConscript',variant_dir='build/Tests')
 

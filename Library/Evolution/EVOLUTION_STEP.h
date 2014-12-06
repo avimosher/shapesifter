@@ -9,7 +9,9 @@
 #include <Utilities/TYPE_UTILITIES.h>
 
 namespace Mechanics{
+template<class TV> class DATA;
 template<class TV> class EQUATION;
+template<class TV> class FORCE;
 
 template<class TV>
 class EVOLUTION_STEP

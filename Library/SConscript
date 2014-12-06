@@ -41,7 +41,10 @@ def Find_Sources(dirs,sources=[],ignore=[]):
 def Sublibrary(env,name):
     cpps,headers=Find_Sources([name])
     objects=Automatic_Objects(env,cpps)
-    env.Library(target=name,source=objects)
+    return env.SharedLibrary(target=name,source=objects)
 
+libraries=[]
 for d in directories:
-    Sublibrary(env,d)
+    libraries.append(Sublibrary(env,d))
+
+Return('libraries','directories')

@@ -17,6 +17,12 @@ EVOLUTION()
     
 }
 ///////////////////////////////////////////////////////////////////////
+template<class TV> EVOLUTION<TV>::
+~EVOLUTION()
+{
+    
+}
+///////////////////////////////////////////////////////////////////////
 template<class TV> typename TV::Scalar EVOLUTION<TV>::
 Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T target_time)
 {

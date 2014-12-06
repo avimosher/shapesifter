@@ -13,8 +13,8 @@ namespace Mechanics{
 class QUALITY
 {
 public:
-    QUALITY();
-    ~QUALITY();
+    QUALITY(){};
+    ~QUALITY(){};
 };
 }
 #endif
