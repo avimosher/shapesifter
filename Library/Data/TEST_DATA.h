@@ -7,6 +7,7 @@
 #define __TEST_DATA__
 
 #include <Data/DATA_TYPE.h>
+#include <iostream>
 
 namespace Mechanics{
 
@@ -20,11 +21,20 @@ public:
     TEST_DATA(){internal_data=5;}
     ~TEST_DATA(){}
 
+    virtual int Size(){
+        return 1;
+    }
+
     virtual Matrix<T,Dynamic,1> Variables() {
         Matrix<T,Dynamic,1> variables(1,1);
         variables(0,0)=internal_data;
         return variables;
-    };
+    }
+
+    virtual void Step(const Matrix<T,Dynamic,1>& variables) {
+        std::cout<<"Stepped"<<std::endl;
+        internal_data=variables(0,0);
+    }    
 };
 }
 #endif

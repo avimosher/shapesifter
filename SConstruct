@@ -1,5 +1,6 @@
 import os
 
+Decider('timestamp-match')
 #options=Options('SConstruct.options')
 
 external_libraries_dir="#External_Libraries/"
@@ -36,12 +37,15 @@ for name,lib in external_libraries.items():
 #print(conf.CheckLib('jsoncpp'))
 
 def Automatic_Program(target,source,env):
-    env.Program(target=target,source=source)
+    program=env.Program(target=target,source=source)
+    print(program)
+#    env.Command('bin',target,Copy('$TARGET','$SOURCE'))
     env.Install('#bin',target)
 
 def Automatic_Library(target,source,env):
     library=env.SharedLibrary(target=target,source=source)
     print(library)
+#    env.Command('bin'+library,library,Copy('$TARGET','$SOURCE'))
     env.Install('#bin',library)
 
 env.Append(CCFLAGS="-std=c++11 -g")

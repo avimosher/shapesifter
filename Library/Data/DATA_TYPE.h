@@ -19,7 +19,9 @@ class DATA_TYPE
 public:
     DATA_TYPE();
     ~DATA_TYPE();
+    virtual int Size()=0;
     virtual Matrix<T,Dynamic,1> Variables()=0;
+    virtual void Step(const Matrix<T,Dynamic,1>& variables)=0;
 };
 }
 #endif

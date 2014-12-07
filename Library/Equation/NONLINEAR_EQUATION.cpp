@@ -27,8 +27,6 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
     }
     // build matrix from force terms and constraint terms.  Not that this is sufficiently general...
     matrix.setFromTriplets(force_terms.begin(),force_terms.end());
-    std::cout<<"Matrix"<<std::endl;
-    std::cout<<matrix<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>::
