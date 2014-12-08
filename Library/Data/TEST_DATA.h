@@ -8,6 +8,7 @@
 
 #include <Data/DATA_TYPE.h>
 #include <iostream>
+#include <cereal/archives/json.hpp>
 
 namespace Mechanics{
 
@@ -34,7 +35,12 @@ public:
     virtual void Step(const Matrix<T,Dynamic,1>& variables) {
         std::cout<<"Stepped"<<std::endl;
         internal_data=variables(0,0);
-    }    
+    }
+
+    template<class Archive>
+    void serialize(Archive& archive) {
+        archive(cereal::make_nvp("internal_data",internal_data));
+    }
 };
 }
 #endif

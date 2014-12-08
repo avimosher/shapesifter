@@ -18,8 +18,10 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
 {
     std::vector<Triplet<T>> force_terms;
     data.Variables(right_hand_side);
-    std::cout<<right_hand_side<<std::endl;
     matrix.resize(1,1);
+    for(int i=0;i<matrix.rows();i++){
+        force_terms.push_back(Triplet<T>(i,i,1));
+    }
     for(FORCE_TYPE<TV>* force_type : force){
         // Eigen nicely sums duplicate entries in a Triplet list - perfect.
         std::vector<Triplet<T>> constraint_terms;
@@ -27,6 +29,7 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
     }
     // build matrix from force terms and constraint terms.  Not that this is sufficiently general...
     matrix.setFromTriplets(force_terms.begin(),force_terms.end());
+    std::cout<<matrix<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>::

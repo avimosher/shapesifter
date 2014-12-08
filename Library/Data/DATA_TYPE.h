@@ -9,6 +9,10 @@
 #include <Data/DATA_TYPE.h>
 #include <Utilities/TYPE_UTILITIES.h>
 
+namespace cereal{
+class JSONOutputArchive;
+};
+
 namespace Mechanics{
 
 template<class TV>
@@ -22,6 +26,7 @@ public:
     virtual int Size()=0;
     virtual Matrix<T,Dynamic,1> Variables()=0;
     virtual void Step(const Matrix<T,Dynamic,1>& variables)=0;
+    template<class Archive> void serialize(Archive& archive){}
 };
 }
 #endif

@@ -26,7 +26,7 @@ int main()
     step.equation=&equation;
     evolution.push_back(&step);
     force.push_back(&test_force);
-    data.push_back(&test_data);
+    data.push_back(std::unique_ptr<DATA_TYPE<TV>>(new TEST_DATA<TV>()));
     DRIVER<TV> driver(data,evolution,force);
     driver.last_time=10;
     driver.Execute_Main_Program();

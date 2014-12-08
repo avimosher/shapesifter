@@ -27,7 +27,7 @@ template<class TV> EVOLUTION<TV>::
 template<class TV> typename TV::Scalar EVOLUTION<TV>::
 Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T time,const T target_time,bool& done)
 {
-    T dt=.1;
+    T dt=1;
     done=time+dt>=target_time;
     return dt;
 }

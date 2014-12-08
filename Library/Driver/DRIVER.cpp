@@ -11,7 +11,7 @@ using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> DRIVER<TV>::
 DRIVER(DATA<TV>& data,EVOLUTION<TV>& evolution,FORCE<TV>& force)
-    :data(data),evolution(evolution),force(force)
+    :data(data),evolution(evolution),force(force),output_number(0),current_frame(0),restart_frame(0),time(0)
 {
 }
 ///////////////////////////////////////////////////////////////////////
@@ -49,7 +49,7 @@ Advance_To_Target_Time(const T target_time)
     bool done=false;
     for(int substep=1;!done;substep++){
         Advance_One_Time_Step(target_time,done);
-        //data.Write_Output_Files(current_frame);
+        data.Write(current_frame);
         std::cout<<substep<<std::endl;
     }
 }
