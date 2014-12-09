@@ -7,8 +7,9 @@
 #define __FORCE__
 
 #include <Utilities/TYPE_UTILITIES.h>
-#include <Eigen/SparseCore>
+#include <memory>
 #include <vector>
+#include <Eigen/SparseCore>
 
 namespace Mechanics{
 template<class TV> class DATA;
@@ -16,7 +17,7 @@ template<class TV> class FORCE_TYPE;
 
 
 template<class TV>
-class FORCE:public std::vector<FORCE_TYPE<TV>*>
+class FORCE:public std::vector<std::unique_ptr<FORCE_TYPE<TV>>>
 {
     typedef typename TV::Scalar T;
 

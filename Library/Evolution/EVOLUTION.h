@@ -7,6 +7,7 @@
 #define __EVOLUTION__
 
 #include <Utilities/TYPE_UTILITIES.h>
+#include <memory>
 
 namespace Mechanics{
 template<class TV> class DATA;
@@ -15,7 +16,7 @@ template<class TV> class EVOLUTION_TYPE;
 template<class TV> class FORCE;
 
 template<class TV>
-class EVOLUTION : public std::vector<EVOLUTION_STEP<TV>*>
+class EVOLUTION : public std::vector<std::unique_ptr<EVOLUTION_STEP<TV>>>
 {
     typedef typename TV::Scalar T;
 

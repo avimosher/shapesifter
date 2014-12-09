@@ -1,0 +1,25 @@
+//////////////////////////////////////////////////////////////////////
+// Copyright 2014, Avi Robinson-Mosher.
+///////////////////////////////////////////////////////////////////////
+// Class FRAME
+///////////////////////////////////////////////////////////////////////
+#ifndef __FRAME__
+#define __FRAME__
+
+#include <Utilities/TYPE_UTILITIES.h>
+
+namespace Mechanics{
+
+template<class TV>
+class FRAME
+{
+    typedef typename TV::Scalar T;
+public:
+    TV position;
+    ROTATION<TV> orientation;
+
+    FRAME();
+    ~FRAME();
+};
+}
+#endif

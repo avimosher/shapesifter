@@ -59,7 +59,7 @@ Evolution_Step(EVOLUTION_STEP<TV>& step,DATA<TV>& data,FORCE<TV>& force,const T 
 template<class TV> void EVOLUTION<TV>::
 Advance_One_Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
 {
-    for(EVOLUTION_STEP<TV>* step : (*this)) {
+    for(std::unique_ptr<EVOLUTION_STEP<TV>>& step : (*this)) {
         if(!step->Satisfied(data,force,dt,time)) {
             Evolution_Step(*step,data,force,dt,time);
         }
