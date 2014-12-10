@@ -23,8 +23,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     // let's say the test force is F=-kv, and v is our only system variable (?)
     // so v=v*-k*dt*v
     T k=4;
-    force_terms.push_back(Triplet<T>(0,0,k*dt));
     std::cout<<"blah"<<std::endl;
+    force_terms.push_back(Triplet<T>(0,0,k*dt));
     //right_hand_side(0)=-
 }
 ///////////////////////////////////////////////////////////////////////

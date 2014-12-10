@@ -1,4 +1,5 @@
 import os
+import glob
 
 Decider('timestamp-match')
 #options=Options('SConstruct.options')
@@ -7,7 +8,8 @@ external_libraries_dir="#External_Libraries/"
 external_libraries={
     'cereal': {'default': 1, 'libs':[''],'cpppath':[external_libraries_dir+'cereal/include']},
     'eigen': {'default': 1, 'libs':[''],'cpppath':[external_libraries_dir+'eigen',external_libraries_dir+'eigen/unsupported']},
-    'json': {'default': 1,'cpppath':[external_libraries_dir+'jsoncpp/dist'],'libs':['jsoncpp'],'libpath':[external_libraries_dir+'jsoncpp/dist']}
+    'json': {'default': 1,'cpppath':[external_libraries_dir+'jsoncpp/dist'],'libs':['jsoncpp'],'libpath':[external_libraries_dir+'jsoncpp/dist']},
+    'osg': {'default': 1,'libs':['osg','osgDB','osgGA','osgViewer']}
 }
 
 env=Environment()
@@ -49,6 +51,10 @@ def Automatic_Library(target,source,env):
 #    env.Command('bin'+library,library,Copy('$TARGET','$SOURCE'))
     env.Install('#bin',library)
 
+def Find_SConscripts(env,dir):
+    for c in glob.glob(os.path.join(dir,"*","SConscript")):
+        env.SConscript(c,variant_dir='build/'+os.path.dirname(c),exports={'env': env,'Automatic_Program': Automatic_Program})
+
 env.Append(CCFLAGS="-std=c++11 -g")
 env.Append(CPPPATH="#Library")
 directories=SConscript('Library/SConscript',variant_dir='build/Library',exports={'env': env,'Automatic_Library': Automatic_Library})
@@ -59,9 +65,10 @@ env_projects.Append(LIBS=directories)
 #print(libraries)
 #env.Install('#bin',libraries)
 
-SConscript('Projects/SConscript',variant_dir='build/Projects',
-                       exports={'env': env_projects,
-                                'Automatic_Program': Automatic_Program})
+Find_SConscripts(env_projects,'Projects')
+#SConscript('Projects/SConscript',variant_dir='build/Projects',
+#                       exports={'env': env_projects,
+#                                'Automatic_Program': Automatic_Program})
 #print(executables)
 #env_projects.Install('#bin',executables)
 #SConscript('Tests/SConscript',variant_dir='build/Tests')
