@@ -27,6 +27,7 @@ public:
     virtual Matrix<T,Dynamic,1> Variables()=0;
     virtual void Step(const Matrix<T,Dynamic,1>& variables)=0;
     template<class Archive> void serialize(Archive& archive){}
+    virtual T Print(){return T();}
 };
 }
 #endif

@@ -6,11 +6,13 @@
 #ifndef __BROWNIAN_FORCE__
 #define __BROWNIAN_FORCE__
 
+#include <Force/FORCE_TYPE.h>
+
 namespace Mechanics{
 template<class TV> class DATA;
 
 template<class TV>
-class BROWNIAN_FORCE
+class BROWNIAN_FORCE : public FORCE_TYPE<TV>
 {
     typedef typename TV::Scalar T;
 

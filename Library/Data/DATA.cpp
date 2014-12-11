@@ -61,4 +61,22 @@ Write(const int frame)
     //archive(*((std::vector<std::unique_ptr<DATA_TYPE<TV>>>*)this));
 }
 /////////////////////////////////////////////////////////////////////// 
+template<class TV> void DATA<TV>::
+Read(const int frame)
+{
+    std::ostringstream stringStream;
+    stringStream<<output_directory<<"/frame."<<frame;
+    std::ifstream input(stringStream.str().c_str(),std::ios::out);
+    cereal::JSONInputArchive archive(input);
+    std::cout<<"Trying archive"<<std::endl;
+    archive((*this)[0]);
+    //archive(*((std::vector<std::unique_ptr<DATA_TYPE<TV>>>*)this));
+}
+/////////////////////////////////////////////////////////////////////// 
+template<class TV> typename TV::Scalar DATA<TV>::
+Print_All()
+{
+    return (*this)[0]->Print();
+}
+/////////////////////////////////////////////////////////////////////// 
 GENERIC_TYPE_DEFINITION(DATA)

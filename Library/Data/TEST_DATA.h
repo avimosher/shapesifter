@@ -17,8 +17,9 @@ class TEST_DATA:public DATA_TYPE<TV>
 {
     typedef typename TV::Scalar T;
 
-    T internal_data; // v. simple
 public:
+    T internal_data; // v. simple
+
     TEST_DATA(){internal_data=5;}
     ~TEST_DATA(){}
 
@@ -33,13 +34,17 @@ public:
     }
 
     virtual void Step(const Matrix<T,Dynamic,1>& variables) {
-        std::cout<<"Stepped"<<std::endl;
         internal_data=variables(0,0);
     }
 
     template<class Archive>
     void serialize(Archive& archive) {
+        std::cout<<"Serialize"<<std::endl;
         archive(cereal::make_nvp("internal_data",internal_data));
+    }
+    
+    virtual T Print() {
+        return internal_data;
     }
 };
 }

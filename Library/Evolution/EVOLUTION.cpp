@@ -40,14 +40,12 @@ Evolution_Step(EVOLUTION_STEP<TV>& step,DATA<TV>& data,FORCE<TV>& force,const T 
             Evolution_Step(*step,data,force,dt,time);
         }
         }*/
-    std::cout<<"ey"<<std::endl;
     EQUATION<TV>& equation=*step.equation;
     do{
         // sets up structure but does not solve for variables (forces and data)
         equation.Linearize(data,force,dt,time); // make force balance a force as well?
         // solve for variables
         Matrix<T,Dynamic,1> solve_result=equation.Solve(data,force,dt,time);
-        std::cout<<"Result "<<solve_result<<std::endl;
 
         QUALITY solve_quality;
 

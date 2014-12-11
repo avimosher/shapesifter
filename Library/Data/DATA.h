@@ -29,6 +29,8 @@ public:
     void Variables(Matrix<T,Dynamic,1>& variables);
     void Step(QUALITY& step_quality,Matrix<T,Dynamic,1> solve_result);
     void Write(const int frame);
+    void Read(const int frame);
+    T Print_All();
 };
 }
 #endif
