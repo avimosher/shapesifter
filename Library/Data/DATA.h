@@ -8,8 +8,9 @@
 
 #include <Data/DATA_TYPE.h>
 #include <Utilities/TYPE_UTILITIES.h>
-#include <vector>
 #include <memory>
+#include <vector>
+#include <osg/Group>
 
 namespace Mechanics{
 class QUALITY;
@@ -31,6 +32,7 @@ public:
     void Write(const int frame);
     void Read(const int frame);
     T Print_All();
+    void Viewer(osg::Group*& root);
 };
 }
 #endif

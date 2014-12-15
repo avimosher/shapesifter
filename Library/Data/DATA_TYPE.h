@@ -8,6 +8,7 @@
 
 #include <Data/DATA_TYPE.h>
 #include <Utilities/TYPE_UTILITIES.h>
+#include <osg/Node>
 
 namespace cereal{
 class JSONOutputArchive;
@@ -28,6 +29,7 @@ public:
     virtual void Step(const Matrix<T,Dynamic,1>& variables)=0;
     template<class Archive> void serialize(Archive& archive){}
     virtual T Print(){return T();}
+    virtual void Viewer(osg::Node* node){};
 };
 }
 #endif

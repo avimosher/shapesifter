@@ -7,6 +7,7 @@
 #include <iostream>
 #include <fstream>
 #include <cereal/archives/json.hpp>
+#include <osg/Group>
 
 using namespace Mechanics;
 /////////////////////////////////////////////////////////////////////// 
@@ -75,6 +76,15 @@ template<class TV> typename TV::Scalar DATA<TV>::
 Print_All()
 {
     return (*this)[0]->Print();
+}
+/////////////////////////////////////////////////////////////////////// 
+template<class TV> void DATA<TV>::
+Viewer(osg::Group*& root)
+{
+    root=root?root:new osg::Group();
+    for(std::unique_ptr<DATA_TYPE<TV>>& data_type : (*this)){
+        data_type->Viewer(root);
+    }
 }
 /////////////////////////////////////////////////////////////////////// 
 GENERIC_TYPE_DEFINITION(DATA)

@@ -1,5 +1,5 @@
-#include <Parsing/FACTORY.h>
 #include <Parsing/PARSE_SCENE.h>
+#include <Parsing/PARSER_REGISTRY.h>
 #include <json/json.h>
 
 using namespace Mechanics;
@@ -14,7 +14,7 @@ Parse_Scene(std::istream& input,DATA<TV>& data)
     if(!success){return false;}
     Json::Value arrayRoot=root["root"];
     std::cout<<arrayRoot.size()<<std::endl;
-    for(int i=0;i<arrayRoot.size();i++){FACTORY<TV>::Parse(arrayRoot[i],data);}
+    for(int i=0;i<arrayRoot.size();i++){PARSER_REGISTRY<TV>::Parse(arrayRoot[i],data);}
     return true;
 }
 
