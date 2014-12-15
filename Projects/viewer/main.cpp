@@ -1,14 +1,16 @@
 #include <Data/DATA.h>
 #include <Data/TEST_DATA.h>
-#include <osg/Node>
-#include <osgWidget/Box>
-#include <osg/ShapeDrawable>
+#include <Parsing/PARSE_SCENE.h>
 #include <osg/Geode>
-#include <osgGA/GUIEventHandler>
+#include <osg/Node>
 #include <osg/PositionAttitudeTransform>
+#include <osg/ShapeDrawable>
 #include <osgDB/ReadFile>
+#include <osgGA/GUIEventHandler>
 #include <osgGA/TrackballManipulator>
 #include <osgViewer/Viewer>
+#include <osgWidget/Box>
+#include <fstream>
 
 using namespace Mechanics;
 osg::PositionAttitudeTransform* transform;
@@ -23,6 +25,11 @@ class KeyboardEventHandler : public osgGA::GUIEventHandler
 public:
     KeyboardEventHandler() {
         frame=1;
+
+        std::ifstream test_config("config.json",std::ifstream::in);
+        PARSE_SCENE<TV>::Parse_Scene(test_config,data);
+    
+
         test_data=new TEST_DATA<TV>();
         data.push_back(std::unique_ptr<DATA_TYPE<TV>>(test_data));
         data.Read(frame);
@@ -62,7 +69,6 @@ public:
 
 int main()
 {
-    
 
     osg::Node* cessnaNode=NULL;
     osg::Node* tankNode=NULL;

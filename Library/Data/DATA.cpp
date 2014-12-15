@@ -56,7 +56,6 @@ Write(const int frame)
     stringStream<<output_directory<<"/frame."<<frame;
     std::ofstream output(stringStream.str().c_str(),std::ios::out);
     cereal::JSONOutputArchive archive(output);
-    std::cout<<"Trying archive"<<std::endl;
     archive((*this)[0]);
     //archive(*((std::vector<std::unique_ptr<DATA_TYPE<TV>>>*)this));
 }
@@ -66,9 +65,8 @@ Read(const int frame)
 {
     std::ostringstream stringStream;
     stringStream<<output_directory<<"/frame."<<frame;
-    std::ifstream input(stringStream.str().c_str(),std::ios::out);
+    std::ifstream input(stringStream.str().c_str(),std::ios::in);
     cereal::JSONInputArchive archive(input);
-    std::cout<<"Trying archive"<<std::endl;
     archive((*this)[0]);
     //archive(*((std::vector<std::unique_ptr<DATA_TYPE<TV>>>*)this));
 }
