@@ -10,6 +10,7 @@
 #include <Utilities/TYPE_UTILITIES.h>
 #include <memory>
 #include <vector>
+#include <Eigen/Geometry>
 #include <osg/Group>
 
 namespace Mechanics{

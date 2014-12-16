@@ -14,11 +14,10 @@ namespace Mechanics{
 template<class TV> class RIGID_STRUCTURE;
 
 template<class TV>
-class RIGID_STRUCTURE_DATA:public DATA_TYPE<TV>
+class RIGID_STRUCTURE_DATA:public DATA_TYPE<TV>,public std::vector<std::unique_ptr<RIGID_STRUCTURE<TV>>>
 {
     typedef typename TV::Scalar T;
 
-    std::vector<RIGID_STRUCTURE<TV>*> structures;
 public:
     RIGID_STRUCTURE_DATA();
     ~RIGID_STRUCTURE_DATA();

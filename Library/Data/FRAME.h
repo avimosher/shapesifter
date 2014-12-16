@@ -7,6 +7,7 @@
 #define __FRAME__
 
 #include <Utilities/TYPE_UTILITIES.h>
+#include <Eigen/Geometry>
 
 namespace Mechanics{
 
@@ -16,7 +17,7 @@ class FRAME
     typedef typename TV::Scalar T;
 public:
     TV position;
-    ROTATION<TV> orientation;
+    Quaternion<T> orientation;
 
     FRAME();
     ~FRAME();
