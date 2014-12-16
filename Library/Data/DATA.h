@@ -9,7 +9,7 @@
 #include <Data/DATA_TYPE.h>
 #include <Utilities/TYPE_UTILITIES.h>
 #include <memory>
-#include <vector>
+#include <unordered_map>
 #include <Eigen/Geometry>
 #include <osg/Group>
 
@@ -17,7 +17,7 @@ namespace Mechanics{
 class QUALITY;
 
 template<class TV>
-class DATA : public std::vector<std::unique_ptr<DATA_TYPE<TV>>>
+class DATA : public std::unordered_map<std::string,std::shared_ptr<DATA_TYPE<TV>>>
 {
     typedef typename TV::Scalar T;
 

@@ -10,10 +10,10 @@ REGISTER_PARSER(PARSE_TEST_DATA)
 template<class TV> void PARSE_TEST_DATA<TV>::
 Parse(Json::Value& node,DATA<TV>& data)
 {
-    TEST_DATA<TV>* test_data=new TEST_DATA<TV>();
+    auto test_data=std::make_shared<TEST_DATA<TV>>();
     test_data->internal_data=node["internal_data"].asDouble();
     std::cout<<test_data->internal_data<<std::endl;
-    data.push_back(std::unique_ptr<DATA_TYPE<TV>>(test_data));
+    data.insert({test_data->Name(),test_data});
 }
 
 GENERIC_TYPE_DEFINITION(PARSE_TEST_DATA)

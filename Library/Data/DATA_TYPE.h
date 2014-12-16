@@ -30,6 +30,15 @@ public:
     template<class Archive> void serialize(Archive& archive){}
     virtual T Print(){return T();}
     virtual void Viewer(osg::Node* node){};
+    virtual std::string Name(){return "DATA_TYPE";}
 };
+
+#define DEFINE_TYPE_NAME(name)        \
+    std::string Static_Name()  \
+    {return name;}            \
+                               \
+    virtual std::string Name() \
+    {return Static_Name();}
+
 }
 #endif

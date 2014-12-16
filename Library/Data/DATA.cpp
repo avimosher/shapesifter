@@ -26,14 +26,14 @@ template<class TV> void DATA<TV>::
 Variables(Matrix<typename TV::Scalar,Dynamic,1>& variables)
 {
     int total_size=0;
-    for (std::unique_ptr<DATA_TYPE<TV>>& data_type : (*this)){
-        total_size+=data_type->Size();
+    for(auto data_type : (*this)){
+        total_size+=data_type.second->Size();
     }
     variables.resize(total_size,1);
     int current_position=0;
-    for (std::unique_ptr<DATA_TYPE<TV>>& data_type : (*this)){
-        int data_size=data_type->Size();
-        variables.block(current_position,0,data_size,1)=data_type->Variables();
+    for(auto data_type : (*this)){
+        int data_size=data_type.second->Size();
+        variables.block(current_position,0,data_size,1)=data_type.second->Variables();
         current_position+=data_size;
     }
 }
@@ -42,10 +42,10 @@ template<class TV> void DATA<TV>::
 Step(QUALITY& step_quality,Matrix<T,Dynamic,1> solve_result)
 {
     int current_position=0;
-    for(std::unique_ptr<DATA_TYPE<TV>>& data_type : (*this)){
-        int data_size=data_type->Size();
+    for(auto data_type : (*this)){
+        int data_size=data_type.second->Size();
         std::cout<<"Stepcaller"<<std::endl;
-        data_type->Step(solve_result.block(current_position,0,data_size,1));
+        data_type.second->Step(solve_result.block(current_position,0,data_size,1));
         current_position+=data_size;
     }
 }
@@ -82,8 +82,8 @@ template<class TV> void DATA<TV>::
 Viewer(osg::Group*& root)
 {
     root=root?root:new osg::Group();
-    for(std::unique_ptr<DATA_TYPE<TV>>& data_type : (*this)){
-        data_type->Viewer(root);
+    for(auto data_type : (*this)){
+        data_type.second->Viewer(root);
     }
 }
 /////////////////////////////////////////////////////////////////////// 

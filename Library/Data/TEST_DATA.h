@@ -76,6 +76,8 @@ public:
         osg::Vec3 pos(internal_data,internal_data,internal_data);
         transform->setPosition(pos);
     }
+
+    DEFINE_TYPE_NAME("TEST_DATA")
 };
 }
 #endif

@@ -3,6 +3,7 @@
 ///////////////////////////////////////////////////////////////////////
 // Class TEST_FORCE
 ///////////////////////////////////////////////////////////////////////
+#include <Data/DATA.h>
 #include <Force/TEST_FORCE.h>
 #include <iostream>
 using namespace Mechanics;
@@ -22,10 +23,12 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
 {
     // let's say the test force is F=-kv, and v is our only system variable (?)
     // so v=v*-k*dt*v
-    T k=4;
-    std::cout<<"blah"<<std::endl;
-    force_terms.push_back(Triplet<T>(0,0,k*dt));
-    //right_hand_side(0)=-
+    for(auto& test_data : data) {
+        T k=4;
+        std::cout<<"blah"<<std::endl;
+        force_terms.push_back(Triplet<T>(0,0,k*dt));
+        //right_hand_side(0)=-
+    }
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(TEST_FORCE)

@@ -21,6 +21,8 @@ class RIGID_STRUCTURE_DATA:public DATA_TYPE<TV>,public std::vector<std::unique_p
 public:
     RIGID_STRUCTURE_DATA();
     ~RIGID_STRUCTURE_DATA();
+
+    DEFINE_TYPE_NAME("RIGID_STRUCTURE_DATA")
 };
 }
 #endif

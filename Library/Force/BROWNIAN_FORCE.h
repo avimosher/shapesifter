@@ -20,8 +20,7 @@ public:
     BROWNIAN_FORCE();
     ~BROWNIAN_FORCE();
 
-    virtual T Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T target_time);
-    virtual void Add_Stochastic_Terms(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,VELOCITY<TV>& right_hand_side);
+    void Linearize(DATA<TV>& data,const T dt,const T time,std::vector<Triplet<T>>& force_terms,std::vector<Triplet<T>>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side);    
 };
 }
 #endif
