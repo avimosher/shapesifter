@@ -4,10 +4,13 @@
 // Class BROWNIAN_FORCE
 ///////////////////////////////////////////////////////////////////////
 #include <Data/DATA.h>
+#include <Driver/SIMULATION.h>
 #include <Force/BROWNIAN_FORCE.h>
+#include <Force/FORCE.h>
+#include <Parsing/PARSER_REGISTRY.h>
 #include <iostream>
-#include <random>
 #include <math.h>
+#include <random>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> BROWNIAN_FORCE<TV>::
@@ -45,3 +48,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(BROWNIAN_FORCE)
+
+DEFINE_AND_REGISTER_PARSER(BROWNIAN_FORCE)
+{
+    simulation.force.push_back(std::make_shared<BROWNIAN_FORCE<TV>>());
+}

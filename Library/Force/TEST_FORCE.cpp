@@ -4,7 +4,10 @@
 // Class TEST_FORCE
 ///////////////////////////////////////////////////////////////////////
 #include <Data/DATA.h>
+#include <Driver/SIMULATION.h>
+#include <Force/FORCE.h>
 #include <Force/TEST_FORCE.h>
+#include <Parsing/PARSER_REGISTRY.h>
 #include <iostream>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
@@ -32,3 +35,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(TEST_FORCE)
+DEFINE_AND_REGISTER_PARSER(TEST_FORCE)
+{
+    simulation.force.push_back(std::make_shared<TEST_FORCE<TV>>());
+}

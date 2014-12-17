@@ -4,13 +4,16 @@
 // Class NONLINEAR_EQUATION
 ///////////////////////////////////////////////////////////////////////
 #include <Data/DATA.h>
+#include <Driver/SIMULATION.h>
 #include <Equation/NONLINEAR_EQUATION.h>
+#include <Evolution/EVOLUTION.h>
+#include <Evolution/EVOLUTION_STEP.h>
 #include <Force/FORCE.h>
 #include <Force/FORCE_TYPE.h>
+#include <Parsing/PARSER_REGISTRY.h>
 #include <iostream>
 #include <vector>
 #include <Eigen/IterativeSolvers>
-
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void NONLINEAR_EQUATION<TV>::
@@ -51,3 +54,9 @@ Satisfied(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(NONLINEAR_EQUATION)
+DEFINE_AND_REGISTER_PARSER(NONLINEAR_EQUATION)
+{
+    auto evolution_step=std::make_shared<EVOLUTION_STEP<TV>>();
+    evolution_step->equation=new NONLINEAR_EQUATION<TV>();
+    simulation.evolution.push_back(evolution_step);
+}

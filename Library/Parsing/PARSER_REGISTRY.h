@@ -46,5 +46,22 @@ Register()
     static bool registered=Register_##TYPE##_Parser(); \
     };
 
+#define DEFINE_AND_REGISTER_PARSER(TYPE)                                \
+    namespace Mechanics{                                                \
+    template<class TV> class PARSE_##TYPE                               \
+    {                                                                   \
+      public:                                                           \
+        PARSE_##TYPE(){};                                               \
+            static void Parse(Json::Value& node,SIMULATION<TV>& simulation); \
+            static std::string Static_Name(){                           \
+                return TYPE<TV>::Static_Name();                         \
+            }                                                           \
+    };                                                                  \
+    }                                                                   \
+    GENERIC_TYPE_DEFINITION(PARSE_##TYPE)                               \
+    REGISTER_PARSER(PARSE_##TYPE)                                       \
+    template<class TV> void PARSE_##TYPE<TV>::Parse(Json::Value& node,SIMULATION<TV>& simulation)
+
+
 }
 #endif
