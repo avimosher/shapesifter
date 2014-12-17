@@ -1,12 +1,13 @@
 #include <Data/DATA.h>
 #include <Data/TEST_DATA.h>
+#include <Driver/SIMULATION.h>
 #include <Parsing/PARSE_SCENE.h>
+#include <fstream>
 #include <osg/Node>
 #include <osgDB/ReadFile>
 #include <osgGA/GUIEventHandler>
 #include <osgGA/TrackballManipulator>
 #include <osgViewer/Viewer>
-#include <fstream>
 
 using namespace Mechanics;
 
@@ -16,16 +17,16 @@ class KeyboardEventHandler : public osgGA::GUIEventHandler
     typedef Matrix<T,1,1> TV;
     int frame;
 public:
-    DATA<TV> data;
+    SIMULATION<TV> simulation;
     osg::Group* root;
 
     KeyboardEventHandler()
         :frame(1),root(new osg::Group()) 
     {
         std::ifstream test_config("config.json",std::ifstream::in);
-        PARSE_SCENE<TV>::Parse_Scene(test_config,data);
-        data.Read(frame);
-        data.Viewer(root);
+        PARSE_SCENE<TV>::Parse_Scene(test_config,simulation);
+        simulation.Read(frame);
+        simulation.data.Viewer(root);
     }
 
     virtual bool handle(const osgGA::GUIEventAdapter& ea,osgGA::GUIActionAdapter&) {
@@ -33,8 +34,8 @@ public:
             case(osgGA::GUIEventAdapter::KEYDOWN):{
                 switch(ea.getKey()) {
                     case 's':
-                        data.Read(++frame);
-                        data.Viewer(root);
+                        simulation.Read(++frame);
+                        simulation.data.Viewer(root);
                         return true;
                         break;
                     default:

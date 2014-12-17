@@ -11,18 +11,18 @@
 #include <iostream>
 
 namespace Mechanics{
-template<class TV> class DATA;
+template<class TV> class SIMULATION;
 
 template<class TV>
 class PARSER_REGISTRY
 {
-    typedef void (*Parse_Function)(Json::Value&,DATA<TV>&);
+    typedef void (*Parse_Function)(Json::Value&,SIMULATION<TV>&);
     static std::map<std::string,Parse_Function>& Parsers();
 public:
     PARSER_REGISTRY(){};
     ~PARSER_REGISTRY(){};
 
-    static void Parse(Json::Value& node,DATA<TV>& data)
+    static void Parse(Json::Value& node,SIMULATION<TV>& data)
     {std::cout<<node["type"].asString()<<std::endl;
         (*Parsers()[node["type"].asString()])(node,data);}
     template<class T_PARSER>static void Register();

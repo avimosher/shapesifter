@@ -1,22 +1,22 @@
-#ifndef __PARSE_TEST_DATA__
-#define __PARSE_TEST_DATA__
+#ifndef __PARSE_TEST_FORCE__
+#define __PARSE_TEST_FORCE__
 
-#include <Data/TEST_DATA.h>
+#include <Force/TEST_FORCE.h>
 #include <json/json.h>
 
 namespace Mechanics{
 template<class TV> class SIMULATION;
 
 template<class TV>
-class PARSE_TEST_DATA
+class PARSE_TEST_FORCE
 {
 public:
-    PARSE_TEST_DATA(){};
-    ~PARSE_TEST_DATA(){};
+    PARSE_TEST_FORCE(){};
+    ~PARSE_TEST_FORCE(){};
 
     static void Parse(Json::Value& node,SIMULATION<TV>& simulation);
     static std::string Static_Name(){
-        return TEST_DATA<TV>::Static_Name();
+        return TEST_FORCE<TV>::Static_Name();
     }
 };
 }

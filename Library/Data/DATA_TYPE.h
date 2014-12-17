@@ -33,12 +33,5 @@ public:
     virtual std::string Name(){return "DATA_TYPE";}
 };
 
-#define DEFINE_TYPE_NAME(name)        \
-    std::string Static_Name()  \
-    {return name;}            \
-                               \
-    virtual std::string Name() \
-    {return Static_Name();}
-
 }
 #endif

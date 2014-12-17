@@ -17,7 +17,7 @@ template<class TV> class FORCE_TYPE;
 
 
 template<class TV>
-class FORCE:public std::vector<std::unique_ptr<FORCE_TYPE<TV>>>
+class FORCE:public std::vector<std::shared_ptr<FORCE_TYPE<TV>>>
 {
     typedef typename TV::Scalar T;
 

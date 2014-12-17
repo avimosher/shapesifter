@@ -13,7 +13,6 @@ using namespace Mechanics;
 /////////////////////////////////////////////////////////////////////// 
 template<class TV> DATA<TV>::
 DATA()
-    :output_directory(".")
 {
 }
 /////////////////////////////////////////////////////////////////////// 
@@ -48,28 +47,6 @@ Step(QUALITY& step_quality,Matrix<T,Dynamic,1> solve_result)
         data_type.second->Step(solve_result.block(current_position,0,data_size,1));
         current_position+=data_size;
     }
-}
-/////////////////////////////////////////////////////////////////////// 
-template<class TV> void DATA<TV>::
-Write(const int frame)
-{
-    std::ostringstream stringStream;
-    stringStream<<output_directory<<"/frame."<<frame;
-    std::ofstream output(stringStream.str().c_str(),std::ios::out);
-    cereal::JSONOutputArchive archive(output);
-    archive((*this)[0]);
-    //archive(*((std::vector<std::unique_ptr<DATA_TYPE<TV>>>*)this));
-}
-/////////////////////////////////////////////////////////////////////// 
-template<class TV> void DATA<TV>::
-Read(const int frame)
-{
-    std::ostringstream stringStream;
-    stringStream<<output_directory<<"/frame."<<frame;
-    std::ifstream input(stringStream.str().c_str(),std::ios::in);
-    cereal::JSONInputArchive archive(input);
-    archive((*this)[0]);
-    //archive(*((std::vector<std::unique_ptr<DATA_TYPE<TV>>>*)this));
 }
 /////////////////////////////////////////////////////////////////////// 
 template<class TV> typename TV::Scalar DATA<TV>::

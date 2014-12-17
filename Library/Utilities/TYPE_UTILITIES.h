@@ -26,6 +26,11 @@ using namespace Eigen;
     GENERIC_SCALAR_CEREAL_REGISTRATION(TYPE,float) \
     GENERIC_SCALAR_CEREAL_REGISTRATION(TYPE,double)
 
-
+#define DEFINE_TYPE_NAME(name)       \
+    static std::string Static_Name() \
+    {return name;}                   \
+                                     \
+    virtual std::string Name()       \
+    {return Static_Name();}
 
 #endif

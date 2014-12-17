@@ -21,6 +21,7 @@ public:
     ~TEST_FORCE();
 
     void Linearize(DATA<TV>& data,const T dt,const T time,std::vector<Triplet<T>>& force_terms,std::vector<Triplet<T>>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side);
+    DEFINE_TYPE_NAME("TEST_FORCE")
 };
 }
 #endif

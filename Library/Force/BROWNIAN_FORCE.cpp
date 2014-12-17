@@ -6,6 +6,8 @@
 #include <Data/DATA.h>
 #include <Force/BROWNIAN_FORCE.h>
 #include <iostream>
+#include <random>
+#include <math.h>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> BROWNIAN_FORCE<TV>::
@@ -31,8 +33,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     T radius=1;
     for(auto iterator=data.find("RIGID_STRUCTURE_DATA");iterator!=data.end();++iterator){
         std::cout<<"Found data.  He was hiding."<<std::endl;
-        auto rigid_data=iterator.second;
-        T translational_diffusion_coefficient=kT/(6*pi*eta*radius);
+        auto rigid_data=iterator->second;
+        T translational_diffusion_coefficient=kT/(6*M_PI*eta*radius);
         T translational_variance=sqrt(2*translational_diffusion_coefficient*dt);
         std::normal_distribution<> distribution(0,translational_variance);
         T random_displacement=distribution(generator);

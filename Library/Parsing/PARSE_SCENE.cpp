@@ -5,7 +5,7 @@
 using namespace Mechanics;
 
 template<class TV> bool PARSE_SCENE<TV>::
-Parse_Scene(std::istream& input,DATA<TV>& data)
+Parse_Scene(std::istream& input,SIMULATION<TV>& simulation)
 {
     Json::Value root;
     Json::Reader reader;
@@ -14,7 +14,7 @@ Parse_Scene(std::istream& input,DATA<TV>& data)
     if(!success){return false;}
     Json::Value arrayRoot=root["root"];
     std::cout<<arrayRoot.size()<<std::endl;
-    for(int i=0;i<arrayRoot.size();i++){PARSER_REGISTRY<TV>::Parse(arrayRoot[i],data);}
+    for(int i=0;i<arrayRoot.size();i++){PARSER_REGISTRY<TV>::Parse(arrayRoot[i],simulation);}
     return true;
 }
 

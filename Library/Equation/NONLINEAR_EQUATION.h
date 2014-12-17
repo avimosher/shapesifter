@@ -27,6 +27,8 @@ public:
     void Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time);
     Matrix<T,Dynamic,1> Solve(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time);
     bool Satisfied(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time);
+
+    DEFINE_TYPE_NAME("NONLINEAR_EQUATION")
 };
 }
 #endif

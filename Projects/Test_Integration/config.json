@@ -1,0 +1,7 @@
+{
+    "root": [
+        {"type": "TEST_DATA", "internal_data": 5.3},
+        {"type": "TEST_FORCE"},
+        {"type": "NONLINEAR_EQUATION"}
+    ]
+}

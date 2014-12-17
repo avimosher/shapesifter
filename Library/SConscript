@@ -38,13 +38,12 @@ def Find_Sources(dirs,sources=[],ignore=[]):
     headers=filter(lambda s:s.endswith('.h'),local_sources)
     return cpps,headers
 
-def Sublibrary(env,name):
-    cpps,headers=Find_Sources([name])
+def Sublibrary(env,name,dir):
+    cpps,headers=Find_Sources([dir])
     objects=Automatic_Objects(env,cpps)
     return Automatic_Library(target=name,source=objects,env=env)
 
-libraries=[]
-for d in directories:
-    libraries.append(Sublibrary(env,d))
+name='Mechanics'
+Sublibrary(env,name,'.')
 
-Return('directories')
+Return('name')

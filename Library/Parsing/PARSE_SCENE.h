@@ -5,7 +5,7 @@
 #include <memory>
 
 namespace Mechanics{
-template<class TV> class DATA;
+template<class TV> class SIMULATION;
 
 template<class TV>
 class PARSE_SCENE
@@ -16,7 +16,7 @@ public:
     PARSE_SCENE(){};
     ~PARSE_SCENE(){};
 
-    static bool Parse_Scene(std::istream& input,DATA<TV>& data);
+    static bool Parse_Scene(std::istream& input,SIMULATION<TV>& simulation);
 };
 }
 #endif

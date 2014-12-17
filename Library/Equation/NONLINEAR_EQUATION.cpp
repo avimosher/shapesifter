@@ -22,7 +22,7 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
     for(int i=0;i<matrix.rows();i++){
         force_terms.push_back(Triplet<T>(i,i,1));
     }
-    for(std::unique_ptr<FORCE_TYPE<TV>>& force_type : force){
+    for(auto& force_type : force){
         // Eigen nicely sums duplicate entries in a Triplet list - perfect.
         std::vector<Triplet<T>> constraint_terms;
         force_type->Linearize(data,dt,time,force_terms,constraint_terms,right_hand_side);

@@ -7,7 +7,7 @@
 #include <Utilities/TYPE_UTILITIES.h>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
-template<class TV> std::map<std::string,void (*)(Json::Value&,DATA<TV>&)>& PARSER_REGISTRY<TV>::
+template<class TV> std::map<std::string,void (*)(Json::Value&,SIMULATION<TV>&)>& PARSER_REGISTRY<TV>::
 Parsers()
 {
     static std::map<std::string,Parse_Function> parser_registry;
