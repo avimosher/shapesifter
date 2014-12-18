@@ -8,7 +8,7 @@
 
 #include <Data/DATA_TYPE.h>
 #include <iostream>
-#include <cereal/archives/json.hpp>
+#include <cereal/archives/binary.hpp>
 #include <osg/Geode>
 #include <osg/Node>
 #include <osg/PositionAttitudeTransform>

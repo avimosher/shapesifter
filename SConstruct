@@ -44,7 +44,7 @@ def Automatic_Program(target,source,env):
     print(program)
 #    env.Command('bin',target,Copy('$TARGET','$SOURCE'))
     env.Install('#bin',target)
-
+    
 def Automatic_Library(target,source,env):
     library=env.SharedLibrary(target=target,source=source)
     print(library)
@@ -72,3 +72,5 @@ Find_SConscripts(env_projects,'Projects')
 #print(executables)
 #env_projects.Install('#bin',executables)
 #SConscript('Tests/SConscript',variant_dir='build/Tests')
+    
+    

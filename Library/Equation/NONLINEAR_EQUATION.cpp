@@ -21,7 +21,8 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
 {
     std::vector<Triplet<T>> force_terms;
     data.Variables(right_hand_side);
-    matrix.resize(1,1);
+int size=right_hand_side.rows();
+    matrix.resize(size,size);
     for(int i=0;i<matrix.rows();i++){
         force_terms.push_back(Triplet<T>(i,i,1));
     }

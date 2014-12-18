@@ -8,7 +8,7 @@
 #include <Evolution/EVOLUTION.h>
 #include <Force/FORCE.h>
 #include <fstream>
-#include <cereal/archives/json.hpp>
+#include <cereal/archives/binary.hpp>
 #include <cereal/types/unordered_map.hpp>
 #include <cereal/types/string.hpp>
 using namespace Mechanics;
@@ -34,7 +34,7 @@ Write(const int frame)
     std::ostringstream stringStream;
     stringStream<<output_directory<<"/frame."<<frame;
     std::ofstream output(stringStream.str().c_str(),std::ios::out);
-    cereal::JSONOutputArchive archive(output);
+    cereal::BinaryOutputArchive archive(output);
     archive(data);
 }
 /////////////////////////////////////////////////////////////////////// 
@@ -44,7 +44,7 @@ Read(const int frame)
     std::ostringstream stringStream;
     stringStream<<output_directory<<"/frame."<<frame;
     std::ifstream input(stringStream.str().c_str(),std::ios::in);
-    cereal::JSONInputArchive archive(input);
+    cereal::BinaryInputArchive archive(input);
     archive(data);
 }
 ///////////////////////////////////////////////////////////////////////

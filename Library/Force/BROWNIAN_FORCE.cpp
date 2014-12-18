@@ -48,8 +48,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(BROWNIAN_FORCE)
-
 DEFINE_AND_REGISTER_PARSER(BROWNIAN_FORCE)
 {
-    simulation.force.push_back(std::make_shared<BROWNIAN_FORCE<TV>>());
+simulation.force.push_back(std::make_shared<BROWNIAN_FORCE<TV>>());
+std::cout<<"How unexpected"<<std::endl;
 }

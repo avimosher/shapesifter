@@ -6,7 +6,9 @@
 #ifndef __RIGID_STRUCTURE__
 #define __RIGID_STRUCTURE__
 
+#include <Data/FRAME.h>
 #include <Utilities/TYPE_UTILITIES.h>
+#include <cereal/archives/binary.hpp>
 
 namespace Mechanics{
 
@@ -16,14 +18,22 @@ class RIGID_STRUCTURE
     typedef typename TV::Scalar T;
 
 public:
-#if 0
+    enum DEFINITIONS{STATIC_SIZE=FRAME<TV>::STATIC_SIZE};
     FRAME<TV> frame;
+#if 0
     TWIST<TV> twist;
     MOMENT<TV> moi;
 #endif
 
     RIGID_STRUCTURE();
-    ~RIGID_STRUCTURE();
+    ~RIGID_STRUCTURE(){};
+
+    template<class Archive>
+    void serialize(Archive& archive) {
+        archive(frame);
+    }
+
+    DEFINE_TYPE_NAME("RIGID_STRUCTURE")
 };
 }
 #endif

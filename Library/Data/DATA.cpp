@@ -6,7 +6,7 @@
 #include <Data/DATA.h>
 #include <iostream>
 #include <fstream>
-#include <cereal/archives/json.hpp>
+#include <cereal/archives/binary.hpp>
 #include <osg/Group>
 
 using namespace Mechanics;
@@ -43,7 +43,6 @@ Step(QUALITY& step_quality,Matrix<T,Dynamic,1> solve_result)
     int current_position=0;
     for(auto data_type : (*this)){
         int data_size=data_type.second->Size();
-        std::cout<<"Stepcaller"<<std::endl;
         data_type.second->Step(solve_result.block(current_position,0,data_size,1));
         current_position+=data_size;
     }

@@ -10,10 +10,10 @@ using namespace Mechanics;
 int main()
 {
     typedef double T;
-    typedef Matrix<T,1,1> TV;
+    typedef Matrix<T,1,3> TV;
     auto simulation=std::make_shared<SIMULATION<TV>>();
 
-    std::ifstream test_config("config.json",std::ifstream::in);
+    std::ifstream test_config("brownian.json",std::ifstream::in);
     PARSE_SCENE<TV>::Parse_Scene(test_config,*simulation);
 
     DRIVER<TV> driver(simulation);
