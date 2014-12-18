@@ -17,6 +17,8 @@ class BROWNIAN_FORCE : public FORCE_TYPE<TV>
     typedef typename TV::Scalar T;
 
 public:
+    T temperature;
+
     BROWNIAN_FORCE();
     ~BROWNIAN_FORCE();
 

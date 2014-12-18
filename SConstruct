@@ -60,8 +60,8 @@ env.Append(CPPPATH="#Library")
 directories=SConscript('Library/SConscript',variant_dir='build/Library',exports={'env': env,'Automatic_Library': Automatic_Library})
 
 env_projects=env.Copy()
-env_projects.Append(LIBPATH=['#build/Library'])
 env_projects.Append(LIBS=directories)
+env_projects.Append(LIBPATH=['#build/Library'])
 #print(libraries)
 #env.Install('#bin',libraries)
 
