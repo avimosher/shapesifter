@@ -10,7 +10,7 @@ using namespace Mechanics;
 int main()
 {
     typedef double T;
-    typedef Matrix<T,1,3> TV;
+    typedef Matrix<T,3,1> TV;
     auto simulation=std::make_shared<SIMULATION<TV>>();
 
     std::ifstream test_config("brownian.json",std::ifstream::in);

@@ -1,0 +1,10 @@
+{
+    "root": [
+        {"type": "RIGID_STRUCTURE_DATA"},
+        {"type": "RIGID_STRUCTURE",
+         "position": [1, 1, 1]
+        },
+        {"type": "BROWNIAN_FORCE"},
+        {"type": "NONLINEAR_EQUATION"}
+    ]
+}

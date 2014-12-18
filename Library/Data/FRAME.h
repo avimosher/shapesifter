@@ -8,6 +8,7 @@
 
 #include <Utilities/TYPE_UTILITIES.h>
 #include <Eigen/Geometry>
+#include <Eigen/Dense>
 #include <cereal/archives/binary.hpp>
 
 namespace cereal
@@ -39,6 +40,7 @@ namespace cereal
 }
 
 namespace Mechanics{
+template<typename T> struct incomplete;
 
 template<class TV>
 class FRAME
@@ -52,9 +54,25 @@ public:
     FRAME(){}
     ~FRAME(){}
 
+    const Eigen::Matrix<T,STATIC_SIZE,1> Pack()
+    {
+        Eigen::Matrix<T,STATIC_SIZE,1> packed;
+        packed.template block<TV::SizeAtCompileTime,1>(0,0)=position;
+        packed.template block<Quaternion<T>::Coefficients::SizeAtCompileTime,1>(TV::SizeAtCompileTime,0)=orientation.coeffs();
+        return packed;
+    }
+
+    const void Unpack(const Eigen::Matrix<T,STATIC_SIZE,1>& packed)
+    {
+        std::cout<<packed<<std::endl;
+        std::cout<<"Position before: "<<position<<std::endl;
+        position=packed.template block<TV::SizeAtCompileTime,1>(0,0);
+        orientation=packed.template block<Quaternion<T>::Coefficients::SizeAtCompileTime,1>(TV::SizeAtCompileTime,0);
+        std::cout<<"Position after: "<<position<<std::endl;
+    }
+
     template<class Archive>
     void serialize(Archive& archive) {
-        std::cout<<Quaternion<T>::Coefficients::SizeAtCompileTime<<std::endl;
         archive(position);
     }
 

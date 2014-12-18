@@ -4,6 +4,7 @@
 // Class BROWNIAN_FORCE
 ///////////////////////////////////////////////////////////////////////
 #include <Data/DATA.h>
+#include <Data/RIGID_STRUCTURE_DATA.h>
 #include <Driver/SIMULATION.h>
 #include <Force/BROWNIAN_FORCE.h>
 #include <Force/FORCE.h>
@@ -35,13 +36,16 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     T eta=3.5;
     T radius=1;
     for(auto iterator=data.find("RIGID_STRUCTURE_DATA");iterator!=data.end();++iterator){
-        std::cout<<"Found data.  He was hiding."<<std::endl;
-        auto rigid_data=iterator->second;
-        T translational_diffusion_coefficient=kT/(6*M_PI*eta*radius);
-        T translational_variance=sqrt(2*translational_diffusion_coefficient*dt);
-        std::normal_distribution<> distribution(0,translational_variance);
-        T random_displacement=distribution(generator);
-        
+        auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(iterator->second);
+        for(int i=0;i<(*rigid_data).structures.size();i++){
+            T translational_diffusion_coefficient=kT/(6*M_PI*eta*radius);
+            T translational_variance=sqrt(2*translational_diffusion_coefficient*dt);
+            std::normal_distribution<> distribution(0,translational_variance);
+            T random_displacement=distribution(generator);
+            TV test;test.fill(random_displacement);
+std::cout<<test<<std::endl;
+            right_hand_side.template block<TV::SizeAtCompileTime,1>(TV::SizeAtCompileTime*i,0)=test;
+        }
     }
     //force_terms.push_back(Triplet<T>(0,0,k*dt));
     //right_hand_side(0)=-

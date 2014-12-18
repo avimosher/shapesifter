@@ -6,12 +6,11 @@
 #ifndef __DATA_TYPE__
 #define __DATA_TYPE__
 
-#include <Data/DATA_TYPE.h>
 #include <Utilities/TYPE_UTILITIES.h>
 #include <osg/Node>
 
 namespace cereal{
-class JSONOutputArchive;
+class BinaryOutputArchive;
 };
 
 namespace Mechanics{

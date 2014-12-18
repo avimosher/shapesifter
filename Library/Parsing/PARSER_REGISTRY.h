@@ -34,7 +34,7 @@ Register()
     Parsers()[T_PARSER::Static_Name()]=T_PARSER::Parse;
 }
 
-#define REGISTER_PARSER_SCALAR(TYPE,T,d) PARSER_REGISTRY<Matrix<T,1,d>>::Register<TYPE<Matrix<T,1,d>>>();
+#define REGISTER_PARSER_SCALAR(TYPE,T,d) PARSER_REGISTRY<Matrix<T,d,1>>::Register<TYPE<Matrix<T,d,1>>>();
 #define REGISTER_PARSER_GENERIC(TYPE,T) REGISTER_PARSER_SCALAR(TYPE,T,1);REGISTER_PARSER_SCALAR(TYPE,T,2);REGISTER_PARSER_SCALAR(TYPE,T,3);
 #define REGISTER_PARSER(TYPE) \
     namespace Mechanics{ \

@@ -30,7 +30,9 @@ public:
 
     template<class Archive>
     void serialize(Archive& archive) {
+        std::cout<<"Rigid serialize"<<std::endl;
         archive(frame);
+        std::cout<<frame.position<<std::endl;
     }
 
     DEFINE_TYPE_NAME("RIGID_STRUCTURE")

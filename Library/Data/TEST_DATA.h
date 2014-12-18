@@ -62,7 +62,6 @@ public:
                 break;
             }
         }
-        std::cout<<transform<<std::endl;
         if(!transform){
             transform=new osg::PositionAttitudeTransform();
             osg::Geode* basicShapesGeode=new osg::Geode();
