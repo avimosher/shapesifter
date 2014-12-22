@@ -24,12 +24,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
 {
     //std::random_device rd; //TODO: separate random class
     //std::mt19937 generator(rd());
-    T temperature=300; // K
     T one_over_dt=1/dt;
-    T k_B=1.38e-2; // pN nm/K
-    T kT=k_B*temperature; // pN nm
-    T eta=3.5;
-    T radius=1;
     RANDOM<TV> random;
     for(auto iterator=data.find("RIGID_STRUCTURE_DATA");iterator!=data.end();++iterator){
         auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(iterator->second);

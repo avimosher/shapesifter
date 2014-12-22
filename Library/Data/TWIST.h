@@ -1,10 +1,5 @@
-//////////////////////////////////////////////////////////////////////
-// Copyright 2014, Avi Robinson-Mosher.
-///////////////////////////////////////////////////////////////////////
-// Class FRAME
-///////////////////////////////////////////////////////////////////////
-#ifndef __FRAME__
-#define __FRAME__
+#ifndef __TWIST__
+#define __TWIST__
 
 #include <Utilities/CEREAL_HELPERS.h>
 #include <Utilities/TYPE_UTILITIES.h>
@@ -15,16 +10,17 @@
 namespace Mechanics{
 
 template<class TV>
-class FRAME
+class TWIST
 {
     typedef typename TV::Scalar T;
+    typedef typename ROTATION<TV>::SPIN T_SPIN;
 public:
-    enum DEFINITIONS{STATIC_SIZE=TV::SizeAtCompileTime+Quaternion<T>::Coefficients::SizeAtCompileTime};
-    TV position;
-    Quaternion<T> rotation;
+    enum DEFINITIONS{STATIC_SIZE=TV::SizeAtCompileTime+T_SPIN::SizeAtCompileTime};
+    TV linear;
+    T_SPIN angular;
 
-    FRAME(){}
-    ~FRAME(){}
+    TWIST(){}
+    ~TWIST(){}
 
     const Eigen::Matrix<T,STATIC_SIZE,1> Pack()
     {

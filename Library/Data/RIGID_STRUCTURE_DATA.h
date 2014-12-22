@@ -26,6 +26,14 @@ public:
     RIGID_STRUCTURE_DATA();
     ~RIGID_STRUCTURE_DATA(){}
 
+    FRAME<TV> Updated_Frame(const DATA<TV>& data,const FRAME<TV>& frame,const TWIST<TV>& twist) const {
+        FRAME<TV> updated_frame;updated_frame.position=data.Wrap(frame.position+twist.linear);
+        T_SPIN spin_axis=twist.angular.normalized();
+        T spin_magnitude=twist.angular.norm();
+        updated_frame.rotation=Eigen::AngleAxis(spin_magnitude,spin_axis)*frame.rotation;
+        return updated_frame;
+    }
+
     template<class Archive>
     void serialize(Archive& archive) {
         //archive(framing);
