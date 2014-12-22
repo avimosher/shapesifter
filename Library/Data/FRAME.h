@@ -49,7 +49,7 @@ class FRAME
 public:
     enum DEFINITIONS{STATIC_SIZE=TV::SizeAtCompileTime+Quaternion<T>::Coefficients::SizeAtCompileTime};
     TV position;
-    Quaternion<T> orientation;
+    Quaternion<T> rotation;
 
     FRAME(){}
     ~FRAME(){}
@@ -58,7 +58,7 @@ public:
     {
         Eigen::Matrix<T,STATIC_SIZE,1> packed;
         packed.template block<TV::SizeAtCompileTime,1>(0,0)=position;
-        packed.template block<Quaternion<T>::Coefficients::SizeAtCompileTime,1>(TV::SizeAtCompileTime,0)=orientation.coeffs();
+        packed.template block<Quaternion<T>::Coefficients::SizeAtCompileTime,1>(TV::SizeAtCompileTime,0)=rotation.coeffs();
         return packed;
     }
 
@@ -67,7 +67,7 @@ public:
         std::cout<<packed<<std::endl;
         std::cout<<"Position before: "<<position<<std::endl;
         position=packed.template block<TV::SizeAtCompileTime,1>(0,0);
-        orientation=packed.template block<Quaternion<T>::Coefficients::SizeAtCompileTime,1>(TV::SizeAtCompileTime,0);
+        rotation=packed.template block<Quaternion<T>::Coefficients::SizeAtCompileTime,1>(TV::SizeAtCompileTime,0);
         std::cout<<"Position after: "<<position<<std::endl;
     }
 
