@@ -31,6 +31,8 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
         std::vector<Triplet<T>> constraint_terms;
         force_type->Linearize(data,dt,time,force_terms,constraint_terms,right_hand_side);
     }
+    // for the sake of sanity, assume that each force adds a constraint block as well as a contribution to the velocity block
+    // Each such block will be required to be in terms of elementary T types, but they will remain separate.  This is a good compromise.
     // build matrix from force terms and constraint terms.  Not that this is sufficiently general...
     matrix.setFromTriplets(force_terms.begin(),force_terms.end());
     std::cout<<matrix<<std::endl;

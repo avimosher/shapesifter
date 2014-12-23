@@ -22,8 +22,6 @@ template<class TV> RELATIVE_POSITION_CONSTRAINT<TV>::
 template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::
 Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& force_terms,std::vector<Triplet<T>>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side)
 {
-    //std::random_device rd; //TODO: separate random class
-    //std::mt19937 generator(rd());
     T one_over_dt=1/dt;
     RANDOM<TV> random;
     for(auto iterator=data.find("RIGID_STRUCTURE_DATA");iterator!=data.end();++iterator){
