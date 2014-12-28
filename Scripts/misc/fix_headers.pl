@@ -5,6 +5,7 @@ use Data::Dumper;
 
 my %lookup;
 
+#print STDERR "entry";
 
 open F, shift @ARGV;
 
@@ -12,6 +13,8 @@ while(<F>){
     chomp;
     /.*\/(.*)/ or die "Failed to parse '$_' as a valid header.\n";
     (defined $lookup{$1}) and die "Duplicate file '$1' encountered\n.";
+#    print STDERR $1."\n";
+#    print STDERR $_."\n";
     $lookup{$1} = $_;
 }
 close F;
@@ -103,3 +106,5 @@ for $filenamex (@ARGV)
     }
 }
 
+
+#print STDERR "exit";

@@ -1,6 +1,9 @@
 #ifndef __CEREAL_HELPERS__
 #define __CEREAL_HELPERS__
 
+#include <cereal/archives/binary.hpp>
+#include <Eigen/Dense>
+
 namespace cereal
 {
   template <class Archive, class _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols> inline

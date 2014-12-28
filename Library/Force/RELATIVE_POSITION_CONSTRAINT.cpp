@@ -1,8 +1,8 @@
 #include <Data/DATA.h>
 #include <Data/RIGID_STRUCTURE_DATA.h>
 #include <Driver/SIMULATION.h>
-#include <Force/RELATIVE_POSITION_CONSTRAINT.h>
 #include <Force/FORCE.h>
+#include <Force/RELATIVE_POSITION_CONSTRAINT.h>
 #include <Parsing/PARSER_REGISTRY.h>
 #include <Utilities/RANDOM.h>
 #include <iostream>

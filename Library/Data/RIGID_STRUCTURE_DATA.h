@@ -7,7 +7,9 @@
 #define __RIGID_STRUCTURE_DATA__
 
 #include <Data/DATA_TYPE.h>
+#include <Data/FRAME.h>
 #include <Data/RIGID_STRUCTURE.h>
+#include <Data/TWIST.h>
 #include <Utilities/TYPE_UTILITIES.h>
 #include <cereal/archives/binary.hpp>
 #include <cereal/types/vector.hpp>
@@ -19,18 +21,30 @@ template<class TV>
 class RIGID_STRUCTURE_DATA:public DATA_TYPE<TV>
 {
     typedef typename TV::Scalar T;
-
+    typedef typename ROTATION<TV>::SPIN T_SPIN;
 public:
     std::vector<std::shared_ptr<RIGID_STRUCTURE<TV>>> structures;
 
     RIGID_STRUCTURE_DATA();
     ~RIGID_STRUCTURE_DATA(){}
 
+    T Rotation_From_Angle_Axis(const Eigen::Matrix<T,0,1>& angle_axis) const {
+        return T();
+    }
+
+    const Eigen::Rotation2D<T> Rotation_From_Angle_Axis(const Eigen::Matrix<T,1,1>& angle_axis) const {
+        return Rotation2D<T>(angle_axis.norm());
+    }
+
+    const Eigen::AngleAxis<T> Rotation_From_Angle_Axis(const Eigen::Matrix<T,3,1>& angle_axis) const {
+        Eigen::Matrix<T,3,1> spin_axis=angle_axis.normalized();
+        T spin_magnitude=angle_axis.norm();
+        return Eigen::AngleAxis<T>(spin_magnitude,spin_axis);
+    }
+
     FRAME<TV> Updated_Frame(const DATA<TV>& data,const FRAME<TV>& frame,const TWIST<TV>& twist) const {
         FRAME<TV> updated_frame;updated_frame.position=data.Wrap(frame.position+twist.linear);
-        T_SPIN spin_axis=twist.angular.normalized();
-        T spin_magnitude=twist.angular.norm();
-        updated_frame.rotation=Eigen::AngleAxis(spin_magnitude,spin_axis)*frame.rotation;
+        updated_frame.orientation=Rotation_From_Angle_Axis(twist.angular)*frame.orientation;
         return updated_frame;
     }
 

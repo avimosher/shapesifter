@@ -16,6 +16,7 @@ env=Environment()
 
 base_env=Environment()
 
+base_env.Append(CPPPATH=external_libraries['json']['cpppath'])
 builder=base_env.SharedObject
 jsoncpp='#External_Libraries/jsoncpp/dist/jsoncpp.cpp'
 jsoncpp_obj=builder(target=os.path.splitext(jsoncpp)[0],source=jsoncpp)

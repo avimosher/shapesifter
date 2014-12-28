@@ -25,6 +25,10 @@ public:
     DATA();
     ~DATA();
 
+    TV Wrap(const TV& unwrapped) const{
+        return unwrapped; // TODO: wrap to domain boundaries
+    }
+
     void Variables(Matrix<T,Dynamic,1>& variables);
     void Step(QUALITY& step_quality,Matrix<T,Dynamic,1> solve_result);
     T Print_All();

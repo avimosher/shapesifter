@@ -6,6 +6,7 @@
 #ifndef __FRAME__
 #define __FRAME__
 
+#include <Data/ROTATION.h>
 #include <Utilities/CEREAL_HELPERS.h>
 #include <Utilities/TYPE_UTILITIES.h>
 #include <cereal/archives/binary.hpp>
@@ -18,10 +19,11 @@ template<class TV>
 class FRAME
 {
     typedef typename TV::Scalar T;
+    typedef typename ROTATION<TV>::ORIENTATION T_ORIENTATION;
 public:
-    enum DEFINITIONS{STATIC_SIZE=TV::SizeAtCompileTime+Quaternion<T>::Coefficients::SizeAtCompileTime};
+    enum DEFINITIONS{STATIC_SIZE=TV::SizeAtCompileTime+ROTATION<TV>::SizeAtCompileTime};
     TV position;
-    Quaternion<T> rotation;
+    T_ORIENTATION orientation;
 
     FRAME(){}
     ~FRAME(){}
@@ -30,15 +32,14 @@ public:
     {
         Eigen::Matrix<T,STATIC_SIZE,1> packed;
         packed.template block<TV::SizeAtCompileTime,1>(0,0)=position;
-        packed.template block<Quaternion<T>::Coefficients::SizeAtCompileTime,1>(TV::SizeAtCompileTime,0)=rotation.coeffs();
+        packed.template block<ROTATION<TV>::SizeAtCompileTime,1>(TV::SizeAtCompileTime,0)=Get_Rotation_Coefficients(orientation);
         return packed;
     }
 
     const void Unpack(const Eigen::Matrix<T,STATIC_SIZE,1>& packed)
     {
-        std::cout<<packed<<std::endl;
         position=packed.template block<TV::SizeAtCompileTime,1>(0,0);
-        rotation=packed.template block<Quaternion<T>::Coefficients::SizeAtCompileTime,1>(TV::SizeAtCompileTime,0);
+        Set_Rotation_Coefficients(orientation,packed.template block<ROTATION<TV>::SizeAtCompileTime,1>(TV::SizeAtCompileTime,0));
     }
 
     template<class Archive>
