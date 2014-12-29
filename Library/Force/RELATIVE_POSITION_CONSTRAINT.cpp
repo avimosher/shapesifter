@@ -31,12 +31,13 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         Eigen::DiagonalMatrix<TV_TRANSPOSE,Dynamic> projection;
         for(int i=0;i<constraints.size();i++){
             const CONSTRAINT& constraint=constraints(i);
-            FRAME<TV> frame1=data.Updated_Frame(rigid_structure1->frame,rigid_velocity->twist(body_index1));
-            FRAME<TV> frame2=data.Updated_Frame(rigid_structure2->frame,rigid_velocity->twist(body_index2));
+            FRAME<TV> frame1=rigid_data->Updated_Frame(rigid_structure1->frame,rigid_velocity->twist(body_index1));
+            FRAME<TV> frame2=rigid_data->Updated_Frame(rigid_structure2->frame,rigid_velocity->twist(body_index2));
             TV offset1=frame1.rotation._transformVector(constraint.structure1.y);
             TV offset2=frame2.rotation._transformVector(constraint.structure2.y);
             TV direction=data.Minimum_Offset(frame1.position+offset1,frame2.position+offset2);
-            T distance=direction.Normalize();
+            T distance=direction.norm();
+            direction.normalize();
             index_map.Relative_Velocity_Map(body_index1,offset1,body_index2,offset2,translation,rotation);
             for(int axis=0;axis<TV::RowsAtCompileTime;axis++){projection(i,i)(0,axis)=direction(axis);}
             // right_hand_side(i)=F0; // need constraint RHS
