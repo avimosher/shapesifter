@@ -29,6 +29,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         std::vector<Triplet<TRANSLATION_MATRIX>> translation;
         std::vector<Triplet<ROTATION_MATRIX>> rotation;
         Eigen::DiagonalMatrix<TV_TRANSPOSE,Dynamic> projection;
+        std::vector<Triplet<CONSTRAINT_VECTOR>> terms;
         for(int i=0;i<constraints.size();i++){
             const CONSTRAINT& constraint=constraints(i);
             FRAME<TV> frame1=rigid_data->Updated_Frame(rigid_structure1->frame,rigid_velocity->twist(body_index1));
@@ -38,11 +39,12 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             TV direction=data.Minimum_Offset(frame1.position+offset1,frame2.position+offset2);
             T distance=direction.norm();
             direction.normalize();
-            index_map.Relative_Velocity_Map(body_index1,offset1,body_index2,offset2,translation,rotation);
-            for(int axis=0;axis<TV::RowsAtCompileTime;axis++){projection(i,i)(0,axis)=direction(axis);}
+            terms.append(Triplet<CONSTRAINT_VECTOR>(,,direction.transpose()*index_map.Velocity_Map(body_index1,offset1)));
+            terms.append(Triplet<CONSTRAINT_VECTOR>(,,-direction.transpose()*index_map.Velocity_Map(body_index2,offset2)));
             // right_hand_side(i)=F0; // need constraint RHS
         }
-        projection*translation;projection*rotation;
+        // TODO: define blocks-per-force
+        matrix.setFromTriplets(terms);
     }
 }
 ///////////////////////////////////////////////////////////////////////
