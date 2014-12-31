@@ -26,7 +26,7 @@ template<class TV> BROWNIAN_FORCE<TV>::
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void BROWNIAN_FORCE<TV>::
-Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& force_terms,std::vector<Triplet<T>>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side)
+Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side)
 {
     //std::random_device rd; //TODO: separate random class
     //std::mt19937 generator(rd());

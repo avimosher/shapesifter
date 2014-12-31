@@ -20,6 +20,7 @@ class NONLINEAR_EQUATION : public EQUATION<TV>
 
     SparseMatrix<T> matrix;
     Matrix<T,Dynamic,1> right_hand_side;
+    Matrix<SparseMatrix<T>,Dynamic,Dynamic> full_matrix;
 public:
     NONLINEAR_EQUATION(){};
     ~NONLINEAR_EQUATION(){};
