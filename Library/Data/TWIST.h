@@ -25,7 +25,7 @@ public:
 
     template<class Archive>
     void serialize(Archive& archive) {
-archive(linear,angular);
+        archive(linear,angular);
     }
 
 };

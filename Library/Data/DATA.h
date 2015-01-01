@@ -29,6 +29,10 @@ public:
         return unwrapped; // TODO: wrap to domain boundaries
     }
 
+    TV Minimum_Offset(const TV& X1,const TV& X2) const{
+        return X2-X1;
+    }
+
     void Variables(Matrix<T,Dynamic,1>& variables);
     void Step(QUALITY& step_quality,Matrix<T,Dynamic,1> solve_result);
     T Print_All();

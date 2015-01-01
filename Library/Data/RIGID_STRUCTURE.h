@@ -7,6 +7,7 @@
 #define __RIGID_STRUCTURE__
 
 #include <Data/FRAME.h>
+#include <Data/TWIST.h>
 #include <Utilities/TYPE_UTILITIES.h>
 #include <cereal/archives/binary.hpp>
 
@@ -20,8 +21,8 @@ class RIGID_STRUCTURE
 public:
     enum DEFINITIONS{STATIC_SIZE=FRAME<TV>::STATIC_SIZE};
     FRAME<TV> frame;
-#if 0
     TWIST<TV> twist;
+#if 0
     MOMENT<TV> moi;
 #endif
 

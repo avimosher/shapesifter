@@ -28,8 +28,8 @@ public:
     RIGID_STRUCTURE_DATA();
     ~RIGID_STRUCTURE_DATA(){}
 
-    T Rotation_From_Angle_Axis(const Eigen::Matrix<T,0,1>& angle_axis) const {
-        return T();
+    const Eigen::Rotation1D<T> Rotation_From_Angle_Axis(const Eigen::Matrix<T,0,1>& angle_axis) const {
+        return Eigen::Rotation1D<T>();
     }
 
     const Eigen::Rotation2D<T> Rotation_From_Angle_Axis(const Eigen::Matrix<T,1,1>& angle_axis) const {
