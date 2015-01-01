@@ -11,7 +11,7 @@ template<class TV> struct ROTATION;
 template<class T>
 struct ROTATION<Eigen::Matrix<T,1,1>>
 {
-    enum DEFINITIONS{SizeAtCompileTime=0};
+    enum DEFINITIONS{SizeAtCompileTime=0,TwistSize=0};
     typedef Eigen::Matrix<T,0,1> SPIN;
     typedef Eigen::Matrix<T,0,1> ORIENTATION;
 };
@@ -19,7 +19,7 @@ struct ROTATION<Eigen::Matrix<T,1,1>>
 template<class T>
 struct ROTATION<Eigen::Matrix<T,2,1>>
 {
-    enum DEFINITIONS{SizeAtCompileTime=1};
+    enum DEFINITIONS{SizeAtCompileTime=1,TwistSize=1};
     typedef Eigen::Matrix<T,1,1> SPIN;
     typedef Eigen::Rotation2D<T> ORIENTATION;
 };
@@ -27,7 +27,7 @@ struct ROTATION<Eigen::Matrix<T,2,1>>
 template<class T>
 struct ROTATION<Eigen::Matrix<T,3,1>>
 {
-    enum DEFINITIONS{SizeAtCompileTime=4};
+    enum DEFINITIONS{SizeAtCompileTime=4,TwistSize=3};
     typedef Eigen::Matrix<T,3,1> SPIN;
     typedef Eigen::Quaternion<T> ORIENTATION;
 };
