@@ -19,8 +19,9 @@ class NONLINEAR_EQUATION : public EQUATION<TV>
     typedef typename TV::Scalar T;
 
     SparseMatrix<T> matrix;
-    Matrix<Matrix<T,Dynamic,1>,Dynamic,1> right_hand_side;
     Matrix<SparseMatrix<T>,Dynamic,Dynamic> full_matrix;
+    Matrix<T,Dynamic,1> right_hand_side;
+    Matrix<Matrix<T,Dynamic,1>,Dynamic,1> full_right_hand_side;
 public:
     NONLINEAR_EQUATION(){};
     ~NONLINEAR_EQUATION(){};

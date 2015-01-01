@@ -48,6 +48,43 @@ void Flatten_Matrix(const std::vector<Eigen::Triplet<Eigen::Matrix<T,rows,cols>>
 }
 
 template<class T>
+void Merge_Block_Matrices(const Eigen::Matrix<Eigen::SparseMatrix<T>,Eigen::Dynamic,Eigen::Dynamic>& block_matrix,Eigen::SparseMatrix<T>& matrix)
+{
+    std::vector<Eigen::Triplet<T>> triplets;
+    int rowbase=0,colbase=0;
+    for(int i=0;i<block_matrix.rows();i++){
+        for(int j=0;j<block_matrix.cols();j++){
+            auto& block=block_matrix(i,j);
+            for(int k=0;k<block.outerSize();k++){
+                for(typename Eigen::SparseMatrix<T>::InnerIterator it(block,k);it;++it){
+                    triplets.push_back(Eigen::Triplet<T>(rowbase+it.row(),colbase+it.col(),it.value()));
+                }
+            }
+            colbase+=block_matrix(i,j).cols();
+        }
+        colbase=0;
+        rowbase+=block_matrix(i,0).rows();
+    }
+    matrix.setFromTriplets(triplets.begin(),triplets.end());
+}
+
+template<class T>
+void Merge_Block_Vectors(const Eigen::Matrix<Eigen::Matrix<T,Eigen::Dynamic,1>,Eigen::Dynamic,1>& block_matrix,Eigen::Matrix<T,Eigen::Dynamic,1>& matrix)
+{
+    int rowbase=0;
+    for(int i=0;i<block_matrix.rows();i++){
+        auto& block=block_matrix(i,0);
+        rowbase+=block.rows();}
+    matrix.resize(rowbase,1);
+    rowbase=0;
+    for(int i=0;i<block_matrix.rows();i++){
+        auto& block=block_matrix(i,0);
+        matrix.block(rowbase,0,rowbase+block.rows(),1)=block;
+        rowbase+=block.rows();
+    }
+}
+
+template<class T>
 Eigen::Matrix<T,3,3> Cross_Product_Matrix(const Eigen::Matrix<T,3,1>& v)
 {
     Eigen::Matrix<T,3,3> matrix;matrix<<0,v[2],-v[1],-v[2],0,v[0],v[1],-v[0],0;return matrix;

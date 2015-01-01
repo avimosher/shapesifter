@@ -39,7 +39,7 @@ for name,lib in external_libraries.items():
 
 #conf=Configure(env)
 #print(conf.CheckLib('jsoncpp'))
-
+    
 def Automatic_Program(target,source,env):
     program=env.Program(target=target,source=source)
     print(program)
