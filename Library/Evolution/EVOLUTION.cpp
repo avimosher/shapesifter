@@ -35,11 +35,11 @@ Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T time,const T target_time,bool
 template<class TV> void EVOLUTION<TV>::
 Evolution_Step(EVOLUTION_STEP<TV>& step,DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
 {
-    /*for(EVOLUTION_STEP<TV>* step : step->prerequisites) {
-        if(!step->Satisfied(data,force,dt,time)) {
-            Evolution_Step(*step,data,force,dt,time);
+    for(EVOLUTION_STEP<TV>* prerequisite_step : step.prerequisites) {
+        if(!prerequisite_step->Satisfied(data,force,dt,time)) {
+            Evolution_Step(*prerequisite_step,data,force,dt,time);
         }
-        }*/
+    }
     EQUATION<TV>& equation=*step.equation;
     do{
         // sets up structure but does not solve for variables (forces and data)

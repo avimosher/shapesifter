@@ -37,8 +37,10 @@ public:
     }
 
     const Eigen::AngleAxis<T> Rotation_From_Angle_Axis(const Eigen::Matrix<T,3,1>& angle_axis) const {
-        Eigen::Matrix<T,3,1> spin_axis=angle_axis.normalized();
+        Eigen::Matrix<T,3,1> spin_axis;
         T spin_magnitude=angle_axis.norm();
+        if(std::abs(spin_magnitude)<1e-5){spin_axis<<1,0,0;}
+        else{spin_axis=angle_axis.normalized();}
         return Eigen::AngleAxis<T>(spin_magnitude,spin_axis);
     }
 
@@ -54,9 +56,15 @@ public:
         archive(structures);
     }
 
+    int Structure_Index(const std::string& name) {
+        for(int i=0;i<structures.size();i++){
+            if(structures[i]->name==name){return i;}}
+        return -1;
+    }
+
     int Size();
     Matrix<T,Dynamic,1> Variables();
-    void Step(const Matrix<T,Dynamic,1>& variables);
+    void Step(const DATA<TV>& data,const Matrix<T,Dynamic,1>& variables);
     virtual void Viewer(osg::Node* node);
 
     DEFINE_TYPE_NAME("RIGID_STRUCTURE_DATA")

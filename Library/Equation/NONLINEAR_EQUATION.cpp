@@ -26,14 +26,16 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
 
     std::vector<Triplet<T>> force_terms;
     data.Variables(full_right_hand_side(0,0));
-    int size=full_right_hand_side.rows();
+    int size=full_right_hand_side(0,0).rows();
     matrix.resize(size,size);
+    full_matrix(0,0).resize(size,size);
     for(int i=0;i<matrix.rows();i++){
         force_terms.push_back(Triplet<T>(i,i,1));
     }
     for(int i=0;i<force.size();i++){
         // Eigen nicely sums duplicate entries in a Triplet list - perfect.
         force[i]->Linearize(data,dt,time,force_terms,full_matrix(i+1,0),full_right_hand_side(0,0),full_right_hand_side(i+1,0));
+        full_matrix(0,i+1)=full_matrix(i+1,0).transpose();
     }
     // for the sake of sanity, assume that each force adds a constraint block as well as a contribution to the velocity block
     // Each such block will be required to be in terms of elementary T types, but they will remain separate.  This is a good compromise.
@@ -58,9 +60,10 @@ Solve(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
 template<class TV> bool NONLINEAR_EQUATION<TV>::
 Satisfied(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
 {
-    Matrix<T,Dynamic,1> x;
-    data.Variables(x); // TODO: this should probably be per solve type
-    return (matrix*x-right_hand_side).squaredNorm()<1e-8;
+    //Matrix<T,Dynamic,1> x;
+    //data.Variables(x); // TODO: this should probably be per solve type
+    return true;
+    //return (matrix*x-right_hand_side).squaredNorm()<1e-8;
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(NONLINEAR_EQUATION)

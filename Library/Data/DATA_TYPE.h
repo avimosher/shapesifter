@@ -14,6 +14,7 @@ class BinaryOutputArchive;
 };
 
 namespace Mechanics{
+template<class TV> class DATA;
 
 template<class TV>
 class DATA_TYPE
@@ -25,7 +26,7 @@ public:
     ~DATA_TYPE();
     virtual int Size()=0;
     virtual Matrix<T,Dynamic,1> Variables()=0;
-    virtual void Step(const Matrix<T,Dynamic,1>& variables)=0;
+    virtual void Step(const DATA<TV>& data,const Matrix<T,Dynamic,1>& variables)=0;
     template<class Archive> void serialize(Archive& archive){}
     virtual T Print(){return T();}
     virtual void Viewer(osg::Node* node){};

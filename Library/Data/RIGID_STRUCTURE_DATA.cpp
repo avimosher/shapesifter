@@ -22,24 +22,26 @@ RIGID_STRUCTURE_DATA()
 template<class TV> int RIGID_STRUCTURE_DATA<TV>::
 Size()
 {
-    return structures.size()*RIGID_STRUCTURE<TV>::STATIC_SIZE;
+    return structures.size()*TWIST<TV>::STATIC_SIZE;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> Matrix<typename TV::Scalar,Dynamic,1> RIGID_STRUCTURE_DATA<TV>::
 Variables()
 {
-    Matrix<T,Dynamic,1> packed(RIGID_STRUCTURE<TV>::STATIC_SIZE*structures.size(),1);
+    Matrix<T,Dynamic,1> packed(TWIST<TV>::STATIC_SIZE*structures.size(),1);
     for(int i=0;i<structures.size();i++){
-        packed.template block<RIGID_STRUCTURE<TV>::STATIC_SIZE,1>(i*RIGID_STRUCTURE<TV>::STATIC_SIZE,0)=structures[i]->frame.Pack();
+        packed.template block<TWIST<TV>::STATIC_SIZE,1>(i*TWIST<TV>::STATIC_SIZE,0)=structures[i]->twist.Pack();
     }
     return packed;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RIGID_STRUCTURE_DATA<TV>::
-Step(const Matrix<T,Dynamic,1>& variables)
+Step(const DATA<TV>& data,const Matrix<T,Dynamic,1>& variables)
 {
     for(int i=0;i<structures.size();i++){
-        structures[i]->frame.Unpack(variables.template block<RIGID_STRUCTURE<TV>::STATIC_SIZE,1>(i*RIGID_STRUCTURE<TV>::STATIC_SIZE,0));
+        structures[i]->twist.Unpack(variables.template block<TWIST<TV>::STATIC_SIZE,1>(i*TWIST<TV>::STATIC_SIZE,0));
+        structures[i]->frame=Updated_Frame(data,structures[i]->frame,structures[i]->twist);
+        //structures[i]->frame.Unpack(variables.template block<RIGID_STRUCTURE<TV>::STATIC_SIZE,1>(i*RIGID_STRUCTURE<TV>::STATIC_SIZE,0));
     }
 }
 ///////////////////////////////////////////////////////////////////////

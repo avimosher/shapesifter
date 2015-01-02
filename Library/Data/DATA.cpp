@@ -43,7 +43,7 @@ Step(QUALITY& step_quality,Matrix<T,Dynamic,1> solve_result)
     int current_position=0;
     for(auto data_type : (*this)){
         int data_size=data_type.second->Size();
-        data_type.second->Step(solve_result.block(current_position,0,data_size,1));
+        data_type.second->Step(*this,solve_result.block(current_position,0,data_size,1));
         current_position+=data_size;
     }
 }

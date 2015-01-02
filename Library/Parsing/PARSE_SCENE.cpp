@@ -11,7 +11,10 @@ Parse_Scene(std::istream& input,SIMULATION<TV>& simulation)
     Json::Reader reader;
     bool success=reader.parse(input,root);
     std::cout<<"Parse success: "<<success<<std::endl;
-    if(!success){return false;}
+    if(!success){
+        std::cout<<reader.getFormattedErrorMessages()<<std::endl;
+        return false;
+    }
     Json::Value arrayRoot=root["root"];
     std::cout<<arrayRoot.size()<<std::endl;
     for(int i=0;i<arrayRoot.size();i++){PARSER_REGISTRY<TV>::Parse(arrayRoot[i],simulation);}

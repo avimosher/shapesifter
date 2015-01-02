@@ -6,22 +6,19 @@
 namespace Mechanics{
 
 template<class TV>
-struct CONSTRAINT{
-    typedef typename TV::Scalar T;
-    int s1;
-    TV v1;
-    int s2;
-    TV v2;
-    T target_distance;
-};
-
-template<class TV>
 class RELATIVE_POSITION_CONSTRAINT : public FORCE_TYPE<TV>
 {
     typedef typename TV::Scalar T;
-
-    std::vector<CONSTRAINT<TV>> constraints;
 public:
+    struct CONSTRAINT{
+        int s1;
+        TV v1;
+        int s2;
+        TV v2;
+        T target_distance;
+    };
+    std::vector<CONSTRAINT> constraints;
+
     RELATIVE_POSITION_CONSTRAINT();
     ~RELATIVE_POSITION_CONSTRAINT();
 

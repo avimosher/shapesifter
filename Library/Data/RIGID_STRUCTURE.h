@@ -20,6 +20,7 @@ class RIGID_STRUCTURE
 
 public:
     enum DEFINITIONS{STATIC_SIZE=FRAME<TV>::STATIC_SIZE};
+    std::string name;
     FRAME<TV> frame;
     TWIST<TV> twist;
 #if 0
@@ -31,7 +32,6 @@ public:
 
     template<class Archive>
     void serialize(Archive& archive) {
-        std::cout<<"Rigid serialize"<<std::endl;
         archive(frame);
         std::cout<<frame.position<<std::endl;
     }

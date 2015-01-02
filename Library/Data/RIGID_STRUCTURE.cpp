@@ -21,6 +21,7 @@ DEFINE_AND_REGISTER_PARSER(RIGID_STRUCTURE)
     std::shared_ptr<RIGID_STRUCTURE<TV>> structure=std::make_shared<RIGID_STRUCTURE<TV>>();
     Json::Value position=node["position"];
     for(int i=0;i<position.size();i++){structure->frame.position[i]=position[i].asDouble();}
+    structure->name=node["name"].asString();
     auto data_element=simulation.data.find(RIGID_STRUCTURE_DATA<TV>::Static_Name());
     auto rigid_structure_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data_element->second);
     rigid_structure_data->structures.push_back(structure);

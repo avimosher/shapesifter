@@ -38,7 +38,7 @@ public:
         return variables;
     }
 
-    virtual void Step(const Matrix<T,Dynamic,1>& variables) {
+    virtual void Step(const DATA<TV>& data,const Matrix<T,Dynamic,1>& variables) {
         internal_data=variables(0,0);
     }
 

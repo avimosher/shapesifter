@@ -11,7 +11,7 @@ class RIGID_STRUCTURE_INDEX_MAP
 {
     typedef typename TV::Scalar T;
 public:
-    enum DEFINITIONS{STATIC_SIZE=FRAME<TV>::STATIC_SIZE,d=TV::RowsAtCompileTime};
+    enum DEFINITIONS{STATIC_SIZE=TWIST<TV>::STATIC_SIZE,d=TV::RowsAtCompileTime};
 
     RIGID_STRUCTURE_INDEX_MAP(){}
     ~RIGID_STRUCTURE_INDEX_MAP(){}

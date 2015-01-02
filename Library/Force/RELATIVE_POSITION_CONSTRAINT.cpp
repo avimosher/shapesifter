@@ -33,7 +33,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         RIGID_STRUCTURE_INDEX_MAP<TV> index_map;
         constraint_rhs.resize(constraints.size(),1);
         for(int i=0;i<constraints.size();i++){
-            const CONSTRAINT<TV>& constraint=constraints[i];
+            const CONSTRAINT& constraint=constraints[i];
             int body_index1=constraint.s1;
             int body_index2=constraint.s2;
             auto rigid_structure1=rigid_data->structures[body_index1];
@@ -49,15 +49,25 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index1,direction.transpose()*index_map.Velocity_Map(offset1)));
             constraint_rhs(i,0)=constraint.target_distance-distance;
         }
+        constraint_terms.resize(constraints.size(),RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE*rigid_data->structures.size());
         Flatten_Matrix(terms,constraint_terms);
-        // TODO: define blocks-per-force
-        //matrix.setFromTriplets(terms);
     }
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(RELATIVE_POSITION_CONSTRAINT)
 DEFINE_AND_REGISTER_PARSER(RELATIVE_POSITION_CONSTRAINT)
 {
+    auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(simulation.data.find("RIGID_STRUCTURE_DATA")->second);
     auto relative_position_constraint=std::make_shared<RELATIVE_POSITION_CONSTRAINT<TV>>();
+    Json::Value constraints=node["constraints"];
+    for(Json::ValueIterator it=constraints.begin();it!=constraints.end();it++){
+        typename RELATIVE_POSITION_CONSTRAINT<TV>::CONSTRAINT constraint;
+        constraint.s1=rigid_data->Structure_Index((*it)["structure1"].asString());
+        Get_Vector((*it)["offset1"],constraint.v1);
+        constraint.s2=rigid_data->Structure_Index((*it)["structure2"].asString());
+        Get_Vector((*it)["offset2"],constraint.v2);
+        constraint.target_distance=(*it)["distance"].asDouble();
+        relative_position_constraint->constraints.push_back(constraint);
+    }
     simulation.force.push_back(relative_position_constraint);
 }
