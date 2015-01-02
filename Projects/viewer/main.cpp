@@ -20,10 +20,10 @@ public:
     SIMULATION<TV> simulation;
     osg::Group* root;
 
-    KeyboardEventHandler()
+    KeyboardEventHandler(const std::string &scenefile)
         :frame(1),root(new osg::Group()) 
     {
-        std::ifstream test_config("brownian.json",std::ifstream::in);
+        std::ifstream test_config(scenefile,std::ifstream::in);
         PARSE_SCENE<TV>::Parse_Scene(test_config,simulation);
         simulation.Read(frame);
         simulation.data.Viewer(root);
@@ -49,9 +49,9 @@ public:
     }
 };
 
-int main()
+int main(int argc,char **argv)
 {
-    KeyboardEventHandler* keyboardEventHandler=new KeyboardEventHandler();
+    KeyboardEventHandler* keyboardEventHandler=new KeyboardEventHandler(argv[1]);
     osgViewer::Viewer viewer;
     viewer.addEventHandler(keyboardEventHandler);
     viewer.setSceneData(keyboardEventHandler->root);
