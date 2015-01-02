@@ -41,17 +41,15 @@ Evolution_Step(EVOLUTION_STEP<TV>& step,DATA<TV>& data,FORCE<TV>& force,const T 
         }
     }
     EQUATION<TV>& equation=*step.equation;
-    do{
-        // sets up structure but does not solve for variables (forces and data)
-        equation.Linearize(data,force,dt,time); // make force balance a force as well?
+    equation.Linearize(data,force,dt,time);
+    while(!equation.Satisfied(data,force,dt,time)){
         // solve for variables
         Matrix<T,Dynamic,1> solve_result=equation.Solve(data,force,dt,time);
-
         QUALITY solve_quality;
-
         // step data according to result
         data.Step(solve_quality,solve_result);
-    } while(!equation.Satisfied(data,force,dt,time));
+        equation.Linearize(data,force,dt,time); // make force balance a force as well?
+    } 
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void EVOLUTION<TV>::
