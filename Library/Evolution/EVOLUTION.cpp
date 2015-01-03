@@ -41,14 +41,24 @@ Evolution_Step(EVOLUTION_STEP<TV>& step,DATA<TV>& data,FORCE<TV>& force,const T 
         }
     }
     EQUATION<TV>& equation=*step.equation;
-    equation.Linearize(data,force,dt,time);
+    Matrix<T,Dynamic,1> positions;
+    Matrix<T,Dynamic,1> velocities;
+    //data.Pack_Velocities(velocities);velocities.setZero();
+    data.Pack_Positions(positions);
+    equation.Linearize(data,force,velocities,dt,time);
     while(!equation.Satisfied(data,force,dt,time)){
         // solve for variables
-        Matrix<T,Dynamic,1> solve_result=equation.Solve(data,force,dt,time);
+        Matrix<T,Dynamic,1> fractional_velocities=equation.Solve(data,force,dt,time);
+        std::cout<<"Fractional velocities"<<std::endl;
+        std::cout<<fractional_velocities<<std::endl;
         QUALITY solve_quality;
         // step data according to result
-        data.Step(solve_quality,solve_result);
-        equation.Linearize(data,force,dt,time); // make force balance a force as well?
+        data.Unpack_Positions(positions);
+        velocities.resize(fractional_velocities.rows(),1);
+        velocities+=fractional_velocities;
+        data.Unpack_Velocities(velocities.block(0,0,data.Velocity_DOF(),1));
+        //data.Step(solve_quality,solve_result);
+        equation.Linearize(data,force,velocities,dt,time); // make force balance a force as well?
     } 
 }
 ///////////////////////////////////////////////////////////////////////

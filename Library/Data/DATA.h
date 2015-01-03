@@ -33,7 +33,12 @@ public:
         return X2-X1;
     }
 
+    int Velocity_DOF() const;
     void Variables(Matrix<T,Dynamic,1>& variables);
+    void Pack_Velocities(Matrix<T,Dynamic,1>& velocities);
+    void Unpack_Velocities(const Matrix<T,Dynamic,1>& velocities);
+    void Pack_Positions(Matrix<T,Dynamic,1>& positions);
+    void Unpack_Positions(const Matrix<T,Dynamic,1>& positions);
     void Step(QUALITY& step_quality,Matrix<T,Dynamic,1> solve_result);
     T Print_All();
     void Viewer(osg::Group*& root);

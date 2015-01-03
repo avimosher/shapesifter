@@ -46,7 +46,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             //T random_displacement=distribution(generator);
             //TV test;test.fill(random_displacement);
             //std::cout<<test<<std::endl;
-            right_hand_side.template block<TV::SizeAtCompileTime,1>(TV::SizeAtCompileTime*i,0)=random.Direction();
+            right_hand_side.template block<TV::SizeAtCompileTime,1>(TWIST<TV>::STATIC_SIZE*i,0)=random.Direction();
         }
     }
     //force_terms.push_back(Triplet<T>(0,0,k*dt));

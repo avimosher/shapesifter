@@ -63,7 +63,14 @@ public:
     }
 
     int Size();
-    Matrix<T,Dynamic,1> Variables();
+
+    virtual int Velocity_DOF() const;
+    virtual int Position_DOF() const;
+    virtual Matrix<T,Dynamic,1> Variables();
+    virtual void Pack_Velocities(Block<Matrix<T,Dynamic,1>>& velocities);
+    virtual void Unpack_Velocities(const Matrix<T,Dynamic,1>& velocities);
+    virtual void Pack_Positions(Block<Matrix<T,Dynamic,1>>& positions);
+    virtual void Unpack_Positions(const Matrix<T,Dynamic,1>& positions);
     void Step(const DATA<TV>& data,const Matrix<T,Dynamic,1>& variables);
     virtual void Viewer(osg::Node* node);
 

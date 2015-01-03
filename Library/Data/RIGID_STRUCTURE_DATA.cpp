@@ -25,6 +25,18 @@ Size()
     return structures.size()*TWIST<TV>::STATIC_SIZE;
 }
 ///////////////////////////////////////////////////////////////////////
+template<class TV> int RIGID_STRUCTURE_DATA<TV>::
+Velocity_DOF() const
+{
+    return TWIST<TV>::STATIC_SIZE*structures.size();
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> int RIGID_STRUCTURE_DATA<TV>::
+Position_DOF() const
+{
+    return FRAME<TV>::STATIC_SIZE*structures.size();
+}
+///////////////////////////////////////////////////////////////////////
 template<class TV> Matrix<typename TV::Scalar,Dynamic,1> RIGID_STRUCTURE_DATA<TV>::
 Variables()
 {
@@ -33,6 +45,38 @@ Variables()
         packed.template block<TWIST<TV>::STATIC_SIZE,1>(i*TWIST<TV>::STATIC_SIZE,0)=structures[i]->twist.Pack();
     }
     return packed;
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void RIGID_STRUCTURE_DATA<TV>::
+Pack_Velocities(Block<Matrix<T,Dynamic,1>>& velocities)
+{
+    for(int i=0;i<structures.size();i++){
+        velocities.template block<TWIST<TV>::STATIC_SIZE,1>(i*TWIST<TV>::STATIC_SIZE,0)=structures[i]->twist.Pack();
+    }
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void RIGID_STRUCTURE_DATA<TV>::
+Unpack_Velocities(const Matrix<T,Dynamic,1>& velocities)
+{
+    for(int i=0;i<structures.size();i++){
+        structures[i]->twist.Unpack(velocities.template block<TWIST<TV>::STATIC_SIZE,1>(i*TWIST<TV>::STATIC_SIZE,0));
+    }
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void RIGID_STRUCTURE_DATA<TV>::
+Pack_Positions(Block<Matrix<T,Dynamic,1>>& positions)
+{
+    for(int i=0;i<structures.size();i++){
+        positions.template block<FRAME<TV>::STATIC_SIZE,1>(i*FRAME<TV>::STATIC_SIZE,0)=structures[i]->frame.Pack();
+    }
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void RIGID_STRUCTURE_DATA<TV>::
+Unpack_Positions(const Matrix<T,Dynamic,1>& positions)
+{
+    for(int i=0;i<structures.size();i++){
+        structures[i]->frame.Unpack(positions.template block<FRAME<TV>::STATIC_SIZE,1>(i*FRAME<TV>::STATIC_SIZE,0));
+    }
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RIGID_STRUCTURE_DATA<TV>::
