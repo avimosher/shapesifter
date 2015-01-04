@@ -26,7 +26,7 @@ template<class TV> BROWNIAN_FORCE<TV>::
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void BROWNIAN_FORCE<TV>::
-Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs)
+Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
 {
     //std::random_device rd; //TODO: separate random class
     //std::mt19937 generator(rd());
@@ -37,18 +37,23 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     T eta=3.5;
     T radius=1;
     RANDOM<TV> random;
-    for(auto iterator=data.find("RIGID_STRUCTURE_DATA");iterator!=data.end();++iterator){
-        auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(iterator->second);
-        for(int i=0;i<(*rigid_data).structures.size();i++){
-            T translational_diffusion_coefficient=kT/(6*M_PI*eta*radius);
-            T translational_variance=sqrt(2*translational_diffusion_coefficient*dt);
-            //std::normal_distribution<> distribution(0,translational_variance);
-            //T random_displacement=distribution(generator);
-            //TV test;test.fill(random_displacement);
-            //std::cout<<test<<std::endl;
-            right_hand_side.template block<TV::SizeAtCompileTime,1>(TWIST<TV>::STATIC_SIZE*i,0)=random.Direction();
+    if(stochastic){
+        stored_right_hand_side.resize(right_hand_side.rows(),1);
+        stored_right_hand_side.setZero();
+        for(auto iterator=data.find("RIGID_STRUCTURE_DATA");iterator!=data.end();++iterator){
+            auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(iterator->second);
+            for(int i=0;i<(*rigid_data).structures.size();i++){
+                T translational_diffusion_coefficient=kT/(6*M_PI*eta*radius);
+                T translational_variance=sqrt(2*translational_diffusion_coefficient*dt);
+                //std::normal_distribution<> distribution(0,translational_variance);
+                //T random_displacement=distribution(generator);
+                //TV test;test.fill(random_displacement);
+                //std::cout<<test<<std::endl;
+                stored_right_hand_side.template block<TV::SizeAtCompileTime,1>(TWIST<TV>::STATIC_SIZE*i,0)(0,0)=random.Direction()(0,0);
+            }
         }
     }
+    right_hand_side+=stored_right_hand_side;
     //force_terms.push_back(Triplet<T>(0,0,k*dt));
     //right_hand_side(0)=-
 }

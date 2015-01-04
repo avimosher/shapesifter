@@ -16,7 +16,7 @@ template<class TV> SIMPLE_REPULSION_FORCE<TV>::
 {}
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void SIMPLE_REPULSION_FORCE<TV>::
-Linearize(DATA<TV>& data,const T dt,const T time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs)
+Linearize(DATA<TV>& data,const T dt,const T time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
 {
 #if 0
     FRAME<TV> frame1=data.Updated_Frame(rigid_structure1->frame,rigid_velocity->twist(body_index1));
