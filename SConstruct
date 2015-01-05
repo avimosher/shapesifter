@@ -58,6 +58,7 @@ def Find_SConscripts(env,dir):
 
 env.Append(CCFLAGS="-std=c++11 -g")
 env.Append(CPPPATH="#Library")
+#env.Append(CXXFLAGS="-Wall -Winit-self -Woverloaded-virtual -Wstrict-aliasing=2 -fno-strict-aliasing -Wno-unused-but-set-variable -Werror")
 directories=SConscript('Library/SConscript',variant_dir='build/Library',exports={'env': env,'Automatic_Library': Automatic_Library})
 
 env_projects=env.Clone()

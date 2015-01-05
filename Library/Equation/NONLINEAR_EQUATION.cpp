@@ -38,7 +38,6 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& velocities,
         force[i]->Linearize(data,dt,time,force_terms,full_matrix(i+1,0),full_right_hand_side(0,0),full_right_hand_side(i+1,0),stochastic);
         full_matrix(0,i+1)=full_matrix(i+1,0).transpose();
     }
-    //std::cout<<full_right_hand_side(0,0)<<std::endl;
     // for the sake of sanity, assume that each force adds a constraint block as well as a contribution to the velocity block
     // Each such block will be required to be in terms of elementary T types, but they will remain separate.  This is a good compromise.
     // build matrix from force terms and constraint terms.  Not that this is sufficiently general...
@@ -49,6 +48,8 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& velocities,
         full_right_hand_side(0,0)-=matrix.block(0,0,data.Velocity_DOF(),matrix.cols())*velocities;
     }
     Merge_Block_Vectors(full_right_hand_side,right_hand_side);
+    //std::cout<<"Matrix: "<<std::endl<<matrix<<std::endl;
+    //std::cout<<"RHS: "<<std::endl<<right_hand_side<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>::

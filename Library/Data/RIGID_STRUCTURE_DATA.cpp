@@ -83,7 +83,7 @@ template<class TV> void RIGID_STRUCTURE_DATA<TV>::
 Step(const DATA<TV>& data,const Matrix<T,Dynamic,1>& variables)
 {
     for(int i=0;i<structures.size();i++){
-        structures[i]->twist.Unpack(variables.template block<TWIST<TV>::STATIC_SIZE,1>(i*TWIST<TV>::STATIC_SIZE,0));
+        //structures[i]->twist.Unpack(variables.template block<TWIST<TV>::STATIC_SIZE,1>(i*TWIST<TV>::STATIC_SIZE,0));
         structures[i]->frame=Updated_Frame(data,structures[i]->frame,structures[i]->twist);
         //structures[i]->frame.Unpack(variables.template block<RIGID_STRUCTURE<TV>::STATIC_SIZE,1>(i*RIGID_STRUCTURE<TV>::STATIC_SIZE,0));
     }
