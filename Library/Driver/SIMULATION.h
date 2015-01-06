@@ -33,7 +33,7 @@ public:
     ~SIMULATION();
 
     void Write(const int frame);
-    void Read(const int frame);
+    bool Read(const int frame);
 
 };
 }

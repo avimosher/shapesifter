@@ -1,0 +1,236 @@
+;#####################################################################
+; .emacs
+;
+; Emacs 21 configuration file
+; Avi (avir@graphics.stanford.edu)
+;
+;#####################################################################
+
+(require 'cc-mode)
+(setq speedbar-use-imenu-flag 't)
+;(setq compilation-scroll-output t)
+
+; mouse dragging
+;(require 'hscroll)
+(require 'mouse-drag)
+(global-set-key [down-mouse-2] 'mouse-drag-drag)
+;(hscroll-global-mode)
+;(setq hscroll-mode-name nil)
+
+;
+; First some global color and font setup...
+;
+; Menu colors and fonts are in .Xdefaults, being lucid widgets
+; rather than emacs-controlled items.
+;
+(setq default-frame-alist
+      '(                   ;  
+;        (font             .  "6x13")
+        (width            .     80 )
+        (height           .     50 )
+        (mouse-color      . "White")
+        (cursor-color     .  "Blue")
+        (foreground-color . "White")
+        (background-color . "Black")))
+
+; Make the modeline a little more inconspicuous...
+(set-face-background 'mode-line "#202020")
+(set-face-foreground 'mode-line "#C0C0C0")
+
+
+; Make all tabs spaces by default
+(setq-default indent-tabs-mode nil)
+
+; Set up the mode-specific font locking
+(global-font-lock-mode t)
+(setq font-lock-maximum-decoration t)
+
+; Set the modes for various types of files
+(setq auto-mode-alist
+      (append
+       (list
+        '("\\.C$"         . c++-mode)
+        '("\\.h$"         . c++-mode)
+        '("\\.c\\+\\+$"   . c++-mode)
+        '("\\.H$"         . c++-mode)
+        '("\\.el$"        . emacs-lisp-mode)
+        '("emacs$"        . emacs-lisp-mode)
+        '("\\.tar$"       . tar-mode)
+        '("make\\.log\\~" . compilation-mode)
+        '("Makefile$"     . makefile-mode)
+        '("Makefile.*"    . makefile-mode)
+        '("SConstruct"    . python-mode)
+        '("SConscript"    . python-mode))
+       auto-mode-alist))
+
+
+(make-face            'nick-url-face)
+(set-face-foreground  'nick-url-face "Blue")
+(set-face-underline-p 'nick-url-face t)
+; Remove those pesky scrollbars - they just take up space
+(scroll-bar-mode -1)
+; Remove stupid toolbar or add it if it wasn't there... I know suckage
+(tool-bar-mode)
+; For the fortunate few with intellimice (and actually made XFree86 work
+(global-set-key [mouse-4] 'scroll-down)
+(global-set-key [mouse-5] 'scroll-up)
+; No startup mesasges, thank you.
+;(setq inhibit-startup-message t)
+
+; Personality stuff
+(setq user-email-address "avir@graphics.stanford.edu")
+(setq user-full-name "Avi Robinson-Mosher")
+
+;------------------------------------------------------------------------------
+;
+; My functions
+;
+
+;------------------------------------------------------------------------------
+;
+; Hooks, hooks, and more hooks
+;
+(defconst text-mode-hook 
+  '(lambda ()
+     (defconst fill-column 186)
+     (defconst tab-stop-list 
+       (list 8 12 16 20 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80))
+     (auto-fill-mode 1)
+     (transient-mark-mode 1)))
+
+(defconst shell-mode-hook
+  '(lambda ()
+     (defconst comint-scroll-show-maximum-output 't)
+     (defconst comint-scroll-to-bottom-on-input 't)
+     (defconst comint-scroll-show-maximum-output 't)
+     (defconst comint-output-filter-functions
+       '(comint-postoutput-scroll-to-bottom comint-strip-ctrl-m))))
+
+(defconst ediff-startup-hook
+  '(lambda ()
+;     (ediff-toggle-wide-display)
+     (ediff-toggle-split)))
+
+(defconst makefile-mode-hook
+  '(lambda ()
+     (run-hooks 'text-mode-hook)
+     (set-face-background 'makefile-tab-face "grey70")))
+
+(defconst latex-mode-hook
+  '(lambda ()
+     (run-hooks 'text-mode-hook)
+     (defconst fill-column 186) ; papers
+     (auto-fill-mode 1)))
+
+; tex stuff
+(setq tex-dvi-view-command "xdvi")
+
+;(global-font-lock-mode t nil)
+(setq-default font-lock-maximum-decoration t)
+; (setq font-lock-support-mode 'lazy-lock-mode)
+(setq lazy-lock-stealth-time nil)
+(setq lazy-lock-stealth-lines 1000)
+
+(setq scroll-preserve-screen-position nil)
+
+;#####################################################################
+; PhysBAM stuff
+;####################################################################
+(setq physbam-use-scons t)
+;(load-file (format "/n/muscle/data/avir/PhysBAM/Scripts/emacs/physbam.el" (getenv "PHYSBAM")))
+(load-file (format "%s/Scripts/emacs/mechanics.el" (getenv "MECHANICS"))) 
+
+;(setq font-lock-support-mode 'lazy-lock-mode)
+(set-face-foreground  'font-lock-string-face "Magenta")
+(set-face-foreground  'font-lock-comment-face "Green")
+(set-face-foreground  'font-lock-warning-face "Red")
+(set-face-foreground  'font-lock-function-name-face "Orange")
+(set-face-foreground  'font-lock-keyword-face "Cyan")
+(set-face-foreground  'font-lock-constant-face "Cyan")
+(set-face-foreground  'font-lock-type-face "Yellow")
+(set-face-foreground  'font-lock-variable-name-face "white")
+(set-face-foreground  'font-lock-operators-face "Red")
+(set-face-foreground  'font-lock-preprocessor-face "Blue")
+
+
+
+; Setup C++ style to be physbam
+(defconst c-mode-hook
+  '(lambda ()
+     (c-set-style "physbam")
+     (run-hooks 'text-mode-hook)
+    ; (auto-fill-mode t)
+     (defconst fill-column 186)
+     (setq truncate-lines nil)
+     (column-number-mode 1)
+     (line-number-mode 1)
+;     (c-toggle-auto-state nil)
+     (c-toggle-hungry-state 1)
+     (menu-add-menubar-index)))
+
+(defconst c++-mode-hook
+  '(lambda ()
+     (run-hooks 'c-mode-hook)))
+
+(defconst asm-mode-set-comment-hook
+  '(lambda ()
+     (setq asm-comment-char ?\#)))
+
+;#####################################################################
+; extra binds
+;#####################################################################
+(global-set-key (kbd "M-o") 'physbam-header-flip)
+(global-set-key (kbd "M-h") 'physbam-dimension-flip)
+(global-set-key (kbd "M-p") 'physbam-open-parent)
+(global-set-key (kbd "<f2>") 'physbam-fix-copyright)
+(global-set-key (kbd "C-<f2>") 'physbam-fix-copyright-user-list)
+(global-set-key (kbd "<f3>") 'physbam-fix-function-comment)
+(global-set-key (kbd "<f4>") 'next-error)
+(global-set-key (kbd "<f5>") 'physbam-run)
+(global-set-key (kbd "C-<f5>") 'physbam-run-debug)
+(global-set-key (kbd "<f6>") 'physbam-run-viewer)
+(global-set-key (kbd "<f7>") 'mechanics-compile)
+(global-set-key (kbd "<f1>") 'physbam-compile)
+(global-set-key (kbd "C-<f7>") 'physbam-compile-current-file)
+(global-set-key (kbd "C-<") 'physbam-shift-indent-left)
+(global-set-key (kbd "C->") 'physbam-shift-indent-right)
+(global-set-key (kbd "M-[ d") 'backward-word)
+(global-set-key (kbd "M-[ c") 'forward-word)
+(global-set-key (kbd "M-<f12>") 'eval-current-buffer)
+;(global-set-key (kbd "M-o") 'other-window)
+(global-set-key (kbd "<f8>") 'physbam-grep-public)
+(global-set-key (kbd "<f9>") 'physbam-grep-projects)
+(global-set-key (kbd "M-g") 'goto-line)
+(defun revert-buffer-no-prompt () (interactive) (revert-buffer nil t))
+(global-set-key (kbd "M-r") 'revert-buffer-no-prompt)
+(global-set-key (kbd "M-<f11>") 'mechanics-fix-includes)
+
+; example
+; (query-replace-regexp "\\(.+\\):" "\\1/\\1.csv" nil nil nil)
+(custom-set-variables
+  ;; custom-set-variables was added by Custom -- don't edit or cut/paste it!
+  ;; Your init file should contain only one such instance.
+ '(auto-compression-mode t nil (jka-compr))
+ '(case-fold-search t)
+ '(current-language-environment "UTF-8")
+ '(default-input-method "rfc1345")
+ '(fill-column 186)
+; '(global-font-lock-mode t nil (font-lock))
+ '(global-font-lock-mode t (font-lock))
+ '(inhibit-startup-screen t)
+ '(load-home-init-file t t)
+ '(show-paren-mode t nil (paren))
+ '(transient-mark-mode t))
+(custom-set-faces
+  ;; custom-set-faces was added by Custom -- don't edit or cut/paste it!
+  ;; Your init file should contain only one such instance.
+ '(default ((t (:stipple nil :background "Black" :foreground "White" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 110 :width condensed :family "misc-fixed")))))
+
+(put 'upcase-region 'disabled nil)
+(put 'downcase-region 'disabled nil)
+(setq-default ispell-program-name "aspell")
+
+
+(setq shell-file-name "bash")
+(setq shell-command-switch "-ic")
+

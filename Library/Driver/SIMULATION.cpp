@@ -38,14 +38,16 @@ Write(const int frame)
     archive(data);
 }
 /////////////////////////////////////////////////////////////////////// 
-template<class TV> void SIMULATION<TV>::
+template<class TV> bool SIMULATION<TV>::
 Read(const int frame)
 {
     std::ostringstream stringStream;
     stringStream<<output_directory<<"/frame."<<frame;
     std::ifstream input(stringStream.str().c_str(),std::ios::in);
+    if(!input.is_open()){return false;}
     cereal::BinaryInputArchive archive(input);
     archive(data);
+    return true;
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(SIMULATION)
