@@ -7,9 +7,9 @@
 #include <Data/RIGID_STRUCTURE_DATA.h>
 #include <Driver/SIMULATION.h>
 #include <Parsing/PARSER_REGISTRY.h>
+#include <Utilities/OSG_HELPERS.h>
 #include <osg/Geode>
 #include <osg/Node>
-#include <osg/PositionAttitudeTransform>
 #include <osg/ShapeDrawable>
 #include <osgWidget/Box>
 using namespace Mechanics;
@@ -84,7 +84,10 @@ Step(const DATA<TV>& data,const Matrix<T,Dynamic,1>& variables)
 {
     for(int i=0;i<structures.size();i++){
         //structures[i]->twist.Unpack(variables.template block<TWIST<TV>::STATIC_SIZE,1>(i*TWIST<TV>::STATIC_SIZE,0));
+        std::cout<<"Rotation: "<<std::endl<<structures[i]->twist.angular<<std::endl;
+        std::cout<<"Orientation before: "<<std::endl<<structures[i]->frame.orientation<<std::endl;
         structures[i]->frame=Updated_Frame(data,structures[i]->frame,structures[i]->twist);
+        std::cout<<"Orientation after: "<<std::endl<<structures[i]->frame.orientation<<std::endl;
         //structures[i]->frame.Unpack(variables.template block<RIGID_STRUCTURE<TV>::STATIC_SIZE,1>(i*RIGID_STRUCTURE<TV>::STATIC_SIZE,0));
     }
 }
@@ -115,9 +118,7 @@ Viewer(osg::Node* node)
     }
     for(int i=0;i<structures.size();i++){
         auto transform=(osg::PositionAttitudeTransform*)rigid_group->getChild(i);
-        osg::Vec3 pos;
-        for(int j=0;j<3;j++){pos[j]=structures[i]->frame.position[j];} // TODO: won't work for 1d, 2d
-        transform->setPosition(pos);
+        OSG_HELPERS<TV>::Initialize_Transform(structures[i]->frame,transform);
     }
 }
 ///////////////////////////////////////////////////////////////////////

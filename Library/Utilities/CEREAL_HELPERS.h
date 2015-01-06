@@ -1,8 +1,10 @@
 #ifndef __CEREAL_HELPERS__
 #define __CEREAL_HELPERS__
 
+#include <Utilities/EIGEN_HELPERS.h>
 #include <cereal/archives/binary.hpp>
 #include <Eigen/Dense>
+#include <Eigen/Geometry>
 
 namespace cereal
 {
@@ -30,6 +32,26 @@ namespace cereal
 
       ar(binary_data(m.data(), static_cast<std::size_t>(rows * cols * sizeof(_Scalar))));
     }
+
+// define cereal serializers for Rotation1D, Rotation2D and Quaternion
+  template<class Archive,class T>
+      void serialize(Archive& archive,Eigen::Rotation1D<T>& rotation)
+  {}
+  
+  template<class Archive,class T>
+      void serialize(Archive& archive,Eigen::Rotation2D<T>& rotation)
+  {
+      archive(rotation.angle());
+  }
+
+  template<class Archive,class T>
+      void serialize(Archive& archive,Eigen::Quaternion<T>& rotation)
+  {
+      archive(rotation.coeffs());
+  }
+
 }
+
+
 #endif
 

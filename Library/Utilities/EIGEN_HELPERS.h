@@ -5,6 +5,8 @@
 #include <Eigen/Sparse>
 #include <json/json.h>
 
+
+// define Rotation1D to match Rotation2D and Quaternion
 namespace Eigen{
 
 template<typename _Scalar>
@@ -15,6 +17,8 @@ public:
     inline Rotation1D(const Rotation1D& other) {}
     inline Rotation1D operator*(const Rotation1D& other) const
     {return Rotation1D();}
+    static inline Rotation1D Identity()
+    {return Rotation1D();}
 };
 
 namespace internal {
@@ -23,8 +27,29 @@ template<typename _Scalar> struct traits<Rotation1D<_Scalar> >
   typedef _Scalar Scalar;
 };
 } // end namespace internal
+
+// define cout overloads for Eigen rotation types
+template<class T>
+std::ostream& operator<<(std::ostream& os,const Rotation1D<T>&)
+{}
+
+template<class T>
+std::ostream& operator<<(std::ostream& os,const Rotation2D<T>& rotation)
+{
+    os<<rotation.angle();
+    return os;
 }
 
+template<class T>
+std::ostream& operator<<(std::ostream& os,const Quaternion<T>& rotation)
+{
+    os<<rotation.coeffs();
+    return os;
+}
+}
+
+
+// define utilities for manipulating form of Eigen matrices with non-scalar entries
 namespace Mechanics{
 
 template<class T,int rows,int cols>

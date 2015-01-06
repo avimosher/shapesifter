@@ -25,7 +25,10 @@ public:
     TV position;
     T_ORIENTATION orientation;
 
-    FRAME(){}
+    FRAME()
+        :orientation(T_ORIENTATION::Identity())
+    {
+    }
     ~FRAME(){}
 
     const Eigen::Matrix<T,STATIC_SIZE,1> Pack()
@@ -45,6 +48,7 @@ public:
     template<class Archive>
     void serialize(Archive& archive) {
         archive(position);
+        archive(orientation);
     }
 
 };
