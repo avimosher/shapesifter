@@ -13,9 +13,15 @@
 #include <Utilities/TYPE_UTILITIES.h>
 #include <cereal/archives/binary.hpp>
 #include <cereal/types/vector.hpp>
+#include <math.h>
 
 namespace Mechanics{
 template<class TV> class RIGID_STRUCTURE;
+
+template<class T>
+inline T sinc(const T x) // sin(x)/x
+{if(abs(x)<1e-8) return 1;return sin(x)/x;}
+
 
 template<class TV>
 class RIGID_STRUCTURE_DATA:public DATA_TYPE<TV>
@@ -36,12 +42,22 @@ public:
         return Rotation2D<T>(angle_axis.norm());
     }
 
-    const Eigen::AngleAxis<T> Rotation_From_Angle_Axis(const Eigen::Matrix<T,3,1>& angle_axis) const {
+    /*const Eigen::AngleAxis<T> Rotation_From_Angle_Axis(const Eigen::Matrix<T,3,1>& angle_axis) const {
         Eigen::Matrix<T,3,1> spin_axis;
         T spin_magnitude=angle_axis.norm();
         if(std::abs(spin_magnitude)<1e-5){spin_axis<<1,0,0;}
         else{spin_axis=angle_axis.normalized();}
         return Eigen::AngleAxis<T>(spin_magnitude,spin_axis);
+    }*/
+
+    const Eigen::Quaternion<T> Rotation_From_Angle_Axis(const Eigen::Matrix<T,3,1>& rotation_vector) const {
+        T spin_magnitude=rotation_vector.norm();
+        //if(std::abs(spin_magnitude)<1e-5){spin_axis<<1,0,0;}
+        //else{spin_axis=angle_axis.normalized();}
+        Quaternion<T> q;
+        q.w()=cos((T).5*spin_magnitude);
+        q.vec()=(T).5*sinc((T).5*spin_magnitude)*rotation_vector;
+        return q;
     }
 
     FRAME<TV> Updated_Frame(const DATA<TV>& data,const FRAME<TV>& frame,const TWIST<TV>& twist) const {

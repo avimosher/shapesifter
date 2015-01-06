@@ -45,7 +45,8 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& velocities,
     //full_right_hand_side(0,0)-=full_matrix(0,0)*velocities;
     Merge_Block_Matrices(full_matrix,matrix);
     if(velocities.rows()){
-        full_right_hand_side(0,0)-=matrix.block(0,0,data.Velocity_DOF(),matrix.cols())*velocities;
+        //full_right_hand_side(0,0)-=matrix.block(0,0,data.Velocity_DOF(),matrix.cols())*velocities;
+        full_right_hand_side(0,0)-=matrix.block(0,0,data.Velocity_DOF(),data.Velocity_DOF())*velocities.block(0,0,data.Velocity_DOF(),1);
     }
     Merge_Block_Vectors(full_right_hand_side,right_hand_side);
     //std::cout<<"Matrix: "<<std::endl<<matrix<<std::endl;
@@ -65,10 +66,19 @@ Solve(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> bool NONLINEAR_EQUATION<TV>::
-Satisfied(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
+Satisfied(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& solve_result,const T dt,const T time)
 {
-    std::cout<<"Satisfaction: "<<right_hand_side.squaredNorm()<<std::endl;
-    return right_hand_side.squaredNorm()<1e-8;
+    T norm;
+    if(solve_result.rows()){
+        norm=(right_hand_side-matrix.block(0,data.Velocity_DOF(),matrix.rows(),matrix.cols()-data.Velocity_DOF())*solve_result.block(data.Velocity_DOF(),0,solve_result.rows()-data.Velocity_DOF(),1)).squaredNorm();}
+    else{
+        norm=right_hand_side.squaredNorm();
+    }
+    std::cout<<"Satisfaction: "<<norm<<std::endl;
+    return norm<1e-8;
+    //std::cout<<"Satisfaction: "<<right_hand_side.squaredNorm()<<std::endl;
+    //std::cout<<right_hand_side.transpose()<<std::endl;
+    //return right_hand_side.squaredNorm()<1e-8;
     /*Matrix<T,Dynamic,1> x;
     data.Variables(x); // TODO: this should probably be per solve type
     return (matrix*x-right_hand_side).squaredNorm()<1e-8;*/

@@ -55,7 +55,7 @@ def Automatic_Library(target,source,env):
 def Find_SConscripts(env,dir):
     for c in glob.glob(os.path.join(dir,"*","SConscript")):
         env.SConscript(c,variant_dir='build/'+os.path.dirname(c),exports={'env': env,'Automatic_Program': Automatic_Program})
-
+        
 env.Append(CCFLAGS="-std=c++11 -g")
 env.Append(CPPPATH="#Library")
 #env.Append(CXXFLAGS="-Wall -Winit-self -Woverloaded-virtual -Wstrict-aliasing=2 -fno-strict-aliasing -Wno-unused-but-set-variable -Werror")

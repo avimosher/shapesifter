@@ -27,7 +27,7 @@ template<class TV> EVOLUTION<TV>::
 template<class TV> typename TV::Scalar EVOLUTION<TV>::
 Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T time,const T target_time,bool& done)
 {
-    T dt=1;
+    T dt=.1;
     done=time+dt>=target_time;
     return dt;
 }
@@ -47,9 +47,10 @@ Evolution_Step(EVOLUTION_STEP<TV>& step,DATA<TV>& data,FORCE<TV>& force,const T 
     data.Pack_Positions(positions);
     equation.Linearize(data,force,velocities,dt,time,true);
     //int count=0;
-    while(!equation.Satisfied(data,force,dt,time)){
+    Matrix<T,Dynamic,1> fractional_velocities;
+    while(!equation.Satisfied(data,force,fractional_velocities,dt,time)){
         // solve for variables
-        Matrix<T,Dynamic,1> fractional_velocities=equation.Solve(data,force,dt,time);
+        fractional_velocities=equation.Solve(data,force,dt,time);
         QUALITY solve_quality;
         // step data according to result
         data.Unpack_Positions(positions);
@@ -57,7 +58,7 @@ Evolution_Step(EVOLUTION_STEP<TV>& step,DATA<TV>& data,FORCE<TV>& force,const T 
             velocities.resize(fractional_velocities.rows(),1);
             velocities.setZero();
         }
-        velocities+=(T).5*fractional_velocities;
+        velocities+=(T).25*fractional_velocities;
         data.Unpack_Velocities(velocities.block(0,0,data.Velocity_DOF(),1));
         data.Unpack_Positions(positions);
         data.Step(solve_quality,fractional_velocities);
@@ -69,7 +70,7 @@ Evolution_Step(EVOLUTION_STEP<TV>& step,DATA<TV>& data,FORCE<TV>& force,const T 
 
         equation.Linearize(data,force,velocities,dt,time,false); // make force balance a force as well?
         
-        //count++;if(count>20){exit(0);}
+        //count++;if(count>80){exit(0);}
     }
 }
 ///////////////////////////////////////////////////////////////////////
@@ -77,9 +78,10 @@ template<class TV> void EVOLUTION<TV>::
 Advance_One_Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
 {
     for(auto step : (*this)) {
-        if(!step->Satisfied(data,force,dt,time)) {
+        // TODO: put me back
+        //if(!step->Satisfied(data,force,dt,time)) {
             Evolution_Step(*step,data,force,dt,time);
-        }
+            //}
     }
 }
 ///////////////////////////////////////////////////////////////////////

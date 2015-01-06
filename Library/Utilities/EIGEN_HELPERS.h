@@ -101,7 +101,7 @@ void Merge_Block_Vectors(const Eigen::Matrix<Eigen::Matrix<T,Eigen::Dynamic,1>,E
 template<class T>
 Eigen::Matrix<T,3,3> Cross_Product_Matrix(const Eigen::Matrix<T,3,1>& v)
 {
-    Eigen::Matrix<T,3,3> matrix;matrix<<0,v[2],-v[1],-v[2],0,v[0],v[1],-v[0],0;return matrix;
+    Eigen::Matrix<T,3,3> matrix;matrix<<0,-v[2],v[1],v[2],0,-v[0],-v[1],v[0],0;return matrix;
 }
 
 template<class T>

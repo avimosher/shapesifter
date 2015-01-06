@@ -84,10 +84,9 @@ Step(const DATA<TV>& data,const Matrix<T,Dynamic,1>& variables)
 {
     for(int i=0;i<structures.size();i++){
         //structures[i]->twist.Unpack(variables.template block<TWIST<TV>::STATIC_SIZE,1>(i*TWIST<TV>::STATIC_SIZE,0));
-        std::cout<<"Rotation: "<<std::endl<<structures[i]->twist.angular<<std::endl;
-        std::cout<<"Orientation before: "<<std::endl<<structures[i]->frame.orientation<<std::endl;
         structures[i]->frame=Updated_Frame(data,structures[i]->frame,structures[i]->twist);
-        std::cout<<"Orientation after: "<<std::endl<<structures[i]->frame.orientation<<std::endl;
+        std::cout<<i<<": "<<structures[i]->frame.position.transpose()<<std::endl;
+        std::cout<<i<<" twist linear: "<<structures[i]->twist.linear.transpose()<<std::endl;
         //structures[i]->frame.Unpack(variables.template block<RIGID_STRUCTURE<TV>::STATIC_SIZE,1>(i*RIGID_STRUCTURE<TV>::STATIC_SIZE,0));
     }
 }
@@ -107,7 +106,7 @@ Viewer(osg::Node* node)
         rigid_group->setName("RIGID_STRUCTURE_DATA");
         for(int i=0;i<structures.size();i++){
             auto transform=new osg::PositionAttitudeTransform();
-            auto unitCube=new osg::Box(osg::Vec3(0,0,0),1.0f);
+            auto unitCube=new osg::Box(osg::Vec3(0,0,0),4.0f);
             auto unitCubeDrawable=new osg::ShapeDrawable(unitCube);
             auto basicShapesGeode=new osg::Geode();
             basicShapesGeode->addDrawable(unitCubeDrawable);

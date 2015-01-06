@@ -42,6 +42,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             FRAME<TV> frame2=rigid_structure2->frame;//rigid_data->Updated_Frame(data,rigid_structure2->frame,rigid_structure2->twist);
             TV offset1=frame1.orientation._transformVector(constraint.v1);
             TV offset2=frame2.orientation._transformVector(constraint.v2);
+            std::cout<<"Position 1: "<<std::endl<<(frame1.position+offset1).transpose()<<std::endl;
+            std::cout<<"Position 2: "<<std::endl<<(frame2.position+offset2).transpose()<<std::endl;
             TV direction=data.Minimum_Offset(frame1.position+offset1,frame2.position+offset2);
             T distance=direction.norm();
             direction.normalize();
