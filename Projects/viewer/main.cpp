@@ -64,26 +64,24 @@ public:
     virtual bool handle(const osgGA::GUIEventAdapter& ea,osgGA::GUIActionAdapter&) {
         switch(ea.getEventType()) {
             case(osgGA::GUIEventAdapter::KEYDOWN):{
-                std::cout<<ea.getKey()<<std::endl;
                 switch(ea.getKey()) {
                 case 's':
-                    {
-                        //int increment=1;
-                        //std::cout<<ea.getModKeyMask()<<" "<<osgGA::GUIEventAdapter::MODKEY_CTRL<<std::endl;
-                        //if(ea.getModKeyMask() & osgGA::GUIEventAdapter::MODKEY_CTRL){increment=-1;}
-                        animation->advanceFrame(1);
-                        return true;
-                    }
+                {
+                    //int increment=1;
+                    //std::cout<<ea.getModKeyMask()<<" "<<osgGA::GUIEventAdapter::MODKEY_CTRL<<std::endl;
+                    //if(ea.getModKeyMask() & osgGA::GUIEventAdapter::MODKEY_CTRL){increment=-1;}
+                    animation->advanceFrame(1);
+                    return true;
+                }
                 case 19: // this is ctrl-s but I can't figure out why
-                        animation->advanceFrame(-1);
-                        return true;
+                    animation->advanceFrame(-1);
+                    return true;
                 case 'p':
                     animation->lastTime=ea.getTime();
                     animation->toggleAnimating();
                     return true;
                 default:
-                    std::cout<<ea.getModKeyMask()<<" "<<osgGA::GUIEventAdapter::MODKEY_CTRL<<" "<<osgGA::GUIEventAdapter::MODKEY_LEFT_CTRL<<std::endl;
-                        return false;
+                    return false;
                 }}
             default:
                 return false;}}

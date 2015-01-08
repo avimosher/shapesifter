@@ -1,5 +1,0 @@
-Import('env Automatic_Program')
-
-nodes=Automatic_Program(target='test_integration',source=['main.cpp'],env=env)
-Return('nodes')
-
