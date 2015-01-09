@@ -3,6 +3,8 @@
 ///////////////////////////////////////////////////////////////////////
 // Class PARSER_REGISTRY
 ///////////////////////////////////////////////////////////////////////
+#include <Analysis/CONDITION.h>
+#include <Analysis/PREDICATE.h>
 #include <Parsing/PARSER_REGISTRY.h>
 #include <Utilities/TYPE_UTILITIES.h>
 using namespace Mechanics;
@@ -19,5 +21,20 @@ Parsers()
     template class TYPE<Matrix<T,2,1>,RET>;          \
     template class TYPE<Matrix<T,3,1>,RET>;
 
-SCALAR_TYPE_DEFINITION(PARSER_REGISTRY,float,void)
-SCALAR_TYPE_DEFINITION(PARSER_REGISTRY,double,void)
+#define PARSER_TYPE_DEFINITION(RET) \
+    SCALAR_TYPE_DEFINITION(PARSER_REGISTRY,float,void) \
+    SCALAR_TYPE_DEFINITION(PARSER_REGISTRY,double,void)
+
+PARSER_TYPE_DEFINITION(void)
+
+#define COMPLEX_SCALAR_TYPE_DEFINITION(TYPE,T,RET)           \
+    template class TYPE<Matrix<T,1,1>,RET<Matrix<T,1,1>>>;     \
+    template class TYPE<Matrix<T,2,1>,RET<Matrix<T,2,1>>>;     \
+    template class TYPE<Matrix<T,3,1>,RET<Matrix<T,3,1>>>;
+
+#define COMPLEX_PARSER_TYPE_DEFINITION(RET) \
+    COMPLEX_SCALAR_TYPE_DEFINITION(PARSER_REGISTRY,float,RET)  \
+    COMPLEX_SCALAR_TYPE_DEFINITION(PARSER_REGISTRY,double,RET)
+
+COMPLEX_PARSER_TYPE_DEFINITION(CONDITION)
+COMPLEX_PARSER_TYPE_DEFINITION(PREDICATE)
