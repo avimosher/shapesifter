@@ -125,7 +125,7 @@
 ;#####################################################################
 
 (defun mechanics-setup-compile-command (write_settings)
-  (setq compile-command "scons --warn=no-deprecated -Q --implicit-cache -u TYPE=debug -j 4")
+  (setq compile-command (format "scons --warn=no-deprecated -Q --implicit-cache -D TYPE=debug -j 4 CWD=%s" (getenv "MECHANICS")))
   (message (format "New compile command is: %s" compile-command))
   (setq compilation-read-command nil))
 

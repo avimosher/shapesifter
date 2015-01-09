@@ -25,7 +25,6 @@ public:
     ~EVOLUTION();
 
     T Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T time,const T target_time,bool& done);
-    void Evolution_Step(EVOLUTION_STEP<TV>& step,DATA<TV>& data,FORCE<TV>& force,const T dt,const T time);
     void Advance_One_Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time);
 };
 }

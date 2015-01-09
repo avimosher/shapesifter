@@ -10,7 +10,6 @@
 
 namespace Mechanics{
 template<class TV> class DATA;
-template<class TV> class EQUATION;
 template<class TV> class FORCE;
 
 template<class TV>
@@ -19,13 +18,18 @@ class EVOLUTION_STEP
     typedef typename TV::Scalar T;
 
 public:
-    EQUATION<TV>* equation;
+    T up_to_date_time;
     std::vector<EVOLUTION_STEP<TV>*> prerequisites;
 
     EVOLUTION_STEP();
     ~EVOLUTION_STEP();
 
-    bool Satisfied(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time);
+    bool Up_To_Date(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time){
+        return up_to_date_time>=time;
+    }
+
+    void Full_Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time);
+    virtual void Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)=0;
 };
 }
 #endif
