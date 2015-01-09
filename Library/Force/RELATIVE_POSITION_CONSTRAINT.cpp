@@ -57,7 +57,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(RELATIVE_POSITION_CONSTRAINT)
-DEFINE_AND_REGISTER_PARSER(RELATIVE_POSITION_CONSTRAINT)
+DEFINE_AND_REGISTER_PARSER(RELATIVE_POSITION_CONSTRAINT,void)
 {
     auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(simulation.data.find("RIGID_STRUCTURE_DATA")->second);
     auto relative_position_constraint=std::make_shared<RELATIVE_POSITION_CONSTRAINT<TV>>();
@@ -72,4 +72,5 @@ DEFINE_AND_REGISTER_PARSER(RELATIVE_POSITION_CONSTRAINT)
         relative_position_constraint->constraints.push_back(constraint);
     }
     simulation.force.push_back(relative_position_constraint);
+    return 0;
 }

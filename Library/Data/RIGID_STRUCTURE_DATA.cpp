@@ -123,7 +123,8 @@ Viewer(osg::Node* node)
 ///////////////////////////////////////////////////////////////////////
 GENERIC_CEREAL_REGISTRATION(RIGID_STRUCTURE_DATA)
 GENERIC_TYPE_DEFINITION(RIGID_STRUCTURE_DATA)
-DEFINE_AND_REGISTER_PARSER(RIGID_STRUCTURE_DATA)
+DEFINE_AND_REGISTER_PARSER(RIGID_STRUCTURE_DATA,void)
 {
     simulation.data.insert({RIGID_STRUCTURE_DATA<TV>::Static_Name(),std::make_shared<RIGID_STRUCTURE_DATA<TV>>()});
+    return 0;
 }

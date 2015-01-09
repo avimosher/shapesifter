@@ -35,7 +35,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(TEST_FORCE)
-DEFINE_AND_REGISTER_PARSER(TEST_FORCE)
+DEFINE_AND_REGISTER_PARSER(TEST_FORCE,void)
 {
     simulation.force.push_back(std::make_shared<TEST_FORCE<TV>>());
+    return 0;
 }

@@ -59,9 +59,10 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(BROWNIAN_FORCE)
-DEFINE_AND_REGISTER_PARSER(BROWNIAN_FORCE)
+DEFINE_AND_REGISTER_PARSER(BROWNIAN_FORCE,void)
 {
     auto brownian_force=std::make_shared<BROWNIAN_FORCE<TV>>();
     brownian_force->temperature=node["temperature"].asDouble();
     simulation.force.push_back(brownian_force);
+    return 0;
 }

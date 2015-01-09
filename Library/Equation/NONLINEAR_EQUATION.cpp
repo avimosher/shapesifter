@@ -85,9 +85,10 @@ Satisfied(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& solve_resul
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(NONLINEAR_EQUATION)
-DEFINE_AND_REGISTER_PARSER(NONLINEAR_EQUATION)
+DEFINE_AND_REGISTER_PARSER(NONLINEAR_EQUATION,void)
 {
     auto evolution_step=std::make_shared<EQUATION_STEP<TV>>();
     evolution_step->equation=new NONLINEAR_EQUATION<TV>();
     simulation.evolution.push_back(evolution_step);
+    return 0;
 }
