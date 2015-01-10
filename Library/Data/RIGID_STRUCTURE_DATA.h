@@ -77,6 +77,9 @@ public:
             if(structures[i]->name==name){return i;}}
         return -1;
     }
+    
+    std::shared_ptr<RIGID_STRUCTURE<TV>> Structure(const std::string& name)
+    {return structures[Structure_Index(name)];}
 
     int Size();
 

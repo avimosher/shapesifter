@@ -12,9 +12,9 @@ class ANALYTE:public EVOLUTION_STEP<TV>
 {
     typedef typename TV::Scalar T;
 public:
-    CONDITION<TV>* condition;
-    PREDICATE<TV>* predicate;
-    AGGREGATOR<TV>* aggregator;
+    std::shared_ptr<CONDITION<TV>> condition;
+    std::shared_ptr<PREDICATE<TV>> predicate;
+    std::shared_ptr<AGGREGATOR<TV>> aggregator;
 
     ANALYTE(){}
 

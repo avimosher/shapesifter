@@ -31,6 +31,11 @@ public:
     }
     ~FRAME(){}
 
+    TV operator*(const TV& vector)
+    {
+        return orientation._transformVector(vector)+position;
+    }
+
     const Eigen::Matrix<T,STATIC_SIZE,1> Pack()
     {
         Eigen::Matrix<T,STATIC_SIZE,1> packed;
