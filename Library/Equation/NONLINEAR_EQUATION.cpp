@@ -74,7 +74,7 @@ Satisfied(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& solve_resul
     else{
         norm=right_hand_side.squaredNorm();
     }
-    std::cout<<"Satisfaction: "<<norm<<std::endl;
+    //std::cout<<"Satisfaction: "<<norm<<std::endl;
     return norm<1e-8;
     //std::cout<<"Satisfaction: "<<right_hand_side.squaredNorm()<<std::endl;
     //std::cout<<right_hand_side.transpose()<<std::endl;

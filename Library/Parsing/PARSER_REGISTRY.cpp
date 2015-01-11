@@ -3,7 +3,7 @@
 ///////////////////////////////////////////////////////////////////////
 // Class PARSER_REGISTRY
 ///////////////////////////////////////////////////////////////////////
-#include <Analysis/CONDITION.h>
+#include <Analysis/AGGREGATOR.h>
 #include <Analysis/PREDICATE.h>
 #include <Parsing/PARSER_REGISTRY.h>
 #include <Utilities/TYPE_UTILITIES.h>
@@ -36,5 +36,5 @@ PARSER_TYPE_DEFINITION(void)
     COMPLEX_SCALAR_TYPE_DEFINITION(PARSER_REGISTRY,float,RET)  \
     COMPLEX_SCALAR_TYPE_DEFINITION(PARSER_REGISTRY,double,RET)
 
-COMPLEX_PARSER_TYPE_DEFINITION(CONDITION)
+COMPLEX_PARSER_TYPE_DEFINITION(AGGREGATOR)
 COMPLEX_PARSER_TYPE_DEFINITION(PREDICATE)
