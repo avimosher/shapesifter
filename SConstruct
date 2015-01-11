@@ -4,6 +4,9 @@ import glob
 Decider('timestamp-match')
 #options=Options('SConstruct.options')
 
+options=Options()
+options.AddOptions(EnumOption('TYPE','Type of build','release',allowed_values=('release','debug')))
+
 external_libraries_dir="#External_Libraries/"
 external_libraries={
     'cereal': {'default': 1, 'libs':[''],'cpppath':[external_libraries_dir+'cereal/include']},
@@ -12,7 +15,7 @@ external_libraries={
     'osg': {'default': 1,'cpppath':[external_libraries_dir+'osg/include'],'libs':['osg','osgDB','osgGA','osgViewer','libOpenThreads','libosgUtil','libosgText'],'libpath':[external_libraries_dir+'osg/lib']}
 }
 
-env=Environment()
+env=Environment(options=options)
 
 base_env=Environment()
 
@@ -37,9 +40,6 @@ for name,lib in external_libraries.items():
 #                       (name+'_libs','Libraries for '+name,0),
 #                       (name+'_linkflags','Linker flags for '+name,0))
 
-#conf=Configure(env)
-#print(conf.CheckLib('jsoncpp'))
-    
 def Automatic_Program(target,source,env):
     program=env.Program(target=target,source=source)
     print(program)
@@ -52,19 +52,26 @@ def Automatic_Library(target,source,env):
 #    env.Command('bin'+library,library,Copy('$TARGET','$SOURCE'))
     env.Install('#bin',library)
 
+build_base='build/'+env['TYPE']
+
 def Find_SConscripts(env,dir):
     for c in glob.glob(os.path.join(dir,"*","SConscript")):
-        env.SConscript(c,variant_dir='build/'+os.path.dirname(c),exports={'env': env,'Automatic_Program': Automatic_Program})
-        
-env.Append(CCFLAGS="-std=c++11 -g")
+        env.SConscript(c,variant_dir=build_base+'/'+os.path.dirname(c),exports={'env': env,'Automatic_Program': Automatic_Program})
+
+# Compiler flags
+env.Append(CXXFLAGS="-std=c++11")
+if env['TYPE']=='debug':        
+    env.Append(CXXFLAGS="-g")
+elif env['TYPE']=='release':
+    env.Append(CXXFLAGS="-O3")
+
 env.Append(CPPPATH="#Library")
 #env.Append(CXXFLAGS="-Wall -Winit-self -Woverloaded-virtual -Wstrict-aliasing=2 -fno-strict-aliasing -Wno-unused-but-set-variable -Werror")
-directories=SConscript('Library/SConscript',variant_dir='build/Library',exports={'env': env,'Automatic_Library': Automatic_Library})
+directories=SConscript('Library/SConscript',variant_dir=build_base+'/Library',exports={'env': env,'Automatic_Library': Automatic_Library})
 
 env_projects=env.Clone()
 env_projects.Append(LIBS=directories)
-env_projects.Append(LIBPATH=['#build/Library'])
-#print(libraries)
+env_projects.Append(LIBPATH=['#'+build_base+'/Library'])
 #env.Install('#bin',libraries)
 
 Find_SConscripts(env_projects,'Projects')

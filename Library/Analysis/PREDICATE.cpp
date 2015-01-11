@@ -27,7 +27,6 @@ Vector(const DATA<TV>& data,const FORCE<TV>& force)
 {
     auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.find("RIGID_STRUCTURE_DATA")->second);
     auto rigid_structure=rigid_data->Structure(name);
-    std::cout<<name<<" "<<rigid_structure->frame.position.transpose()<<std::endl;;
     return rigid_structure->frame*offset;
 }
 //////////////////////////////////////////////////////////////////////
