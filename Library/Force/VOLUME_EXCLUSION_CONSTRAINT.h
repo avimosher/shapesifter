@@ -1,4 +1,4 @@
-#ifndef __RELATIVE_POSITION_CONSTRAINT__
+#ifndef __RELATIVE_POSITION@_CONSTRAINT__
 #define __RELATIVE_POSITION_CONSTRAINT__
 
 #include <Force/FORCE_TYPE.h>
@@ -12,10 +12,7 @@ class RELATIVE_POSITION_CONSTRAINT : public FORCE_TYPE<TV>
 public:
     struct CONSTRAINT{
         int s1;
-        TV v1;
         int s2;
-        TV v2;
-        T target_distance;
     };
     std::vector<CONSTRAINT> constraints;
 

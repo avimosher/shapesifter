@@ -99,10 +99,14 @@ Register()
     REGISTER_TEMPLATE_PARSER(PARSE_##TYPE,PARSED_TYPE)                  \
     template<class TV> std::shared_ptr<PARSED_TYPE<TV>> PARSE_##TYPE<TV>::Parse(Json::Value& node,SIMULATION<TV>& simulation)
 
+template<class T> Parse_Scalar(Json::Value& node,T& value)
+{
+    if(!node.isNull()){value=node.asDouble();}
+}
 
 template<class TV> void Parse_Vector(Json::Value& node,TV& vector)
 {
-    for(int i=0;i<vector.size();i++){vector[i]=node[i].asDouble();}
+    if(!node.isNull){for(int i=0;i<vector.size();i++){vector[i]=node[i].asDouble();}}
 }
 
 }

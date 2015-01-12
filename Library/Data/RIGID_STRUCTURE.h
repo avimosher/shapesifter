@@ -23,6 +23,9 @@ public:
     std::string name;
     FRAME<TV> frame;
     TWIST<TV> twist;
+    T radius;
+    T collision_radius;
+    TV collision_extent;
 #if 0
     MOMENT<TV> moi;
 #endif
