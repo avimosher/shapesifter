@@ -49,34 +49,22 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
 
     for(int s1=0;s1<rigid_data->structures.size();s1++){
         for(int s2=s1+1;s2<rigid_data->structures.size();s2++){
-            
-
+            auto rigid_structure1=rigid_data->structures[s1];
+            auto rigid_structure2=rigid_data->structures[s2];
+            TV offset1,offset2;
+            TV direction=rigid_structure1->Displacement(data,rigid_structure2,offset1,offset2);
+            T distance=direction.normalized();
+            direction.normalize();
+            T constraint_violation=distance-rigid_structure1->collision_radius-rigid_structure2->collision_radius;
+            T distance_condition=-.001;
+            if(constraint_violation<distance_condition || (call_count==remembered_force.x && remembered_force.y<0)){
+                terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,s2,direction.transpose()*index_map.Velocity_Map(offset2)));
+                terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,s1,-direction.transpose()*index_map.Velocity_Map(offset1)));
+                constraint_rhs(i,0)=-constraint_violation;
+            }
         }
     }
-
-    constraint_rhs.resize(constraints.size(),1);
-    for(int i=0;i<constraints.size();i++){
-        const CONSTRAINT& constraint=constraints[i];
-        int body_index1=constraint.s1;
-        int body_index2=constraint.s2;
-        auto rigid_structure1=rigid_data->structures[body_index1];
-        auto rigid_structure2=rigid_data->structures[body_index2];
-        FRAME<TV> frame1=rigid_structure1->frame;//rigid_data->Updated_Frame(data,rigid_structure1->frame,rigid_structure1->twist);
-        FRAME<TV> frame2=rigid_structure2->frame;//rigid_data->Updated_Frame(data,rigid_structure2->frame,rigid_structure2->twist);
-        TV offset1=frame1.orientation._transformVector(constraint.v1);
-        TV offset2=frame2.orientation._transformVector(constraint.v2);
-
-        TV direction=Segment_Closest_Points(data,frame1,frame2,rigid_structure1,rigid_structure2,offset1,offset2);
-        T distance=direction.norm();
-        T constraint_violation=distance-rigid_structure1->collision_radius-rigid_structure2->collision_radius;
-
-        
-        direction.normalize();
-        terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index2,direction.transpose()*index_map.Velocity_Map(offset2)));
-        terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index1,-direction.transpose()*index_map.Velocity_Map(offset1)));
-        constraint_rhs(i,0)=constraint.target_distance-distance;
-    }
-    constraint_terms.resize(constraints.size(),RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE*rigid_data->structures.size());
+    constraint_terms.resize(constraints.size(),RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE*rigid_data->structure.size());
     Flatten_Matrix(terms,constraint_terms);
 }
 ///////////////////////////////////////////////////////////////////////

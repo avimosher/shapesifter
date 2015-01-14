@@ -33,6 +33,7 @@ Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
             velocities.setZero();
         }
         velocities+=(T).25*fractional_velocities;
+        // NOTE: for the sake of things like snap constraints, it's good that this puts the velocity in data (and the initial velocity should probably be zero)
         data.Unpack_Velocities(velocities.block(0,0,data.Velocity_DOF(),1));
         data.Unpack_Positions(positions);
         data.Step(solve_quality,fractional_velocities);

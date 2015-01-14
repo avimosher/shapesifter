@@ -33,6 +33,59 @@ public:
     RIGID_STRUCTURE();
     ~RIGID_STRUCTURE(){};
 
+    // From PhysBAM
+    TV Segment_Segment_Displacement(const Matrix<TV,2,1>& s1,const Matrix<TV,2,1>& s2,Matrix<T,2,1>& weights)
+    {
+        TV u=s1[1]-s1[0],v=s2[1]-s2[0],w=s2[0]-s1[0];
+        T u_magnitude_squared=u.squaredNorm(),
+            v_magnitude_squared=v.squaredNorm(),
+            u_dot_u=u_magnitude_squared,
+            v_dot_v=v_magnitude_squared,
+            u_dot_v=u.dot(v),
+            u_dot_w=u.dot(w),
+            v_dot_w=v.dot(w);
+        T denominator=u_dot_u*v_dot_v-sqr(u_dot_v),rhs1=v_dot_v*u_dot_w-u_dot_v*v_dot_w,rhs2=u_dot_v*u_dot_w-u_dot_u*v_dot_w;
+        bool check_boundary=false;
+        if(rhs1<=0 || denominator<=rhs1){check_boundary=true;}
+        else{weights[0]=rhs1/denominator;}
+        if(rhs2<=0 || denominator<=rhs2){check_boundary=true;}
+        else{weights[1]=rhs2/denominator;}
+        if(check_boundary){
+            T v_plus_w_dot_u=u_dot_v+u_dot_w,u_minus_w_dot_v=u_dot_v-v_dot_w,distance_squared_minus_w_dot_w;
+            weights[0]=0; // check weights[0]=0 side
+
+            if(v_dot_w>=0){distance_squared_minus_w_dot_w=0;weights[1]=0;}
+            else if(v_dot_v<=-v_dot_w){distance_squared_minus_w_dot_w=v_dot_v+2*v_dot_w;weights[1]=1;}
+            else{weights[1]=-v_dot_w/v_dot_v;distance_squared_minus_w_dot_w=weights[1]*v_dot_w;}
+            // check weights.x=1 side
+            if(u_minus_w_dot_v<=0){T new_distance_squared=u_dot_u-2*u_dot_w;
+                if(new_distance_squared<distance_squared_minus_w_dot_w){distance_squared_minus_w_dot_w=new_distance_squared;weights<<1,0;}}
+            else if(v_dot_v<=u_minus_w_dot_v){T new_distance_squared=v_dot_v+2*(v_dot_w-v_plus_w_dot_u)+u_dot_u;
+                if(new_distance_squared<distance_squared_minus_w_dot_w){distance_squared_minus_w_dot_w=new_distance_squared;weights<<1,1;}}
+            else{T weights_y_temp=u_minus_w_dot_v/v_dot_v,new_distance_squared=u_dot_u-2*u_dot_w-weights_y_temp*u_minus_w_dot_v;
+                if(new_distance_squared<distance_squared_minus_w_dot_w){distance_squared_minus_w_dot_w=new_distance_squared;weights=<<1,weights_y_temp;}}
+            // check weights.y=0 side ignoring corners (already handled above)
+            if(u_dot_w>0 && u_dot_u>u_dot_w){T weights_x_temp=u_dot_w/u_dot_u,new_distance_squared=-weights_x_temp*u_dot_w;
+                if(new_distance_squared<distance_squared_minus_w_dot_w){distance_squared_minus_w_dot_w=new_distance_squared;weights<<weights_x_temp,0;}}
+            // check weights.y=1 side ignoring corners (already handled above)
+            if(v_plus_w_dot_u>0 && u_dot_u>v_plus_w_dot_u){T weights_x_temp=v_plus_w_dot_u/u_dot_u,new_distance_squared=v_dot_v+2*v_dot_w-weights_x_temp*v_plus_w_dot_u;
+                if(new_distance_squared<distance_squared_minus_w_dot_w){distance_squared_minus_w_dot_w=new_distance_squared;weights<<weights_x_temp,1;}}}
+        return weights[0]*u-w-weights[1]*v;
+    }
+
+    TV Displacement(const DATA<TV>& data,const RIGID_STRUCTURE<TV>& structure,TV& offset1,TV& offset2) const {
+        TV centroid1=frame.position;
+        TV centroid2=centroid1+data.Minimum_Offset(frame.position,structure.frame.position);
+        TV major_axis1=frame.orientation._transformVector(collision_extent);
+        TV major_axis2=structure.frame.orientation._transformVector(structure.collision_extent);
+        
+        TV closest_point1=centroid1+(2*weights(1)-1)*major_axis1;
+        TV closest_point2=centroid1+(2*weights(1)-1)*major_axis1;
+        TV direction=closest_point2-closest_point1;
+        offset1=closest_point1-centroid1+direction*collision_radius;
+        offset2=closest_point2-centroid2+direction*structure.collision_radius;
+    }
+    
     template<class Archive>
     void serialize(Archive& archive) {
         archive(frame,twist);
