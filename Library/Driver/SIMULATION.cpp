@@ -4,13 +4,14 @@
 // Class SIMULATION
 ///////////////////////////////////////////////////////////////////////
 #include <Data/DATA.h>
+#include <Data/RIGID_STRUCTURE_DATA.h>
 #include <Driver/SIMULATION.h>
 #include <Evolution/EVOLUTION.h>
 #include <Force/FORCE.h>
 #include <fstream>
 #include <cereal/archives/binary.hpp>
-#include <cereal/types/unordered_map.hpp>
 #include <cereal/types/string.hpp>
+#include <cereal/types/unordered_map.hpp>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> SIMULATION<TV>::
@@ -45,6 +46,7 @@ Read(const int frame)
     stringStream<<output_directory<<"/frame."<<frame;
     std::ifstream input(stringStream.str().c_str(),std::ios::in);
     if(!input.is_open()){return false;}
+    auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.find("RIGID_STRUCTURE_DATA")->second);
     cereal::BinaryInputArchive archive(input);
     archive(data);
     return true;

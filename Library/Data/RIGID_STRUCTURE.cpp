@@ -22,7 +22,11 @@ DEFINE_AND_REGISTER_PARSER(RIGID_STRUCTURE,void)
     Parse_Vector(node["position"],structure->frame.position);
     Parse_Vector(node["collision_extent"],structure->collision_extent);
     Parse_Scalar(node["radius"],structure->radius);
-    Parse_Scalar(node["collision_radius"],structure->collision_radius);
+    if(node["collision_radius"].isNull()){
+        structure->collision_radius=structure->radius;}
+    else{
+        Parse_Scalar(node["collision_radius"],structure->collision_radius);
+    }
     structure->name=node["name"].asString();
     auto data_element=simulation.data.find(RIGID_STRUCTURE_DATA<TV>::Static_Name());
     auto rigid_structure_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data_element->second);

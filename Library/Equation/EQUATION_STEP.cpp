@@ -44,7 +44,7 @@ Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
         std::cout<<"Velocities: "<<std::endl<<velocities<<std::endl;*/
 
         equation->Linearize(data,force,velocities,dt,time,false); // make force balance a force as well?
-        
+        force.Pack_Forces(solve_vector);
         //count++;if(count>80){exit(0);}
     }
 }

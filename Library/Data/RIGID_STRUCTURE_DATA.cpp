@@ -10,6 +10,7 @@
 #include <Utilities/OSG_HELPERS.h>
 #include <osg/Geode>
 #include <osg/Node>
+#include <osg/Shape>
 #include <osg/ShapeDrawable>
 #include <osgWidget/Box>
 using namespace Mechanics;
@@ -106,7 +107,7 @@ Viewer(osg::Node* node)
         rigid_group->setName("RIGID_STRUCTURE_DATA");
         for(int i=0;i<structures.size();i++){
             auto transform=new osg::PositionAttitudeTransform();
-            auto unitCube=new osg::Box(osg::Vec3(0,0,0),4.0f);
+            auto unitCube=new osg::Sphere(osg::Vec3(0,0,0),structures[i]->radius);
             auto unitCubeDrawable=new osg::ShapeDrawable(unitCube);
             auto basicShapesGeode=new osg::Geode();
             basicShapesGeode->addDrawable(unitCubeDrawable);

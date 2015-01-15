@@ -68,7 +68,6 @@ public:
 
     template<class Archive>
     void serialize(Archive& archive) {
-        //archive(framing);
         archive(structures);
     }
 
