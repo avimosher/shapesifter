@@ -16,34 +16,38 @@ template<class TV> void EQUATION_STEP<TV>::
 Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
 {
     Matrix<T,Dynamic,1> positions;
-    Matrix<T,Dynamic,1> velocities;
+    Matrix<T,Dynamic,1> current_solution;
     //data.Pack_Velocities(velocities);velocities.setZero();
     data.Pack_Positions(positions);
-    equation->Linearize(data,force,velocities,dt,time,true);
+    equation->Linearize(data,force,current_solution,dt,time,true);
+
+    data.Pack_Velocities(current_solution);
+    current_solution.setZero();
+    force.Pack_Forces(current_solution);
+
+    Matrix<T,Dynamic,1> solve_vector;
+
     //int count=0;
-    Matrix<T,Dynamic,1> fractional_velocities;
     QUALITY solve_quality;
-    while(!equation->Satisfied(data,force,fractional_velocities,dt,time)){
+    while(!equation->Satisfied(data,force,solve_vector,dt,time)){
         // solve for variables
-        fractional_velocities=equation->Solve(data,force,dt,time);
+        solve_vector=equation->Solve(solve_vector);
         // step data according to result
         data.Unpack_Positions(positions);
-        if(!velocities.rows()){
-            velocities.resize(fractional_velocities.rows(),1);
-            velocities.setZero();
-        }
-        velocities+=(T).25*fractional_velocities;
+        current_solution+=(T).25*solve_vector;
         // NOTE: for the sake of things like snap constraints, it's good that this puts the velocity in data (and the initial velocity should probably be zero)
-        data.Unpack_Velocities(velocities.block(0,0,data.Velocity_DOF(),1));
+        data.Unpack_Velocities(current_solution.block(0,0,data.Velocity_DOF(),1));
         data.Unpack_Positions(positions);
-        data.Step(solve_quality,fractional_velocities);
+        data.Step(solve_quality,current_solution);
 
         /*Matrix<T,Dynamic,1> print_positions;
         data.Pack_Positions(print_positions);
         std::cout<<"Positions: "<<std::endl<<print_positions<<std::endl;
         std::cout<<"Velocities: "<<std::endl<<velocities<<std::endl;*/
 
-        equation->Linearize(data,force,velocities,dt,time,false); // make force balance a force as well?
+        force.Unpack_Forces(solve_vector);
+        equation->Linearize(data,force,current_solution,dt,time,false); // make force balance a force as well?
+        solve_vector.setZero();
         force.Pack_Forces(solve_vector);
         //count++;if(count>80){exit(0);}
     }

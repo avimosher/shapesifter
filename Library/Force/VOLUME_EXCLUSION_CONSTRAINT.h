@@ -14,7 +14,7 @@ public:
         int s1;
         int s2;
     };
-    //std::vector<CONSTRAINT> constraints;
+    std::vector<CONSTRAINT> constraints;
 
     VOLUME_EXCLUSION_CONSTRAINT(){}
     ~VOLUME_EXCLUSION_CONSTRAINT(){}

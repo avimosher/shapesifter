@@ -23,6 +23,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     std::vector<T> rhs;
     RIGID_STRUCTURE_INDEX_MAP<TV> index_map;
     int constraint_count=0;
+    constraints.clear();
     for(int s1=0;s1<rigid_data->structures.size();s1++){
         for(int s2=s1+1;s2<rigid_data->structures.size();s2++){
             auto rigid_structure1=rigid_data->structures[s1];

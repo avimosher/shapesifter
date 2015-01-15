@@ -54,14 +54,14 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& velocities,
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>::
-Solve(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
+Solve(const Matrix<T,Dynamic,1>& guess)
 {
     const int solve_iterations=200;
     MINRES<SparseMatrix<T>> solver;
     solver.setMaxIterations(solve_iterations);
     solver.compute(matrix);
     // TODO: return only the velocity part?  Probably not.
-    return solver.solve(right_hand_side);//.block(0,0,full_matrix(0,0).size(),1);
+    return solver.solveWithGuess(right_hand_side,guess);//.block(0,0,full_matrix(0,0).size(),1);
     //return right_hand_side(0,0);
 }
 ///////////////////////////////////////////////////////////////////////
@@ -70,7 +70,10 @@ Satisfied(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& solve_resul
 {
     T norm;
     if(solve_result.rows()){
-        norm=(right_hand_side-matrix.block(0,data.Velocity_DOF(),matrix.rows(),matrix.cols()-data.Velocity_DOF())*solve_result.block(data.Velocity_DOF(),0,solve_result.rows()-data.Velocity_DOF(),1)).squaredNorm();}
+        Matrix<T,dynamic,1> residual=right_hand_side;
+        int velocity_count=data.Velocity_DOF();
+        residual-=matrix.block(0,velocity_count,matrix.rows(),matrix.cols()-velocity_count)*solve_result.block(velocity_count,0,solve_result.rows()-velocity_count,1);
+        norm=residual.squaredNorm();}
     else{
         norm=right_hand_side.squaredNorm();
     }
