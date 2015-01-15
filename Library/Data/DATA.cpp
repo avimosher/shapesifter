@@ -63,10 +63,6 @@ Pack_Velocities(Matrix<T,Dynamic,1>& velocities)
 template<class TV> void DATA<TV>::
 Unpack_Velocities(const Matrix<T,Dynamic,1>& velocities)
 {
-    int total_size=0;
-    for(auto data_type : (*this)){
-        total_size+=data_type.second->Velocity_DOF();
-    }
     int current_position=0;
     for(auto data_type : (*this)){
         int data_size=data_type.second->Velocity_DOF();
@@ -95,10 +91,6 @@ Pack_Positions(Matrix<T,Dynamic,1>& positions)
 template<class TV> void DATA<TV>::
 Unpack_Positions(const Matrix<T,Dynamic,1>& positions)
 {
-    int total_size=0;
-    for(auto data_type : (*this)){
-        total_size+=data_type.second->Position_DOF();
-    }
     int current_position=0;
     for(auto data_type : (*this)){
         int data_size=data_type.second->Position_DOF();
