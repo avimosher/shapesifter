@@ -22,8 +22,8 @@ class FORCE:public std::vector<std::shared_ptr<FORCE_TYPE<TV>>>
     typedef typename TV::Scalar T;
 
 public:
-    FORCE();
-    ~FORCE();
+    FORCE(){}
+    ~FORCE(){}
 
     T Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T target_time);
     int Force_DOF() const;

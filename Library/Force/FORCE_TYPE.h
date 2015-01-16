@@ -19,11 +19,13 @@ class FORCE_TYPE
 {
     typedef typename TV::Scalar T;
 
-    Matrix<T,Dynamic,1> stored_forces;
 public:
-    FORCE_TYPE();
-    ~FORCE_TYPE();
+    Matrix<T,Dynamic,1> stored_forces;
 
+    FORCE_TYPE(){}
+    virtual ~FORCE_TYPE(){}
+
+    int Force_DOF(){return stored_forces.rows();}
     virtual T Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T target_time){return std::numeric_limits<T>::max();}
     virtual void Pack_Forces(Block<Matrix<T,Dynamic,1>>& forces){forces=stored_forces;};
     virtual void Unpack_Forces(const Matrix<T,Dynamic,1>& forces){stored_forces=forces;};

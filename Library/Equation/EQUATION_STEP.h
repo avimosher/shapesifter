@@ -14,8 +14,8 @@ class EQUATION_STEP:public EVOLUTION_STEP<TV>
 public:
     EQUATION<TV>* equation;
 
-    EQUATION_STEP();
-    ~EQUATION_STEP();
+    EQUATION_STEP(){}
+    ~EQUATION_STEP(){}
 
     void Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time);
 };

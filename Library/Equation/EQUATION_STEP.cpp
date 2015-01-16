@@ -2,15 +2,8 @@
 #include <Equation/EQUATION.h>
 #include <Equation/EQUATION_STEP.h>
 #include <Evolution/QUALITY.h>
+#include <Force/FORCE.h>
 using namespace Mechanics;
-///////////////////////////////////////////////////////////////////////
-template<class TV> EQUATION_STEP<TV>::
-EQUATION_STEP()
-{}
-///////////////////////////////////////////////////////////////////////
-template<class TV> EQUATION_STEP<TV>::
-~EQUATION_STEP()
-{}
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void EQUATION_STEP<TV>::
 Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)

@@ -70,7 +70,7 @@ Satisfied(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& solve_resul
 {
     T norm;
     if(solve_result.rows()){
-        Matrix<T,dynamic,1> residual=right_hand_side;
+        Matrix<T,Dynamic,1> residual=right_hand_side;
         int velocity_count=data.Velocity_DOF();
         residual-=matrix.block(0,velocity_count,matrix.rows(),matrix.cols()-velocity_count)*solve_result.block(velocity_count,0,solve_result.rows()-velocity_count,1);
         norm=residual.squaredNorm();}

@@ -6,10 +6,19 @@
 #include <Indexing/RIGID_STRUCTURE_INDEX_MAP.h>
 #include <Parsing/PARSER_REGISTRY.h>
 #include <Utilities/EIGEN_HELPERS.h>
+#include <Utilities/HASHING.h>
 #include <Utilities/RANDOM.h>
 #include <iostream>
 #include <math.h>
 using namespace Mechanics;
+///////////////////////////////////////////////////////////////////////
+template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
+Unpack_Forces(const Matrix<T,Dynamic,1>& forces)
+{
+    for(int i=0;i<constraints.size();i++){
+        force_memory[constraints[i]]=forces(i,0);
+    }
+}
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
 Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
@@ -22,7 +31,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     std::vector<Triplet<CONSTRAINT_VECTOR>> terms;
     std::vector<T> rhs;
     RIGID_STRUCTURE_INDEX_MAP<TV> index_map;
-    int constraint_count=0;
+    //int constraint_count=0;
     constraints.clear();
     for(int s1=0;s1<rigid_data->structures.size();s1++){
         for(int s2=s1+1;s2<rigid_data->structures.size();s2++){
@@ -38,15 +47,20 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             std::cout<<"Violation: "<<constraint_violation<<" displacement: "<<distance<<" orientation: "<<direction<<std::endl;
             if(constraint_violation<distance_condition){
                 std::cout<<"Try constraint"<<std::endl;
-                terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraint_count,s2,direction.transpose()*index_map.Velocity_Map(offset2)));
-                terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraint_count,s1,-direction.transpose()*index_map.Velocity_Map(offset1)));
+                terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s2,direction.transpose()*index_map.Velocity_Map(offset2)));
+                terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s1,-direction.transpose()*index_map.Velocity_Map(offset1)));
                 rhs.push_back(-constraint_violation);
                 //constraint_rhs(constraint_count,0)=-constraint_violation;
-                constraint_count++;
+                constraints.push_back(CONSTRAINT(s1,s2));
+                //constraint_count++;
             }
         }
     }
-    constraint_terms.resize(constraint_count,RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE*rigid_data->structures.size());
+    stored_forces.resize(constraints.size(),1);
+    for(int i=0;i<constraints.size();i++){
+        stored_forces(i,0)=force_memory[constraints[i]];
+    }
+    constraint_terms.resize(constraints.size(),RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE*rigid_data->structures.size());
     constraint_rhs.resize(rhs.size(),1);
     for(int i=0;i<rhs.size();i++){constraint_rhs(i,0)=rhs[i];}
     Flatten_Matrix(terms,constraint_terms);

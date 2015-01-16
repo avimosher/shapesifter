@@ -27,7 +27,7 @@ public:
     ~NONLINEAR_EQUATION(){};
 
     void Linearize(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& velocities,const T dt,const T time,const bool stochastic);
-    Matrix<T,Dynamic,1> Solve(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& guess);
+    Matrix<T,Dynamic,1> Solve(const Matrix<T,Dynamic,1>& guess);
     bool Satisfied(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& solve_result,const T dt,const T time);
 
     DEFINE_TYPE_NAME("NONLINEAR_EQUATION")

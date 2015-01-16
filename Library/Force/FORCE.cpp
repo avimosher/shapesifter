@@ -7,22 +7,12 @@
 #include <Force/FORCE_TYPE.h>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
-template<class TV> FORCE<TV>::
-FORCE()
-{
-}
-///////////////////////////////////////////////////////////////////////
-template<class TV> FORCE<TV>::
-~FORCE()
-{
-}
-///////////////////////////////////////////////////////////////////////
 template<class TV> int FORCE<TV>::
 Force_DOF() const
 {
     int total_size=0;
     for(auto force_type : (*this)){
-        total_size+=force_type.second->Force_DOF();
+        total_size+=force_type->Force_DOF();
     }
     return total_size;
 }
@@ -33,9 +23,9 @@ Pack_Forces(Matrix<T,Dynamic,1>& forces)
     forces.resize(Force_DOF(),1);
     int current_position=0;
     for(auto force_type : (*this)){
-        int force_size=force_type.second->Force_DOF();
+        int force_size=force_type->Force_DOF();
         Block<Matrix<T,Dynamic,1>> block=forces.block(current_position,0,force_size,1);
-        force_type.second->Pack_Forces(block);
+        force_type->Pack_Forces(block);
         current_position+=force_size;
     }
 }
@@ -43,11 +33,10 @@ Pack_Forces(Matrix<T,Dynamic,1>& forces)
 template<class TV> void FORCE<TV>::
 Unpack_Forces(const Matrix<T,Dynamic,1>& forces)
 {
-    forces.resize(Force_DOF(),1);
     int current_position=0;
     for(auto force_type : (*this)){
-        int force_size=force_type.second->Force_DOF();
-        force_type.second->Unpack_Forces(forces.block(current_position,0,force_size,1));
+        int force_size=force_type->Force_DOF();
+        force_type->Unpack_Forces(forces.block(current_position,0,force_size,1));
         current_position+=force_size;
     }
 }
