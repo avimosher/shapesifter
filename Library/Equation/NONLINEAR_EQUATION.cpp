@@ -44,10 +44,9 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& velocities,
     full_matrix(0,0).setFromTriplets(force_terms.begin(),force_terms.end());
     //full_right_hand_side(0,0)-=full_matrix(0,0)*velocities;
     Merge_Block_Matrices(full_matrix,matrix);
-    if(velocities.rows()){
-        //full_right_hand_side(0,0)-=matrix.block(0,0,data.Velocity_DOF(),matrix.cols())*velocities;
-        full_right_hand_side(0,0)-=matrix.block(0,0,data.Velocity_DOF(),data.Velocity_DOF())*velocities.block(0,0,data.Velocity_DOF(),1);
-    }
+
+    //full_right_hand_side(0,0)-=matrix.block(0,0,data.Velocity_DOF(),matrix.cols())*velocities;
+    full_right_hand_side(0,0)-=full_matrix(0,0)*velocities;
     Merge_Block_Vectors(full_right_hand_side,right_hand_side);
     //std::cout<<"Matrix: "<<std::endl<<matrix<<std::endl;
     //std::cout<<"RHS: "<<std::endl<<right_hand_side<<std::endl;
