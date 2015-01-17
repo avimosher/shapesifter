@@ -13,9 +13,12 @@ public:
     using FORCE_TYPE<TV>::stored_forces;
     typedef std::pair<int,int> CONSTRAINT;
     std::vector<CONSTRAINT> constraints;
-    std::unordered_map<CONSTRAINT,T> force_memory;
+    int call_count;
+    std::unordered_map<CONSTRAINT,std::pair<int,T>> force_memory;
 
-    VOLUME_EXCLUSION_CONSTRAINT(){}
+    VOLUME_EXCLUSION_CONSTRAINT()
+        :call_count(0)
+    {}
     ~VOLUME_EXCLUSION_CONSTRAINT(){}
 
     void Unpack_Forces(const Matrix<T,Dynamic,1>& forces);

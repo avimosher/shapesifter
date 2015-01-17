@@ -53,7 +53,7 @@ Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
         solve_vector.resize(solve_velocities.size()+solve_forces.size());
         solve_vector<<solve_velocities,
             solve_forces;
-        //count++;if(count>80){exit(0);}
+        //count++;if(count>35){exit(0);}
     }
 }
 ///////////////////////////////////////////////////////////////////////

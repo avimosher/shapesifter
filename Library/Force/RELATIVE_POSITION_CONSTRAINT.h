@@ -10,6 +10,7 @@ class RELATIVE_POSITION_CONSTRAINT : public FORCE_TYPE<TV>
 {
     typedef typename TV::Scalar T;
 public:
+    using FORCE_TYPE<TV>::stored_forces;
     struct CONSTRAINT{
         int s1;
         TV v1;

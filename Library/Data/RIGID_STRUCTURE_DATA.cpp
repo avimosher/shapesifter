@@ -15,11 +15,6 @@
 #include <osgWidget/Box>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
-template<class TV> RIGID_STRUCTURE_DATA<TV>::
-RIGID_STRUCTURE_DATA()
-{
-}
-///////////////////////////////////////////////////////////////////////
 template<class TV> int RIGID_STRUCTURE_DATA<TV>::
 Size()
 {
@@ -86,7 +81,7 @@ Step(const DATA<TV>& data,const Matrix<T,Dynamic,1>& variables)
     for(int i=0;i<structures.size();i++){
         //structures[i]->twist.Unpack(variables.template block<TWIST<TV>::STATIC_SIZE,1>(i*TWIST<TV>::STATIC_SIZE,0));
         structures[i]->frame=Updated_Frame(data,structures[i]->frame,structures[i]->twist);
-        //std::cout<<i<<": "<<structures[i]->frame.position.transpose()<<std::endl;
+        std::cout<<i<<": "<<structures[i]->frame.position.transpose()<<std::endl;
         //std::cout<<i<<" twist linear: "<<structures[i]->twist.linear.transpose()<<std::endl;
         //structures[i]->frame.Unpack(variables.template block<RIGID_STRUCTURE<TV>::STATIC_SIZE,1>(i*RIGID_STRUCTURE<TV>::STATIC_SIZE,0));
     }

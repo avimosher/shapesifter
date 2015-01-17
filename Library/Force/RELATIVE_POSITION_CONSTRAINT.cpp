@@ -14,8 +14,6 @@ using namespace Mechanics;
 template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::
 Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
 {
-    T one_over_dt=1/dt;
-    RANDOM<TV> random;
     auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.find("RIGID_STRUCTURE_DATA")->second);
     typedef Matrix<T,1,RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE> CONSTRAINT_VECTOR;
     std::vector<Triplet<CONSTRAINT_VECTOR>> terms;
@@ -27,12 +25,10 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         int body_index2=constraint.s2;
         auto rigid_structure1=rigid_data->structures[body_index1];
         auto rigid_structure2=rigid_data->structures[body_index2];
-        FRAME<TV> frame1=rigid_structure1->frame;//rigid_data->Updated_Frame(data,rigid_structure1->frame,rigid_structure1->twist);
-        FRAME<TV> frame2=rigid_structure2->frame;//rigid_data->Updated_Frame(data,rigid_structure2->frame,rigid_structure2->twist);
+        FRAME<TV> frame1=rigid_structure1->frame;
+        FRAME<TV> frame2=rigid_structure2->frame;
         TV offset1=frame1.orientation._transformVector(constraint.v1);
         TV offset2=frame2.orientation._transformVector(constraint.v2);
-        //std::cout<<"Position 1: "<<std::endl<<(frame1.position+offset1).transpose()<<std::endl;
-        //std::cout<<"Position 2: "<<std::endl<<(frame2.position+offset2).transpose()<<std::endl;
         TV direction=data.Minimum_Offset(frame1.position+offset1,frame2.position+offset2);
         T distance=direction.norm();
         direction.normalize();
@@ -42,6 +38,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     }
     constraint_terms.resize(constraints.size(),RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE*rigid_data->structures.size());
     Flatten_Matrix(terms,constraint_terms);
+    stored_forces.resize(constraints.size());
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(RELATIVE_POSITION_CONSTRAINT)

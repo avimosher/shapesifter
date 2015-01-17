@@ -31,7 +31,7 @@ class RIGID_STRUCTURE_DATA:public DATA_TYPE<TV>
 public:
     std::vector<std::shared_ptr<RIGID_STRUCTURE<TV>>> structures;
 
-    RIGID_STRUCTURE_DATA();
+    RIGID_STRUCTURE_DATA(){}
     ~RIGID_STRUCTURE_DATA(){}
 
     const Eigen::Rotation1D<T> Rotation_From_Angle_Axis(const Eigen::Matrix<T,0,1>& angle_axis) const {
