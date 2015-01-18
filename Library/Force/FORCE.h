@@ -10,6 +10,8 @@
 #include <memory>
 #include <vector>
 #include <Eigen/SparseCore>
+#include <osg/Group>
+
 
 namespace Mechanics{
 template<class TV> class DATA;
@@ -29,7 +31,7 @@ public:
     int Force_DOF() const;
     void Pack_Forces(Matrix<T,Dynamic,1>& forces);
     void Unpack_Forces(const Matrix<T,Dynamic,1>& forces);
-    void Linearize(DATA<TV>& data,const T dt,const T time,std::vector<Triplet<T>>& force_terms,std::vector<Triplet<T>>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side);
+    void Viewer(const DATA<TV>& data,osg::Group*& root);
 };
 }
 #endif

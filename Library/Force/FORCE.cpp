@@ -40,10 +40,13 @@ Unpack_Forces(const Matrix<T,Dynamic,1>& forces)
         current_position+=force_size;
     }
 }
-///////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////// 
 template<class TV> void FORCE<TV>::
-Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& force_terms,std::vector<Triplet<T>>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side)
+Viewer(const DATA<TV>& data,osg::Group*& root)
 {
+    for(auto force_type : (*this)){
+        force_type->Viewer(data,root);
+    }
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(FORCE)

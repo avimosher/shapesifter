@@ -7,6 +7,7 @@
 #define __SIMULATION__
 
 #include <Utilities/TYPE_UTILITIES.h>
+#include <osg/Group>
 #include <memory>
 
 namespace Mechanics{
@@ -34,7 +35,7 @@ public:
 
     void Write(const int frame);
     bool Read(const int frame);
-
+    void Viewer(osg::Group*& root);
 };
 }
 #endif

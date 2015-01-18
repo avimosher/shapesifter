@@ -26,13 +26,8 @@ class OSG_HELPERS<Matrix<T,3,1>>
         osg::Vec3 pos;
         for(int j=0;j<3;j++){pos[j]=frame.position[j];}
         transform->setPosition(pos);
-//      osg::Vec3 axis;axis[0]=1;axis[1]=1;axis[2]=1;
-//      osg::Quat quat(M_PI/4,axis);
-        //AngleAxis angleAxis(frame.orientation);
-//std::cout<<"Quaternion: "<<std::endl<<frame.orientation.coeffs()<<std::endl;
-//transform->setAttitude(quat);
-osg::Quat quat(frame.orientation.x(),frame.orientation.y(),frame.orientation.z(),frame.orientation.w());
-transform->setAttitude(quat);
+        osg::Quat quat(frame.orientation.x(),frame.orientation.y(),frame.orientation.z(),frame.orientation.w());
+        transform->setAttitude(quat);
     }
 };
 

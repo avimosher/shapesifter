@@ -30,7 +30,7 @@ public:
         std::ifstream test_config(scenefile,std::ifstream::in);
         PARSE_SCENE<TV>::Parse_Scene(test_config,simulation);
         simulation.Read(frame);
-        simulation.data.Viewer(root);
+        simulation.Viewer(root);
         root->setUpdateCallback(this);
     }
 
@@ -39,7 +39,7 @@ public:
 
     void advanceFrame(int increment=1) {
         if(simulation.Read(frame+increment)){frame+=increment;}
-        simulation.data.Viewer(root);
+        simulation.Viewer(root);
     }
 
     virtual void operator()(osg::Node* node,osg::NodeVisitor* nv) {

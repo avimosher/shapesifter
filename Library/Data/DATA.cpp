@@ -119,7 +119,6 @@ Print_All()
 template<class TV> void DATA<TV>::
 Viewer(osg::Group*& root)
 {
-    root=root?root:new osg::Group();
     for(auto data_type : (*this)){
         data_type.second->Viewer(root);
     }

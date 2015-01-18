@@ -51,5 +51,13 @@ Read(const int frame)
     archive(data);
     return true;
 }
+/////////////////////////////////////////////////////////////////////// 
+template<class TV> void SIMULATION<TV>::
+Viewer(osg::Group*& root)
+{
+    root=root?root:new osg::Group();
+    data.Viewer(root);
+    force.Viewer(data,root);
+}
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(SIMULATION)
