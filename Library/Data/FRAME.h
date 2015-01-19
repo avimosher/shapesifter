@@ -1,8 +1,3 @@
-//////////////////////////////////////////////////////////////////////
-// Copyright 2014, Avi Robinson-Mosher.
-///////////////////////////////////////////////////////////////////////
-// Class FRAME
-///////////////////////////////////////////////////////////////////////
 #ifndef __FRAME__
 #define __FRAME__
 
@@ -27,11 +22,10 @@ public:
 
     FRAME()
         :orientation(T_ORIENTATION::Identity())
-    {
-    }
+    {}
     ~FRAME(){}
 
-    TV operator*(const TV& vector)
+    TV operator*(const TV& vector) const
     {
         return orientation._transformVector(vector)+position;
     }
@@ -52,8 +46,7 @@ public:
 
     template<class Archive>
     void serialize(Archive& archive) {
-        archive(position);
-        archive(orientation);
+        archive(position,orientation);
     }
 
 };

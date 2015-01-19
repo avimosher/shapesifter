@@ -1,8 +1,3 @@
-///////////////////////////////////////////////////////////////////////
-// Copyright 2014, Avi Robinson-Mosher.
-///////////////////////////////////////////////////////////////////////
-// Class DATA
-///////////////////////////////////////////////////////////////////////
 #ifndef __DATA__
 #define __DATA__
 
@@ -22,8 +17,8 @@ class DATA : public std::unordered_map<std::string,std::shared_ptr<DATA_TYPE<TV>
     typedef typename TV::Scalar T;
 
 public:
-    DATA();
-    ~DATA();
+    DATA(){}
+    ~DATA(){}
 
     TV Wrap(const TV& unwrapped) const{
         return unwrapped; // TODO: wrap to domain boundaries
@@ -34,13 +29,11 @@ public:
     }
 
     int Velocity_DOF() const;
-    void Variables(Matrix<T,Dynamic,1>& variables);
     void Pack_Velocities(Matrix<T,Dynamic,1>& velocities);
     void Unpack_Velocities(const Matrix<T,Dynamic,1>& velocities);
     void Pack_Positions(Matrix<T,Dynamic,1>& positions);
     void Unpack_Positions(const Matrix<T,Dynamic,1>& positions);
-    void Step(QUALITY& step_quality,Matrix<T,Dynamic,1> solve_result);
-    T Print_All();
+    void Step(QUALITY& step_quality);
     void Viewer(osg::Group*& root);
 };
 }

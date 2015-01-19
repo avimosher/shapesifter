@@ -1,8 +1,3 @@
-///////////////////////////////////////////////////////////////////////
-// Copyright 2014, Avi Robinson/Mosher.
-///////////////////////////////////////////////////////////////////////
-// Class EVOLUTION
-///////////////////////////////////////////////////////////////////////
 #include <Data/DATA.h>
 #include <Equation/EQUATION.h>
 #include <Evolution/EVOLUTION.h>
@@ -10,18 +5,6 @@
 #include <Evolution/EVOLUTION_TYPE.h>
 #include <iostream>
 using namespace Mechanics;
-///////////////////////////////////////////////////////////////////////
-template<class TV> EVOLUTION<TV>::
-EVOLUTION()
-{
-    
-}
-///////////////////////////////////////////////////////////////////////
-template<class TV> EVOLUTION<TV>::
-~EVOLUTION()
-{
-    
-}
 ///////////////////////////////////////////////////////////////////////
 template<class TV> typename TV::Scalar EVOLUTION<TV>::
 Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T time,const T target_time,bool& done)
@@ -34,7 +17,7 @@ Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T time,const T target_time,bool
 template<class TV> void EVOLUTION<TV>::
 Advance_One_Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
 {
-    for(auto step : (*this)) {step->Full_Step(data,force,dt,time);}
+    for(auto step : (*this)){step->Full_Step(data,force,dt,time);}
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(EVOLUTION)

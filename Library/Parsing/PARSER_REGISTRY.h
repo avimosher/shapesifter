@@ -1,8 +1,3 @@
-//#####################################################################
-// Copyright 2014, Avi Robinson-Mosher.
-//#####################################################################
-// Class PARSER_REGISTRY
-//#####################################################################
 #ifndef __PARSER_REGISTRY__
 #define __PARSER_REGISTRY__
 
@@ -99,14 +94,16 @@ Register()
     REGISTER_TEMPLATE_PARSER(PARSE_##TYPE,PARSED_TYPE)                  \
     template<class TV> std::shared_ptr<PARSED_TYPE<TV>> PARSE_##TYPE<TV>::Parse(Json::Value& node,SIMULATION<TV>& simulation)
 
-template<class T> void Parse_Scalar(Json::Value& node,T& value)
+template<class T> void Parse_Scalar(Json::Value& node,T& value,const T& default_value)
 {
     if(!node.isNull()){value=node.asDouble();}
+    else{value=default_value;}
 }
 
-template<class TV> void Parse_Vector(Json::Value& node,TV& vector)
+template<class TV> void Parse_Vector(Json::Value& node,TV& vector,const TV& default_vector)
 {
     if(!node.isNull()){for(int i=0;i<vector.size();i++){vector[i]=node[i].asDouble();}}
+    else{vector=default_vector;}
 }
 
 }

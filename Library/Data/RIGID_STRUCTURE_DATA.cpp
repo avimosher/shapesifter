@@ -1,8 +1,3 @@
-//////////////////////////////////////////////////////////////////////
-// Copyright 2014, Avi Robinson-Mosher.
-///////////////////////////////////////////////////////////////////////
-// Class RIGID_STRUCTURE_DATA
-///////////////////////////////////////////////////////////////////////
 #include <Data/DATA.h>
 #include <Data/RIGID_STRUCTURE_DATA.h>
 #include <Driver/SIMULATION.h>
@@ -31,16 +26,6 @@ template<class TV> int RIGID_STRUCTURE_DATA<TV>::
 Position_DOF() const
 {
     return FRAME<TV>::STATIC_SIZE*structures.size();
-}
-///////////////////////////////////////////////////////////////////////
-template<class TV> Matrix<typename TV::Scalar,Dynamic,1> RIGID_STRUCTURE_DATA<TV>::
-Variables()
-{
-    Matrix<T,Dynamic,1> packed(TWIST<TV>::STATIC_SIZE*structures.size(),1);
-    for(int i=0;i<structures.size();i++){
-        packed.template block<TWIST<TV>::STATIC_SIZE,1>(i*TWIST<TV>::STATIC_SIZE,0)=structures[i]->twist.Pack();
-    }
-    return packed;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RIGID_STRUCTURE_DATA<TV>::
@@ -76,14 +61,11 @@ Unpack_Positions(const Matrix<T,Dynamic,1>& positions)
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RIGID_STRUCTURE_DATA<TV>::
-Step(const DATA<TV>& data,const Matrix<T,Dynamic,1>& variables)
+Step(const DATA<TV>& data)
 {
     for(int i=0;i<structures.size();i++){
-        //structures[i]->twist.Unpack(variables.template block<TWIST<TV>::STATIC_SIZE,1>(i*TWIST<TV>::STATIC_SIZE,0));
         structures[i]->frame=Updated_Frame(data,structures[i]->frame,structures[i]->twist);
         std::cout<<i<<": "<<structures[i]->frame.position.transpose()<<std::endl;
-        //std::cout<<i<<" twist linear: "<<structures[i]->twist.linear.transpose()<<std::endl;
-        //structures[i]->frame.Unpack(variables.template block<RIGID_STRUCTURE<TV>::STATIC_SIZE,1>(i*RIGID_STRUCTURE<TV>::STATIC_SIZE,0));
     }
 }
 ///////////////////////////////////////////////////////////////////////
@@ -93,10 +75,8 @@ Viewer(osg::Node* node)
     osg::Group* group=node->asGroup();
     osg::Group* rigid_group=NULL;
     for(int i=0;i<group->getNumChildren();i++){
-        if(group->getChild(i)->getName()=="RIGID_STRUCTURE_DATA"){
-            rigid_group=(osg::Group*)group->getChild(i);
-        }
-    }
+        if(group->getChild(i)->getName()=="RIGID_STRUCTURE_DATA")
+        {rigid_group=(osg::Group*)group->getChild(i);}}
     if(!rigid_group){
         rigid_group=new osg::Group();
         rigid_group->setName("RIGID_STRUCTURE_DATA");

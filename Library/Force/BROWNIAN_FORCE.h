@@ -1,8 +1,3 @@
-//#####################################################################
-// Copyright 2014, Avi Robinson-Mosher.
-//#####################################################################
-// Class BROWNIAN_FORCE
-//#####################################################################
 #ifndef __BROWNIAN_FORCE__
 #define __BROWNIAN_FORCE__
 
@@ -20,8 +15,8 @@ class BROWNIAN_FORCE : public FORCE_TYPE<TV>
 public:
     T temperature;
 
-    BROWNIAN_FORCE();
-    ~BROWNIAN_FORCE();
+    BROWNIAN_FORCE(){}
+    ~BROWNIAN_FORCE(){}
 
     void Linearize(DATA<TV>& data,const T dt,const T time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic);
     DEFINE_TYPE_NAME("BROWNIAN_FORCE")

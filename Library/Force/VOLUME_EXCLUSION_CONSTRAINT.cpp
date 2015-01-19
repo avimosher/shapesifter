@@ -39,7 +39,6 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             direction.normalize();
             T constraint_violation=distance-rigid_structure1->collision_radius-rigid_structure2->collision_radius;
             T distance_condition=-.001;
-            //std::cout<<"Violation: "<<constraint_violation<<" displacement: "<<distance<<" orientation: "<<direction.transpose()<<std::endl;
             std::pair<int,T> remembered=force_memory[CONSTRAINT(s1,s2)];
             if(constraint_violation<distance_condition || (remembered.first==call_count && remembered.second<0)){
                 terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s2,direction.transpose()*index_map.Velocity_Map(offset2)));

@@ -1,8 +1,3 @@
-//////////////////////////////////////////////////////////////////////
-// Copyright 2014, Avi Robinson-Mosher.
-///////////////////////////////////////////////////////////////////////
-// Class EVOLUTION_STEP
-///////////////////////////////////////////////////////////////////////
 #ifndef __EVOLUTION_STEP__
 #define __EVOLUTION_STEP__
 
@@ -21,8 +16,8 @@ public:
     T up_to_date_time;
     std::vector<EVOLUTION_STEP<TV>*> prerequisites;
 
-    EVOLUTION_STEP();
-    ~EVOLUTION_STEP();
+    EVOLUTION_STEP(){}
+    ~EVOLUTION_STEP(){}
 
     bool Up_To_Date(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time){
         return up_to_date_time>=time;

@@ -65,23 +65,18 @@ public:
         switch(ea.getEventType()) {
             case(osgGA::GUIEventAdapter::KEYDOWN):{
                 switch(ea.getKey()) {
-                case 's':
-                {
-                    //int increment=1;
-                    //std::cout<<ea.getModKeyMask()<<" "<<osgGA::GUIEventAdapter::MODKEY_CTRL<<std::endl;
-                    //if(ea.getModKeyMask() & osgGA::GUIEventAdapter::MODKEY_CTRL){increment=-1;}
-                    animation->advanceFrame(1);
-                    return true;
-                }
-                case 19: // this is ctrl-s but I can't figure out why
-                    animation->advanceFrame(-1);
-                    return true;
-                case 'p':
-                    animation->lastTime=ea.getTime();
-                    animation->toggleAnimating();
-                    return true;
-                default:
-                    return false;
+                    case 's':
+                        animation->advanceFrame(1);
+                        return true;
+                    case 19: // this is ctrl-s but I can't figure out why
+                        animation->advanceFrame(-1);
+                        return true;
+                    case 'p':
+                        animation->lastTime=ea.getTime();
+                        animation->toggleAnimating();
+                        return true;
+                    default:
+                        return false;
                 }}
             default:
                 return false;}}
@@ -101,7 +96,5 @@ int main(int argc,char **argv)
     viewer.setCameraManipulator(new osgGA::TrackballManipulator);
     viewer.realize(); //creates windows, starts threads
     viewer.run();
-    //while(!viewer.done()){viewer.frame();}
-
     return 0;
 }

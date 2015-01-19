@@ -1,8 +1,3 @@
-//#####################################################################
-// Copyright 2014, Avi Robinson-Mosher.
-//#####################################################################
-// Class EVOLUTION
-//#####################################################################
 #ifndef __EVOLUTION__
 #define __EVOLUTION__
 
@@ -21,8 +16,8 @@ class EVOLUTION : public std::vector<std::shared_ptr<EVOLUTION_STEP<TV>>>
     typedef typename TV::Scalar T;
 
 public:
-    EVOLUTION();
-    ~EVOLUTION();
+    EVOLUTION(){}
+    ~EVOLUTION(){}
 
     T Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T time,const T target_time,bool& done);
     void Advance_One_Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time);

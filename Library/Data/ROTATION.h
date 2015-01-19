@@ -40,9 +40,7 @@ const Eigen::Matrix<T,4,1>& Get_Rotation_Coefficients(const Eigen::Quaternion<T>
 
 template<class T>
 Eigen::Matrix<T,1,1> Get_Rotation_Coefficients(const Eigen::Rotation2D<T>& rotation)
-{
-    Eigen::Matrix<T,1,1> matrix;matrix(0,0)=rotation.angle();return matrix;
-}
+{Eigen::Matrix<T,1,1> matrix;matrix(0,0)=rotation.angle();return matrix;}
 
 template<class T>
 Eigen::Matrix<T,0,1> Get_Rotation_Coefficients(const Eigen::Rotation1D<T>& rotation)
@@ -59,8 +57,6 @@ void Set_Rotation_Coefficients(Eigen::Rotation2D<T>& rotation,const Eigen::Matri
 template<class T,class DERIVED>
 void Set_Rotation_Coefficients(Eigen::Rotation1D<T>& rotation,const Eigen::MatrixBase<DERIVED>& matrix)
 {}
-
-
 
 }
 

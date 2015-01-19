@@ -16,7 +16,6 @@ public:
     {}
 };
 
-
 template<class T>
 class OSG_HELPERS<Matrix<T,3,1>>
 {

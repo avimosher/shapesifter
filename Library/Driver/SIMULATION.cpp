@@ -1,8 +1,3 @@
-///////////////////////////////////////////////////////////////////////
-// Copyright 2014, Avi Robinson-Mosher.
-///////////////////////////////////////////////////////////////////////
-// Class SIMULATION
-///////////////////////////////////////////////////////////////////////
 #include <Data/DATA.h>
 #include <Data/RIGID_STRUCTURE_DATA.h>
 #include <Driver/SIMULATION.h>
@@ -46,7 +41,6 @@ Read(const int frame)
     stringStream<<output_directory<<"/frame."<<frame;
     std::ifstream input(stringStream.str().c_str(),std::ios::in);
     if(!input.is_open()){return false;}
-    auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.find("RIGID_STRUCTURE_DATA")->second);
     cereal::BinaryInputArchive archive(input);
     archive(data);
     return true;

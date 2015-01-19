@@ -1,5 +1,3 @@
 Import('env Automatic_Program')
 
-nodes=Automatic_Program(target='viewer',source=['main.cpp'],env=env)
-Return('nodes')
-
+Automatic_Program(target='viewer',source=['main.cpp'],env=env)

@@ -1,8 +1,3 @@
- //////////////////////////////////////////////////////////////////////
-// Copyright 2014, Avi Robinson-Mosher.
-///////////////////////////////////////////////////////////////////////
-// Class RIGID_STRUCTURE
-///////////////////////////////////////////////////////////////////////
 #ifndef __RIGID_STRUCTURE__
 #define __RIGID_STRUCTURE__
 
@@ -17,7 +12,6 @@ template<class TV>
 class RIGID_STRUCTURE
 {
     typedef typename TV::Scalar T;
-
 public:
     enum DEFINITIONS{STATIC_SIZE=FRAME<TV>::STATIC_SIZE};
     std::string name;
@@ -30,18 +24,12 @@ public:
     MOMENT<TV> moi;
 #endif
 
-    RIGID_STRUCTURE();
-    ~RIGID_STRUCTURE(){};
+    RIGID_STRUCTURE(){}
+    ~RIGID_STRUCTURE(){}
 
-    static Matrix<T,1,1> Segment_Segment_Displacement(const Matrix<Matrix<T,1,1>,2,1>& s1,const Matrix<Matrix<T,1,1>,2,1>& s2,Matrix<T,2,1>& weights)
-    {
-        return Matrix<T,1,1>();
-    }
+    static Matrix<T,1,1> Segment_Segment_Displacement(const Matrix<Matrix<T,1,1>,2,1>& s1,const Matrix<Matrix<T,1,1>,2,1>& s2,Matrix<T,2,1>& weights){return Matrix<T,1,1>();}
 
-    static Matrix<T,2,1> Segment_Segment_Displacement(const Matrix<Matrix<T,2,1>,2,1>& s1,const Matrix<Matrix<T,2,1>,2,1>& s2,Matrix<T,2,1>& weights)
-    {
-        return Matrix<T,2,1>();
-    }
+    static Matrix<T,2,1> Segment_Segment_Displacement(const Matrix<Matrix<T,2,1>,2,1>& s1,const Matrix<Matrix<T,2,1>,2,1>& s2,Matrix<T,2,1>& weights){return Matrix<T,2,1>();}
 
     // From PhysBAM
     static Matrix<T,3,1> Segment_Segment_Displacement(const Matrix<Matrix<T,3,1>,2,1>& s1,const Matrix<Matrix<T,3,1>,2,1>& s2,Matrix<T,2,1>& weights)
@@ -55,7 +43,6 @@ public:
             u_dot_w=u.dot(w),
             v_dot_w=v.dot(w);
         T v_dot_v_pseudoinverse=(v_dot_v?1/v_dot_v:0);
-        //std::cout<<u_magnitude_squared<<" "<<v_magnitude_squared<<" "<<u_dot_u<<" "<<v_dot_v<<" "<<u_dot_v<<" "<<u_dot_w<<" "<<v_dot_w<<std::endl;
         T denominator=u_dot_u*v_dot_v-u_dot_v*u_dot_v,rhs1=v_dot_v*u_dot_w-u_dot_v*v_dot_w,rhs2=u_dot_v*u_dot_w-u_dot_u*v_dot_w;
         bool check_boundary=false;
         if(rhs1<=0 || denominator<=rhs1){check_boundary=true;}
@@ -97,10 +84,7 @@ public:
         Matrix<TV,2,1> segment2;
         segment2[0]=centroid2-major_axis2;
         segment2[1]=centroid2+major_axis2;
-        //std::cout<<"Segment1: "<<segment1[0]<<" "<<segment1[1]<<std::endl;
-        //std::cout<<"Segment2: "<<segment2[0]<<" "<<segment2[1]<<std::endl;
         Segment_Segment_Displacement(segment1,segment2,weights);
-        //std::cout<<"weights: "<<weights<<std::endl;
         TV closest_point1=centroid1+(2*weights(1)-1)*major_axis1;
         TV closest_point2=centroid2+(2*weights(1)-1)*major_axis2;
         TV displacement=closest_point2-closest_point1;

@@ -14,8 +14,8 @@ int main(int argc,char **argv)
     auto simulation=std::make_shared<SIMULATION<TV>>();
 
     std::cout<<"Scene file: "<<argv[1]<<std::endl;
-    std::ifstream test_config(argv[1],std::ifstream::in);
-    PARSE_SCENE<TV>::Parse_Scene(test_config,*simulation);
+    std::ifstream config(argv[1],std::ifstream::in);
+    PARSE_SCENE<TV>::Parse_Scene(config,*simulation);
 
     DRIVER<TV> driver(simulation);
     simulation->last_time=10;

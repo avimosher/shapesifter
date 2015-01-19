@@ -20,7 +20,6 @@ DEFINE_AND_REGISTER_PARSER(ANALYTE,void)
     auto analyte=std::make_shared<ANALYTE<TV>>();
     analyte->aggregator=PARSER_REGISTRY<TV,AGGREGATOR<TV>>::Parse(node["aggregator"],simulation);
     if(node.isMember("condition")){analyte->condition=PARSER_REGISTRY<TV,PREDICATE<TV>>::Parse(node["condition"],simulation);}
-    //analyte->condition=CONDITION_PARSER_REGISTRY<TV>::Parse(node["condition"]);
     analyte->predicate=PARSER_REGISTRY<TV,PREDICATE<TV>>::Parse(node["predicate"],simulation);
     simulation.evolution.push_back(analyte);
     return 0;

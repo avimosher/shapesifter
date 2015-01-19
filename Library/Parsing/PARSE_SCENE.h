@@ -13,8 +13,8 @@ class PARSE_SCENE
     typedef typename TV::Scalar T;
 
 public:
-    PARSE_SCENE(){};
-    ~PARSE_SCENE(){};
+    PARSE_SCENE(){}
+    ~PARSE_SCENE(){}
 
     static bool Parse_Scene(std::istream& input,SIMULATION<TV>& simulation);
 };

@@ -1,8 +1,3 @@
-//#####################################################################
-// Copyright 2014, Avi Robinson-Mosher.
-//#####################################################################
-// Class DRIVER
-//#####################################################################
 #ifndef __DRIVER__
 #define __DRIVER__
 
@@ -18,8 +13,10 @@ class DRIVER
 public:
     std::shared_ptr<SIMULATION<TV>> simulation;
 
-    DRIVER(std::shared_ptr<SIMULATION<TV>> simulation);
-    ~DRIVER();
+    DRIVER(std::shared_ptr<SIMULATION<TV>> simulation)
+        :simulation(simulation)
+    {}
+    ~DRIVER(){}
 
     void Initialize();
     void Advance_One_Time_Step(const T target_time,bool &done);

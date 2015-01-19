@@ -1,9 +1,8 @@
 #include <Parsing/PARSE_SCENE.h>
 #include <Parsing/PARSER_REGISTRY.h>
 #include <json/json.h>
-
 using namespace Mechanics;
-
+///////////////////////////////////////////////////////////////////////
 template<class TV> bool PARSE_SCENE<TV>::
 Parse_Scene(std::istream& input,SIMULATION<TV>& simulation)
 {
@@ -20,5 +19,5 @@ Parse_Scene(std::istream& input,SIMULATION<TV>& simulation)
     for(int i=0;i<arrayRoot.size();i++){PARSER_REGISTRY<TV,void>::Parse(arrayRoot[i],simulation);}
     return true;
 }
-
+///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(PARSE_SCENE)

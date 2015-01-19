@@ -2,7 +2,6 @@ import os
 import glob
 
 Decider('timestamp-match')
-#options=Options('SConstruct.options')
 
 options=Options()
 options.AddOptions(EnumOption('TYPE','Type of build','release',allowed_values=('release','debug')))
@@ -33,23 +32,13 @@ for name,lib in external_libraries.items():
     env.Append(LIBPATH=lib['libpath'])
     env.Append(LIBS=lib['libs'])
     env.Append(LINKFLAGS=lib['linkflags'])
-#    options.AddOptions(BoolOption('USE_'+name.upper(),'Use '+name,lib['default']),
-#                       (name+'_include','Include directory for '+name,0),
-#                       (name+'_libpath','Library directory for '+name,0),
-#                       (name+'_rpath','Extra rpath directory for '+name,0),
-#                       (name+'_libs','Libraries for '+name,0),
-#                       (name+'_linkflags','Linker flags for '+name,0))
 
 def Automatic_Program(target,source,env):
     program=env.Program(target=target,source=source)
-    print(program)
-#    env.Command('bin',target,Copy('$TARGET','$SOURCE'))
     env.Install('#bin',target)
     
 def Automatic_Library(target,source,env):
     library=env.SharedLibrary(target=target,source=source)
-    print(library)
-#    env.Command('bin'+library,library,Copy('$TARGET','$SOURCE'))
     env.Install('#bin',library)
 
 build_base='build/'+env['TYPE']
@@ -72,15 +61,9 @@ directories=SConscript('Library/SConscript',variant_dir=build_base+'/Library',ex
 env_projects=env.Clone()
 env_projects.Append(LIBS=directories)
 env_projects.Append(LIBPATH=['#'+build_base+'/Library'])
-#env.Install('#bin',libraries)
 
 Find_SConscripts(env_projects,'Projects')
-#SConscript('Projects/SConscript',variant_dir='build/Projects',
-#                       exports={'env': env_projects,
-#                                'Automatic_Program': Automatic_Program})
-#print(executables)
-#env_projects.Install('#bin',executables)
-#SConscript('Tests/SConscript',variant_dir='build/Tests')
+#Find_SConscripts(env_projects,'Tests')
 
     
 

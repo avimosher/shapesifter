@@ -5,10 +5,8 @@
 #include <Eigen/Sparse>
 #include <json/json.h>
 
-
 // define Rotation1D to match Rotation2D and Quaternion
 namespace Eigen{
-
 template<typename _Scalar>
 class Rotation1D : public RotationBase<Rotation1D<_Scalar>,1>
 {
@@ -51,7 +49,6 @@ std::ostream& operator<<(std::ostream& os,const Quaternion<T>& rotation)
 
 // define utilities for manipulating form of Eigen matrices with non-scalar entries
 namespace Mechanics{
-
 template<class T,int rows,int cols>
 void Flatten_Matrix(const std::vector<Eigen::Triplet<Eigen::Matrix<T,rows,cols>>>& block_terms,Eigen::SparseMatrix<T>& flat_matrix)
 {

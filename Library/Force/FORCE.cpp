@@ -1,8 +1,3 @@
-//////////////////////////////////////////////////////////////////////
-// Copyright 2014, Avi Robinson-Mosher.
-///////////////////////////////////////////////////////////////////////
-// Class FORCE
-///////////////////////////////////////////////////////////////////////
 #include <Force/FORCE.h>
 #include <Force/FORCE_TYPE.h>
 using namespace Mechanics;
@@ -11,9 +6,7 @@ template<class TV> int FORCE<TV>::
 Force_DOF() const
 {
     int total_size=0;
-    for(auto force_type : (*this)){
-        total_size+=force_type->Force_DOF();
-    }
+    for(auto force_type : (*this)){total_size+=force_type->Force_DOF();}
     return total_size;
 }
 ///////////////////////////////////////////////////////////////////////
@@ -44,9 +37,7 @@ Unpack_Forces(const Matrix<T,Dynamic,1>& forces)
 template<class TV> void FORCE<TV>::
 Viewer(const DATA<TV>& data,osg::Group*& root)
 {
-    for(auto force_type : (*this)){
-        force_type->Viewer(data,root);
-    }
+    for(auto force_type : (*this)){force_type->Viewer(data,root);}
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(FORCE)
