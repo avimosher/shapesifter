@@ -14,6 +14,8 @@ public:
     std::random_device& Random_Device();
     std::mt19937& Generator();
     std::normal_distribution<>& Normal_Distribution();
+    std::uniform_real_distribution<T>& Uniform_Distribution();
+    T Uniform(const T& a,const T& b);
     T Gaussian();
     TV Direction();
 };

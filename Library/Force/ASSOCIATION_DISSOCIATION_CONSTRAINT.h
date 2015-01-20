@@ -9,6 +9,8 @@ template<class TV>
 class ASSOCIATION_DISSOCIATION_CONSTRAINT : public FORCE_TYPE<TV>
 {
     typedef typename TV::Scalar T;
+    typedef typename ROTATION<TV>::ORIENTATION T_ORIENTATION;
+    typedef Matrix<T,ROTATION<TV>::TwistSize,ROTATION<TV>::TwistSize> ROTATION_MATRIX;
 public:
     using FORCE_TYPE<TV>::stored_forces;
     typedef int CONSTRAINT;
