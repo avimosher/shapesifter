@@ -17,10 +17,28 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 constraint_active=random.Uniform((T)0,(T)1)>cumulative_distribution;
             }
             else{ // decide whether constraint gets turned on
-                
+                TV direction=data.Minimum_Offset(bond_position1,bond_position2);
+                T bond_distance=direction.norm();
+
+                T orientation_compatibility=T(),position_compatibility=(T)0;
+                if(bond_distance<interaction.bond_distance_threshold){
+                    position_compatibility=1-bond_distance/interaction.bond_distance_threshold;
+                    ROTATION<TV> composed_rotation=rigid_structure2->Rotation().inverse()*rigid_structure1->Rotation()*interaction.relative_orientation.inverse();
+                    orientation_compatibility=max((T)0,1-abs(composed_rotation.Angle())/interaction.bond_orientation_threshold);
+                }
+                T compatibility=orientation_compatibility*position_compatibility;
+                T association_rate=compatibility/interaction.base_association_time;
+                T cumulative_distribution=1-exp(-association_rate*remembered_dt);
+                constraint_active=random.Uniform((T)0,(T)1)<cumulative_distribution;
             }
         }
 
+        for(int c=0;c<constraints.size();c++){
+            ROTATION<TV> RC=Find_Appropriate_Rotation(R1_current*R1_base,R2_current*R2_base);
+            terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index1,Construct_Constraint_Matrix(R1_current,R1_base*RC,first_rotation_error_vector)));
+            terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index1,-Construct_Constraint_Matrix(R2_current,R2_base*RC,second_rotation_error_vector)));
+            auto total_rotation_error=first_rotation_error_vector-second_rotation_error_vector;
+        }
     }
 }
 ///////////////////////////////////////////////////////////////////////
