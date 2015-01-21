@@ -23,6 +23,19 @@ Normal_Distribution()
     return normal_distribution;
 }
 ///////////////////////////////////////////////////////////////////////
+template<class TV> std::uniform_real_distribution<typename TV::Scalar>& RANDOM<TV>::
+Uniform_Distribution()
+{
+    static std::uniform_real_distribution<double> uniform_distribution(0,1);
+    return uniform_distribution;
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> typename TV::Scalar RANDOM<TV>::
+Uniform(const T& a,const T& b)
+{
+    return Uniform_Distribution()(Generator())*(b-a)+a;
+}
+///////////////////////////////////////////////////////////////////////
 template<class TV> typename TV::Scalar RANDOM<TV>::
 Gaussian()
 {

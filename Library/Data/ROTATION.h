@@ -7,27 +7,30 @@
 
 namespace Mechanics{
 
-template<class TV> struct ROTATION;
+template<class TV> class ROTATION;
 
 template<class T>
-struct ROTATION<Eigen::Matrix<T,1,1>>
+class ROTATION<Eigen::Matrix<T,1,1>>:public Eigen::Rotation1D<T>
 {
+  public:
     enum DEFINITIONS{SizeAtCompileTime=0,TwistSize=0};
     typedef Eigen::Matrix<T,0,1> SPIN;
     typedef Eigen::Rotation1D<T> ORIENTATION;
 };
 
 template<class T>
-struct ROTATION<Eigen::Matrix<T,2,1>>
+class ROTATION<Eigen::Matrix<T,2,1>>:public Eigen::Rotation2D<T>
 {
+  public:
     enum DEFINITIONS{SizeAtCompileTime=1,TwistSize=1};
     typedef Eigen::Matrix<T,1,1> SPIN;
     typedef Eigen::Rotation2D<T> ORIENTATION;
 };
 
 template<class T>
-struct ROTATION<Eigen::Matrix<T,3,1>>
+class ROTATION<Eigen::Matrix<T,3,1>>:public Eigen::Quaternion<T>
 {
+  public:
     enum DEFINITIONS{SizeAtCompileTime=4,TwistSize=3};
     typedef Eigen::Matrix<T,3,1> SPIN;
     typedef Eigen::Quaternion<T> ORIENTATION;
