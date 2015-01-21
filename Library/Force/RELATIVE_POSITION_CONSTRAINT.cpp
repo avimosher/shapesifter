@@ -29,13 +29,11 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         auto rigid_structure2=rigid_data->structures[body_index2];
         FRAME<TV> frame1=rigid_structure1->frame;
         FRAME<TV> frame2=rigid_structure2->frame;
-        TV offset1=frame1.orientation._transformVector(constraint.v1);
-        TV offset2=frame2.orientation._transformVector(constraint.v2);
-        TV direction=data.Minimum_Offset(frame1.position+offset1,frame2.position+offset2);
+        TV direction=data.Minimum_Offset(frame1*constraint.v1,frame2*constraint.v2);
         T distance=direction.norm();
         direction.normalize();
-        terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index2,direction.transpose()*index_map.Velocity_Map(offset2)));
-        terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index1,-direction.transpose()*index_map.Velocity_Map(offset1)));
+        terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index2,direction.transpose()*index_map.Velocity_Map(*rigid_structure2,constraint.v2)));
+        terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index1,-direction.transpose()*index_map.Velocity_Map(*rigid_structure1,constraint.v1)));
         constraint_rhs(i,0)=constraint.target_distance-distance;
     }
     constraint_terms.resize(constraints.size(),RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE*rigid_data->structures.size());

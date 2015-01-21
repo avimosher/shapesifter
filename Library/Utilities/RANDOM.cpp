@@ -26,7 +26,7 @@ Normal_Distribution()
 template<class TV> std::uniform_real_distribution<typename TV::Scalar>& RANDOM<TV>::
 Uniform_Distribution()
 {
-    static std::uniform_real_distribution<double> uniform_distribution(0,1);
+    static std::uniform_real_distribution<T> uniform_distribution(0,1);
     return uniform_distribution;
 }
 ///////////////////////////////////////////////////////////////////////

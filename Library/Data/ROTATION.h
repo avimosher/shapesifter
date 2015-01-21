@@ -30,10 +30,15 @@ class ROTATION<Eigen::Matrix<T,2,1>>:public Eigen::Rotation2D<T>
 template<class T>
 class ROTATION<Eigen::Matrix<T,3,1>>:public Eigen::Quaternion<T>
 {
+    typedef Eigen::Matrix<T,3,1> TV;
   public:
     enum DEFINITIONS{SizeAtCompileTime=4,TwistSize=3};
     typedef Eigen::Matrix<T,3,1> SPIN;
     typedef Eigen::Quaternion<T> ORIENTATION;
+
+    TV operator*(const TV& vector){
+        return _transformVector(vector);
+    }
 };
 
 

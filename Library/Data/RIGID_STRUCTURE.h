@@ -92,7 +92,7 @@ public:
         offset2=closest_point2-centroid2+displacement*structure->collision_radius;
         return displacement;
     }
-    
+
     template<class Archive>
     void serialize(Archive& archive) {
         archive(name,frame,twist,radius,collision_radius,collision_extent);

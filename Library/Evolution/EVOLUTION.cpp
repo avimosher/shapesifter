@@ -2,7 +2,6 @@
 #include <Equation/EQUATION.h>
 #include <Evolution/EVOLUTION.h>
 #include <Evolution/EVOLUTION_STEP.h>
-#include <Evolution/EVOLUTION_TYPE.h>
 #include <iostream>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
