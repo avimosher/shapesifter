@@ -35,7 +35,7 @@ DEFINE_AND_REGISTER_TEMPLATE_PARSER(RIGID_STRUCTURE_POSITION_PREDICATE,PREDICATE
 {
     auto predicate=std::make_shared<RIGID_STRUCTURE_POSITION_PREDICATE<TV>>();
     predicate->name=node["name"].asString();
-    Parse_Vector(node["offset"],predicate->offset);
+    Parse_Vector(node["offset"],predicate->offset,TV());
     return predicate;
 }
 //////////////////////////////////////////////////////////////////////

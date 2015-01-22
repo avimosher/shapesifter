@@ -18,7 +18,7 @@ class FRAME
 public:
     enum DEFINITIONS{STATIC_SIZE=TV::SizeAtCompileTime+ROTATION<TV>::SizeAtCompileTime};
     TV position;
-    T_ORIENTATION orientation;
+    ROTATION<TV> orientation;
 
     FRAME()
         :orientation(T_ORIENTATION::Identity())

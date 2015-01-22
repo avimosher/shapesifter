@@ -12,10 +12,11 @@ class ASSOCIATION_DISSOCIATION_CONSTRAINT : public FORCE_TYPE<TV>
     typedef typename TV::Scalar T;
     typedef typename ROTATION<TV>::ORIENTATION T_ORIENTATION;
     typedef typename ROTATION<TV>::SPIN T_SPIN;
-    typedef Matrix<T,ROTATION<TV>::TwistSize,ROTATION<TV>::TwistSize> ROTATION_MATRIX;
-    typedef Matrix<T,TV::RowsAtCompileTime,TV::RowsAtCompileTime> LINEAR_MATRIX;
 public:
-    enum DEFINITIONS{TwistSize=ROTATION<TV>::TwistSize};
+    enum DEFINITIONS{TwistSize=ROTATION<TV>::TwistSize,LinearSize=TV::RowsAtCompileTime,FullSize=TV::RowsAtCompileTime+ROTATION<TV>::TwistSize};
+    typedef Matrix<T,ROTATION<TV>::TwistSize,ROTATION<TV>::TwistSize> ROTATION_MATRIX;
+    typedef Matrix<T,LinearSize,FullSize> LINEAR_CONSTRAINT_MATRIX;
+    typedef Matrix<T,TwistSize,FullSize> ANGULAR_CONSTRAINT_MATRIX;
     using FORCE_TYPE<TV>::stored_forces;
     typedef int CONSTRAINT;
 

@@ -60,6 +60,25 @@ void Flatten_Matrix(const std::vector<Eigen::Triplet<Eigen::Matrix<T,rows,cols>>
     flat_matrix.setFromTriplets(terms.begin(),terms.end());
 }
 
+template<class T,int rows1,int rows2,int cols>
+void Flatten_Matrices(const std::vector<Eigen::Triplet<Eigen::Matrix<T,rows1,cols>>>& block_terms1,
+    const int row_base,
+    const std::vector<Eigen::Triplet<Eigen::Matrix<T,rows2,cols>>>& block_terms2,
+    Eigen::SparseMatrix<T>& flat_matrix)
+{
+    std::vector<Eigen::Triplet<T>> terms;
+    for(const auto& block_term : block_terms1){
+        for(int i=0;i<rows1;i++){
+            for(int j=0;j<cols;j++){
+                terms.push_back(Eigen::Triplet<T>(block_term.row()*rows1+i,block_term.col()*cols+j,block_term.value()(i,j)));}}}
+    for(const auto& block_term : block_terms2){
+        for(int i=0;i<rows2;i++){
+            for(int j=0;j<cols;j++){
+                terms.push_back(Eigen::Triplet<T>(row_base+block_term.row()*rows2+i,block_term.col()*cols+j,block_term.value()(i,j)));}}}
+    flat_matrix.setFromTriplets(terms.begin(),terms.end());
+}
+
+
 template<class T>
 void Merge_Block_Matrices(const Eigen::Matrix<Eigen::SparseMatrix<T>,Eigen::Dynamic,Eigen::Dynamic>& block_matrix,Eigen::SparseMatrix<T>& matrix)
 {
@@ -111,6 +130,12 @@ template<class T>
 Eigen::Matrix<T,0,1> Cross_Product_Matrix(const Eigen::Matrix<T,1,1>& v)
 {
     return Eigen::Matrix<T,0,1>();
+}
+
+template<class T>
+Eigen::Matrix<T,0,0> Cross_Product_Matrix(const Eigen::Matrix<T,0,1>& v)
+{
+    return Eigen::Matrix<T,0,0>();
 }
 
 template<class T,int d>
