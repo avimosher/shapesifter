@@ -1,0 +1,28 @@
+{
+    "root": [
+        {"type": "RIGID_STRUCTURE_DATA"},
+        {"type": "RIGID_STRUCTURE",
+         "position": [1, 1, 1],
+         "radius": 1.1
+        },
+        {"type": "RIGID_STRUCTURE",
+         "position": [2, 1, 1],
+         "radius": 1.1
+        },
+        {"type": "BROWNIAN_FORCE"},
+        {"type": "NONLINEAR_EQUATION"},
+        {"type": "ASSOCIATION_DISSOCIATION_CONSTRAINT",
+        "interactions": [
+            {
+                "structure1": "left",
+                "offset1": [1,0,0],
+                "structure2": "right",
+                "offset2": [-1,0,0],
+                "bond_distance_threshold": 1,
+                "bond_orientation_threshold": 1.5,
+                "base_dissociation_time": 10,
+                "base_association_time": 1
+            }
+        }
+    ]
+}

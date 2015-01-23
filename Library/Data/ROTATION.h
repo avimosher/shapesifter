@@ -23,6 +23,7 @@ class ROTATION<Eigen::Matrix<T,1,1>>:public Eigen::Rotation1D<T>
     typedef Eigen::Matrix<T,0,1> SPIN;
     typedef Eigen::Rotation1D<T> ORIENTATION;
 
+    ROTATION(){}
     ROTATION(const Eigen::Rotation1D<T>& r)
         :Eigen::Rotation1D<T>(r)
     {}
@@ -45,6 +46,7 @@ class ROTATION<Eigen::Matrix<T,2,1>>:public Eigen::Rotation2D<T>
     typedef Eigen::Matrix<T,1,1> SPIN;
     typedef Eigen::Rotation2D<T> ORIENTATION;
 
+    ROTATION(){}
     ROTATION(const Eigen::Rotation2D<T>& r)
         :Eigen::Rotation2D<T>(r)
     {}
@@ -70,6 +72,7 @@ class ROTATION<Eigen::Matrix<T,3,1>>:public Eigen::Quaternion<T>
     typedef Eigen::Matrix<T,3,1> SPIN;
     typedef ROTATION ORIENTATION;
 
+    ROTATION(){}
     ROTATION(const Eigen::Quaternion<T>& q)
         :Eigen::Quaternion<T>(q)
     {}

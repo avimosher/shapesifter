@@ -137,12 +137,6 @@ Eigen::Matrix<T,0,0> Cross_Product_Matrix(const Eigen::Matrix<T,0,1>& v)
 {
     return Eigen::Matrix<T,0,0>();
 }
-
-template<class T,int d>
-void Get_Vector(Json::Value& node,Eigen::Matrix<T,d,1>& vector) {
-    for(int i=0;i<d;i++){vector[i]=node[i].asDouble();}
-}
-
 }
 #endif
 

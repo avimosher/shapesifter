@@ -103,9 +103,9 @@ DEFINE_AND_REGISTER_PARSER(RELATIVE_POSITION_CONSTRAINT,void)
     for(Json::ValueIterator it=constraints.begin();it!=constraints.end();it++){
         typename RELATIVE_POSITION_CONSTRAINT<TV>::CONSTRAINT constraint;
         constraint.s1=rigid_data->Structure_Index((*it)["structure1"].asString());
-        Get_Vector((*it)["offset1"],constraint.v1);
+        Parse_Vector((*it)["offset1"],constraint.v1);
         constraint.s2=rigid_data->Structure_Index((*it)["structure2"].asString());
-        Get_Vector((*it)["offset2"],constraint.v2);
+        Parse_Vector((*it)["offset2"],constraint.v2);
         constraint.target_distance=(*it)["distance"].asDouble();
         relative_position_constraint->constraints.push_back(constraint);
     }

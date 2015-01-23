@@ -101,7 +101,7 @@ template<class T> void Parse_Scalar(Json::Value& node,T& value,const T& default_
     else{value=default_value;}
 }
 
-template<class TV> void Parse_Vector(Json::Value& node,TV& vector,const TV& default_vector)
+template<class TV> void Parse_Vector(Json::Value& node,TV& vector,const TV& default_vector=TV())
 {
     if(!node.isNull()){for(int i=0;i<vector.size();i++){vector[i]=node[i].asDouble();}}
     else{vector=default_vector;}

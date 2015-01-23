@@ -7,6 +7,14 @@
 #include <Utilities/RANDOM.h>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
+template<class TV> void ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::
+Unpack_Forces(const Matrix<T,Dynamic,1>& forces)
+{
+    for(int i=0;i<constraints.size();i++){
+        force_memory[constraints[i]]=std::pair<int,FORCE_VECTOR>(call_count,forces.template block<FullSize,1>(i*FullSize,0));
+    }
+}
+///////////////////////////////////////////////////////////////////////
 template<class TV> ROTATION<TV> ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::
 Find_Appropriate_Rotation(const ROTATION<TV>& rotation1,const ROTATION<TV>& rotation2)
 {
@@ -58,7 +66,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             auto interaction=interactions[i];
             auto structure1=rigid_data->structures[interaction.s1];
             auto structure2=rigid_data->structures[interaction.s2];
-            std::pair<int,T> remembered=force_memory[i];
+            std::pair<int,FORCE_VECTOR> remembered=force_memory[i];
             bool constraint_active=false;
             if(remembered.first==call_count){ // decide whether constraint gets turned off
                 T dissociation_rate=1/interaction.base_dissociation_time;
@@ -89,18 +97,20 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     angular_to_constraint.template block<TwistSize,TwistSize>(0,LinearSize).setIdentity();
     std::vector<Triplet<LINEAR_CONSTRAINT_MATRIX>> linear_terms;
     std::vector<Triplet<ANGULAR_CONSTRAINT_MATRIX>> angular_terms;
-    std::vector<TV> linear_rhs;
-    std::vector<T_SPIN> angular_rhs;
+    constraint_rhs.resize(constraints.size()*FullSize);
+    stored_forces.resize(constraints.size()*FullSize);
     for(int i=0;i<constraints.size();i++){
         auto interaction=interactions[constraints[i]];
         auto structure1=rigid_data->structures[interaction.s1];
         auto structure2=rigid_data->structures[interaction.s2];
-        std::pair<int,T> remembered=force_memory[i];
+        std::pair<int,FORCE_VECTOR> remembered=force_memory[i];
+        FORCE_VECTOR rhs;
 
         TV displacement=data.Minimum_Offset(structure1->frame*interaction.v1,structure2->frame*interaction.v2);
         linear_terms.push_back(Triplet<LINEAR_CONSTRAINT_MATRIX>(i,interaction.s2,index_map.Velocity_Map(*structure2,interaction.v2)));
         linear_terms.push_back(Triplet<LINEAR_CONSTRAINT_MATRIX>(i,interaction.s1,-index_map.Velocity_Map(*structure1,interaction.v1)));
-        linear_rhs.push_back(-displacement);
+        rhs.template block<LinearSize,1>(0,0)=-displacement;
+        //linear_rhs.push_back(-displacement);
 
         ROTATION<TV> R1_current=ROTATION<TV>::From_Rotation_Vector(structure1->twist.angular);
         ROTATION<TV> R2_current=ROTATION<TV>::From_Rotation_Vector(structure2->twist.angular);
@@ -111,8 +121,10 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         angular_terms.push_back(Triplet<ANGULAR_CONSTRAINT_MATRIX>(i,interaction.s1,Construct_Constraint_Matrix(R1_current,R1_base*RC,first_rotation_error_vector)*angular_to_constraint));
         angular_terms.push_back(Triplet<ANGULAR_CONSTRAINT_MATRIX>(i,interaction.s2,-Construct_Constraint_Matrix(R2_current,R2_base*RC,second_rotation_error_vector)*angular_to_constraint));
         auto total_rotation_error=first_rotation_error_vector-second_rotation_error_vector;
-        angular_rhs.push_back(-total_rotation_error);
-            
+        rhs.template block<TwistSize,1>(LinearSize,0)=-total_rotation_error;
+        //angular_rhs.push_back(-total_rotation_error);
+        constraint_rhs.template block<FullSize,1>(FullSize*i,0)=rhs;
+        stored_forces.template block<FullSize,1>(FullSize*i,0)=force_memory[constraints[i]].second;
     }
     constraint_terms.resize(constraints.size()*FullSize,rigid_data->structures.size()*FullSize);
     Flatten_Matrices(linear_terms,constraints.size()*LinearSize,angular_terms,constraint_terms);
@@ -122,7 +134,21 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
 GENERIC_TYPE_DEFINITION(ASSOCIATION_DISSOCIATION_CONSTRAINT)
 DEFINE_AND_REGISTER_PARSER(ASSOCIATION_DISSOCIATION_CONSTRAINT,void)
 {
+    auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(simulation.data.find("RIGID_STRUCTURE_DATA")->second);
     auto constraint=std::make_shared<ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>>();
+    Json::Value interactions=node["interactions"];
+    for(Json::ValueIterator it=interactions.begin();it!=interactions.end();it++){
+        typename ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::INTERACTION interaction;
+        interaction.s1=rigid_data->Structure_Index((*it)["structure1"].asString());
+        Parse_Vector((*it)["offset1"],interaction.v1);
+        interaction.s2=rigid_data->Structure_Index((*it)["structure2"].asString());
+        Parse_Vector((*it)["offset2"],interaction.v2);
+        interaction.bond_distance_threshold=(*it)["bond_distance_threshold"].asDouble();
+        interaction.bond_orientation_threshold=(*it)["bond_orientation_threshold"].asDouble();
+        interaction.base_association_time=(*it)["base_association_time"].asDouble();
+        interaction.base_dissociation_time=(*it)["base_dissociation_time"].asDouble();
+        constraint->interactions.push_back(interaction);
+    }
     simulation.force.push_back(constraint);
     return 0;
 }
