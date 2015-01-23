@@ -10,6 +10,7 @@ using namespace Mechanics;
 template<class TV> void ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::
 Unpack_Forces(const Matrix<T,Dynamic,1>& forces)
 {
+    call_count++;
     for(int i=0;i<constraints.size();i++){
         force_memory[constraints[i]]=std::pair<int,FORCE_VECTOR>(call_count,forces.template block<FullSize,1>(i*FullSize,0));
     }
@@ -87,6 +88,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 T cumulative_distribution=1-exp(-association_rate*remembered_dt);
                 constraint_active=random.Uniform((T)0,(T)1)<cumulative_distribution;
             }
+            std::cout<<"Active: "<<constraint_active<<std::endl;
             if(constraint_active){constraints.push_back(i);}
         }
     }

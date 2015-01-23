@@ -34,7 +34,7 @@ class ROTATION<Eigen::Matrix<T,1,1>>:public Eigen::Rotation1D<T>
     int Sign() const{return 1;}
     TV Vec() const{return TV();}
     T W() const{return 0;}
-static ROTATION From_Rotation_Vector(const TV&){return ROTATION(Eigen::Rotation1D<T>());}
+    static ROTATION From_Rotation_Vector(const TV&){return ROTATION(Eigen::Rotation1D<T>());}
 };
 
 template<class T>
@@ -92,7 +92,8 @@ class ROTATION<Eigen::Matrix<T,3,1>>:public Eigen::Quaternion<T>
     TV Vec() const{return (*this).vec();}
     T W() const{return (*this).w();}
     static ROTATION From_Rotation_Vector(const TV& rotation_vector){
-return Eigen::Quaternion<T>(Eigen::AngleAxis<T>(rotation_vector.norm(),rotation_vector.normalized()));
+        T norm=rotation_vector.norm();
+        return Eigen::Quaternion<T>(Eigen::AngleAxis<T>(norm,norm?rotation_vector.normalized():TV::UnitX()));
     }
 };
 

@@ -65,7 +65,7 @@ Step(const DATA<TV>& data)
 {
     for(int i=0;i<structures.size();i++){
         structures[i]->frame=Updated_Frame(data,structures[i]->frame,structures[i]->twist);
-        std::cout<<i<<": "<<structures[i]->frame.position.transpose()<<std::endl;
+        //std::cout<<i<<": "<<structures[i]->frame.position.transpose()<<std::endl;
     }
 }
 ///////////////////////////////////////////////////////////////////////
