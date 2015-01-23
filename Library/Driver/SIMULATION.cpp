@@ -4,6 +4,7 @@
 #include <Evolution/EVOLUTION.h>
 #include <Force/FORCE.h>
 #include <fstream>
+#include <sys/stat.h>
 #include <cereal/archives/binary.hpp>
 #include <cereal/types/string.hpp>
 #include <cereal/types/unordered_map.hpp>
@@ -28,10 +29,11 @@ template<class TV> void SIMULATION<TV>::
 Write(const int frame)
 {
     std::ostringstream stringStream;
+    mkdir(output_directory.c_str(),0777);
     stringStream<<output_directory<<"/frame."<<frame;
     std::ofstream output(stringStream.str().c_str(),std::ios::out);
     cereal::BinaryOutputArchive archive(output);
-    archive(data);
+    archive(time,data);
 }
 /////////////////////////////////////////////////////////////////////// 
 template<class TV> bool SIMULATION<TV>::
@@ -42,7 +44,7 @@ Read(const int frame)
     std::ifstream input(stringStream.str().c_str(),std::ios::in);
     if(!input.is_open()){return false;}
     cereal::BinaryInputArchive archive(input);
-    archive(data);
+    archive(time,data);
     return true;
 }
 /////////////////////////////////////////////////////////////////////// 

@@ -8,11 +8,10 @@ using namespace Mechanics;
 template<class TV> void DRIVER<TV>::
 Initialize()
 {
-    // for restarts, need to load data to current frame
     if(simulation->restart){
-        //data.Read_Output_Files(restart_frame);
         simulation->current_frame=simulation->restart_frame;
-        /*data.Read_Time(current_frame);*/}
+        simulation->Read(simulation->restart_frame);
+    }
     //evolution.Update_Position_Based_State(time,data); // make sure we're set for the current data
 }
 ///////////////////////////////////////////////////////////////////////
@@ -33,7 +32,7 @@ Advance_To_Target_Time(const T target_time)
     for(int substep=1;!done;substep++){
         Advance_One_Time_Step(target_time,done);
         simulation->Write(simulation->current_frame);
-        std::cout<<substep<<std::endl;
+        std::cout<<simulation->current_frame<<std::endl;
     }
 }
 ///////////////////////////////////////////////////////////////////////
@@ -41,11 +40,6 @@ template<class TV> void DRIVER<TV>::
 Execute_Main_Program()
 {
     Initialize();
-    if(!simulation->restart_frame){
-        int first_frame=0;
-        //data.Write_Output_Files(first_frame);
-        //data.Write_First_Frame(first_frame);
-    }
     Advance_To_Target_Time(simulation->last_time);
 }
 ///////////////////////////////////////////////////////////////////////

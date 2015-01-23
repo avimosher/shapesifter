@@ -43,7 +43,7 @@ public:
     std::vector<CONSTRAINT> constraints;
 
     ASSOCIATION_DISSOCIATION_CONSTRAINT()
-        :call_count(0)
+        :call_count(1)
     {}
     ~ASSOCIATION_DISSOCIATION_CONSTRAINT(){}
 

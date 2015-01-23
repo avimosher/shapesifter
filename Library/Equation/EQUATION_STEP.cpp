@@ -22,7 +22,7 @@ Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
     solve_vector<<solve_velocities,
         solve_forces;
 
-    //int count=0;
+    int count=0;
     QUALITY solve_quality;
     while(!equation->Satisfied(data,force,solve_vector,dt,time)){
         solve_vector=equation->Solve(solve_vector);
@@ -45,8 +45,10 @@ Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
         solve_vector.resize(solve_velocities.size()+solve_forces.size());
         solve_vector<<solve_velocities,
             solve_forces;
+        count++;
         //count++;if(count>35){exit(0);}
     }
+    std::cout<<"Steps: "<<count<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(EQUATION_STEP)

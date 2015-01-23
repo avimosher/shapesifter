@@ -28,6 +28,9 @@ public:
     SIMULATION();
     ~SIMULATION();
 
+    void Set_Restart(int restart_frame)
+    {this->restart_frame=restart_frame;restart=true;}
+
     void Write(const int frame);
     bool Read(const int frame);
     void Viewer(osg::Group*& root);

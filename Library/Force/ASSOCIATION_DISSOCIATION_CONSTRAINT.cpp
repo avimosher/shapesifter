@@ -83,12 +83,13 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                     ROTATION<TV> composed_rotation(structure2->frame.orientation.inverse()*structure1->frame.orientation*interaction.relative_orientation.inverse());
                     orientation_compatibility=std::max((T)0,1-abs(composed_rotation.Angle())/interaction.bond_orientation_threshold);
                 }
+                std::cout<<"bond distance: "<<bond_distance<<" orientation: "<<orientation_compatibility<<std::endl;
                 T compatibility=orientation_compatibility*position_compatibility;
                 T association_rate=compatibility/interaction.base_association_time;
                 T cumulative_distribution=1-exp(-association_rate*remembered_dt);
                 constraint_active=random.Uniform((T)0,(T)1)<cumulative_distribution;
             }
-            std::cout<<"Active: "<<constraint_active<<std::endl;
+            std::cout<<"Constraint: "<<constraint_active<<std::endl;
             if(constraint_active){constraints.push_back(i);}
         }
     }
@@ -105,7 +106,6 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         auto interaction=interactions[constraints[i]];
         auto structure1=rigid_data->structures[interaction.s1];
         auto structure2=rigid_data->structures[interaction.s2];
-        std::pair<int,FORCE_VECTOR> remembered=force_memory[i];
         FORCE_VECTOR rhs;
 
         TV displacement=data.Minimum_Offset(structure1->frame*interaction.v1,structure2->frame*interaction.v2);
@@ -126,7 +126,9 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         rhs.template block<TwistSize,1>(LinearSize,0)=-total_rotation_error;
         //angular_rhs.push_back(-total_rotation_error);
         constraint_rhs.template block<FullSize,1>(FullSize*i,0)=rhs;
-        stored_forces.template block<FullSize,1>(FullSize*i,0)=force_memory[constraints[i]].second;
+        auto remembered=force_memory[i];
+        if(remembered.first!=call_count){remembered.second.setZero();}
+        stored_forces.template block<FullSize,1>(FullSize*i,0)=remembered.second;
     }
     constraint_terms.resize(constraints.size()*FullSize,rigid_data->structures.size()*FullSize);
     Flatten_Matrices(linear_terms,constraints.size()*LinearSize,angular_terms,constraint_terms);
