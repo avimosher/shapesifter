@@ -72,7 +72,10 @@ class ROTATION<Eigen::Matrix<T,3,1>>:public Eigen::Quaternion<T>
     typedef Eigen::Matrix<T,3,1> SPIN;
     typedef ROTATION ORIENTATION;
 
-    ROTATION(){}
+    ROTATION()
+    {
+        Eigen::Quaternion<T>::setIdentity();
+    }
     ROTATION(const Eigen::Quaternion<T>& q)
         :Eigen::Quaternion<T>(q)
     {}
@@ -96,7 +99,6 @@ class ROTATION<Eigen::Matrix<T,3,1>>:public Eigen::Quaternion<T>
         return Eigen::Quaternion<T>(Eigen::AngleAxis<T>(norm,norm?rotation_vector.normalized():TV::UnitX()));
     }
 };
-
 
 template<class T>
 const Eigen::Matrix<T,4,1>& Get_Rotation_Coefficients(const Eigen::Quaternion<T>& rotation)

@@ -12,7 +12,6 @@ Initialize()
         simulation->current_frame=simulation->restart_frame;
         simulation->Read(simulation->restart_frame);
     }
-    //evolution.Update_Position_Based_State(time,data); // make sure we're set for the current data
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void DRIVER<TV>::
