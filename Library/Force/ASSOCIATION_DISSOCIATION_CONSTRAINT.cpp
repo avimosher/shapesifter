@@ -20,7 +20,7 @@ Construct_Constraint_Matrix(const ROTATION<TV>& rotation,const ROTATION<TV>& rel
 
     ROTATION<TV> error=rotation*relative_rotation;
     T at=error.Sign();
-    rotation_error=error.Vec()*at;//error.vec()*at;
+    rotation_error=error.Vec()*at;
 
     auto axis_projection=axis*axis.transpose();
     auto axis_orthogonal_projection=ROTATION_MATRIX::Identity()-axis_projection;

@@ -51,6 +51,7 @@ Register()
     namespace Mechanics{                                                \
     template<class TV> class PARSE_##TYPE                               \
     {                                                                   \
+        typedef typename TV::Scalar T;                                  \
       public:                                                           \
         PARSE_##TYPE(){};                                               \
             static std::shared_ptr<PARSED_TYPE> Parse(Json::Value& node,SIMULATION<TV>& simulation); \

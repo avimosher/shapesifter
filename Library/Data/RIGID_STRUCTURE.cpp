@@ -12,7 +12,7 @@ DEFINE_AND_REGISTER_PARSER(RIGID_STRUCTURE,void)
     std::shared_ptr<RIGID_STRUCTURE<TV>> structure=std::make_shared<RIGID_STRUCTURE<TV>>();
     Parse_Vector(node["position"],structure->frame.position,TV());
     Parse_Vector(node["collision_extent"],structure->collision_extent,TV());
-    Parse_Scalar(node["radius"],structure->radius,0);
+    Parse_Scalar(node["radius"],structure->radius,(T)0);
     Parse_Scalar(node["collision_radius"],structure->collision_radius,structure->radius);
     structure->name=node["name"].asString();
     auto data_element=simulation.data.find(RIGID_STRUCTURE_DATA<TV>::Static_Name());
