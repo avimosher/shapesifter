@@ -1,7 +1,9 @@
 #include <Data/DATA.h>
 #include <Data/RIGID_STRUCTURE_DATA.h>
 #include <Force/ASSOCIATION_DISSOCIATION_CONSTRAINT.h>
+#include <Force/FORCE.h>
 #include <Indexing/RIGID_STRUCTURE_INDEX_MAP.h>
+#include <Parsing/PARSER_REGISTRY.h>
 #include <Utilities/RANDOM.h>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
@@ -11,6 +13,18 @@ Find_Appropriate_Rotation(const ROTATION<TV>& rotation1,const ROTATION<TV>& rota
     return ROTATION<TV>(rotation1.inverse()*(rotation2*rotation1.inverse()).inverse()).Scale_Angle((T).5);
 }
 ///////////////////////////////////////////////////////////////////////
+template<class T> Matrix<T,3,3> Cross_Product_Adapter(const Matrix<T,3,1>& vec)
+{
+    return Cross_Product_Matrix(vec);
+}
+template<class T> Matrix<T,1,1> Cross_Product_Adapter(const Matrix<T,1,1>& vec)
+{
+    return Matrix<T,1,1>();
+}
+template<class T> Matrix<T,0,0> Cross_Product_Adapter(const Matrix<T,0,1>& vec)
+{
+    return Matrix<T,0,0>();
+}
 template<class TV> Matrix<typename TV::Scalar,ROTATION<TV>::TwistSize,ROTATION<TV>::TwistSize> ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::
 Construct_Constraint_Matrix(const ROTATION<TV>& rotation,const ROTATION<TV>& relative_rotation,T_SPIN& rotation_error)
 {
@@ -24,7 +38,7 @@ Construct_Constraint_Matrix(const ROTATION<TV>& rotation,const ROTATION<TV>& rel
 
     auto axis_projection=axis*axis.transpose();
     auto axis_orthogonal_projection=ROTATION_MATRIX::Identity()-axis_projection;
-    auto relative_rotation_cross_product_matrix=Cross_Product_Matrix(relative_rotation.Vec());
+    auto relative_rotation_cross_product_matrix=Cross_Product_Adapter(relative_rotation.Vec());
 
     auto dudw=(c/2)*axis_projection+s_over_angle*axis_orthogonal_projection;
     auto dadw=-s/2*axis;
@@ -109,8 +123,6 @@ GENERIC_TYPE_DEFINITION(ASSOCIATION_DISSOCIATION_CONSTRAINT)
 DEFINE_AND_REGISTER_PARSER(ASSOCIATION_DISSOCIATION_CONSTRAINT,void)
 {
     auto constraint=std::make_shared<ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>>();
-    
-    brownian_force->temperature=node["temperature"].asDouble();
     simulation.force.push_back(constraint);
     return 0;
 }
