@@ -2,14 +2,14 @@
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void EVOLUTION_STEP<TV>::
-Full_Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
+Full_Step(SIMULATION<TV>& simulation,const T dt,const T time)
 {
     for(auto prerequisite_step : prerequisites) {
-        if(!prerequisite_step->Up_To_Date(data,force,dt,time)) {
-            prerequisite_step->Full_Step(data,force,dt,time);}
+        if(!prerequisite_step->Up_To_Date(simulation,dt,time)) {
+            prerequisite_step->Full_Step(simulation,dt,time);}
     }
-    if(!Up_To_Date(data,force,dt,time)){
-        Step(data,force,dt,time);
+    if(!Up_To_Date(simulation,dt,time)){
+        Step(simulation,dt,time);
         up_to_date_time=time;}
 }
 ///////////////////////////////////////////////////////////////////////

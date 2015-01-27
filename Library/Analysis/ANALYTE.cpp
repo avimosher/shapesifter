@@ -6,10 +6,10 @@
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void ANALYTE<TV>::
-Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
+Step(SIMULATION<TV>& simulation,const T dt,const T time)
 {
-    if(condition && !condition->Scalar(data,force)){return;}
-    aggregator->Aggregate(predicate,data,force);
+    if(condition && !condition->Scalar(simulation)){return;}
+    aggregator->Aggregate(predicate,simulation);
     aggregator->Print_Report(std::cout);
     std::cout<<std::endl;
 }

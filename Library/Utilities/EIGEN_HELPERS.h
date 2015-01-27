@@ -137,6 +137,13 @@ Eigen::Matrix<T,0,0> Cross_Product_Matrix(const Eigen::Matrix<T,0,1>& v)
 {
     return Eigen::Matrix<T,0,0>();
 }
+
+template<class T,int d>
+void Safe_Normalize(Eigen::Matrix<T,d,1>& matrix)
+{
+    if(matrix.squaredNorm()){matrix.normalize();}
+    else{matrix=Eigen::Matrix<T,d,1>::UnitX();}
+}
 }
 #endif
 

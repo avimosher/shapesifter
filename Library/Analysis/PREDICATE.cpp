@@ -7,9 +7,9 @@ using namespace Mechanics;
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 template<class TV> typename TV::Scalar DISTANCE_PREDICATE<TV>::
-Scalar(const DATA<TV>& data,const FORCE<TV>& force)
+Scalar(const SIMULATION<TV>& simulation)
 {
-    return data.Minimum_Offset(first_endpoint->Vector(data,force),second_endpoint->Vector(data,force)).norm();
+    return simulation.data.Minimum_Offset(first_endpoint->Vector(simulation),second_endpoint->Vector(simulation)).norm();
 }
 //////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(DISTANCE_PREDICATE)
@@ -23,9 +23,9 @@ DEFINE_AND_REGISTER_TEMPLATE_PARSER(DISTANCE_PREDICATE,PREDICATE)
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 template<class TV> TV RIGID_STRUCTURE_POSITION_PREDICATE<TV>::
-Vector(const DATA<TV>& data,const FORCE<TV>& force)
+Vector(const SIMULATION<TV>& simulation)
 {
-    auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.find("RIGID_STRUCTURE_DATA")->second);
+    auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(simulation.data.find("RIGID_STRUCTURE_DATA")->second);
     auto rigid_structure=rigid_data->Structure(name);
     return rigid_structure->frame*offset;
 }

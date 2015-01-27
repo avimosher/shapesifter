@@ -18,8 +18,8 @@ template<class TV> void DRIVER<TV>::
 Advance_One_Time_Step(const T target_time,bool& done)
 {
     // TODO: this became non-general.  Fix.  Generalize frame-not-frame concept.
-    T dt=simulation->evolution.Compute_Dt(simulation->data,simulation->force,simulation->time,target_time,done);
-    simulation->evolution.Advance_One_Step(simulation->data,simulation->force,dt,simulation->time);
+    T dt=simulation->evolution.Compute_Dt(*simulation,simulation->time,target_time,done);
+    simulation->evolution.Advance_One_Step(*simulation,dt,simulation->time);
     simulation->current_frame++;
     simulation->time+=dt;
 }
@@ -30,6 +30,7 @@ Advance_To_Target_Time(const T target_time)
     bool done=false;
     for(int substep=1;!done;substep++){
         Advance_One_Time_Step(target_time,done);
+        simulation->title="End frame "+std::to_string(simulation->current_frame);
         simulation->Write(simulation->current_frame);
         std::cout<<simulation->current_frame<<std::endl;
     }

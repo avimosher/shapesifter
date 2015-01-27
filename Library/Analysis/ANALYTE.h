@@ -17,7 +17,7 @@ public:
 
     ANALYTE(){}
 
-    void Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time);
+    void Step(SIMULATION<TV>& simulation,const T dt,const T time);
     DEFINE_TYPE_NAME("ANALYTE")
 };
 }

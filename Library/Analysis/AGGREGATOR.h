@@ -5,9 +5,8 @@
 #include <memory>
 
 namespace Mechanics{
-template<class TV> class DATA;
-template<class TV> class FORCE;
 template<class TV> class PREDICATE;
+template<class TV> class SIMULATION;
 
 template<class TV>
 class AGGREGATOR
@@ -19,7 +18,7 @@ public:
 
     virtual void Aggregate_Subtype(const T aggregate){}
     virtual void Aggregate_Subtype(const TV& aggregate){}
-    void Aggregate(std::shared_ptr<PREDICATE<TV>> predicate,const DATA<TV>& data,const FORCE<TV>& force);
+    void Aggregate(std::shared_ptr<PREDICATE<TV>> predicate,const SIMULATION<TV>& simulation);
     virtual void Print_Report(std::ostream& out){}
 };
 

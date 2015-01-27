@@ -6,7 +6,7 @@
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> typename TV::Scalar EVOLUTION<TV>::
-Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T time,const T target_time,bool& done)
+Compute_Dt(SIMULATION<TV>& simulation,const T time,const T target_time,bool& done)
 {
     T dt=.1;
     done=time+dt>=target_time;
@@ -14,9 +14,9 @@ Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T time,const T target_time,bool
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void EVOLUTION<TV>::
-Advance_One_Step(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time)
+Advance_One_Step(SIMULATION<TV>& simulation,const T dt,const T time)
 {
-    for(auto step : (*this)){step->Full_Step(data,force,dt,time);}
+    for(auto step : (*this)){step->Full_Step(simulation,dt,time);}
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(EVOLUTION)

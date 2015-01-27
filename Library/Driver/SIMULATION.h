@@ -23,7 +23,9 @@ public:
     T time;
     T last_time;
     bool restart;
+    bool substeps;
     std::string output_directory;
+    std::string title;
 
     SIMULATION();
     ~SIMULATION();

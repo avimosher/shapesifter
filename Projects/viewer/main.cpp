@@ -25,17 +25,22 @@ public:
     osg::Group* root;
 
     AnimationHandler(const std::string &scenefile)
-        :frame(1),root(new osg::Group()),animating(false),lastTime(0),frameTime((T).1)
+        :root(new osg::Group()),animating(false),lastTime(0),frameTime((T).1)
     {
         std::ifstream test_config(scenefile,std::ifstream::in);
         PARSE_SCENE<TV>::Parse_Scene(test_config,simulation);
-        simulation.Read(frame);
-        simulation.Viewer(root);
+        reset();
         root->setUpdateCallback(this);
     }
 
     void toggleAnimating()
     {animating=!animating;}
+
+    void reset() {
+        frame=1;
+        animating=false;
+        advanceFrame(0);
+    }
 
     void advanceFrame(int increment=1) {
         if(simulation.Read(frame+increment)){frame+=increment;}
@@ -74,6 +79,9 @@ public:
                     case 'p':
                         animation->lastTime=ea.getTime();
                         animation->toggleAnimating();
+                        return true;
+                    case 'r':
+                        animation->reset();
                         return true;
                     default:
                         return false;

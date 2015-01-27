@@ -11,7 +11,9 @@ using namespace Mechanics;
 char* Get_Command_Option(char** begin,char** end,const std::string& option)
 {
     char **itr=std::find(begin,end,option);
-    if(itr!=end && ++itr!=end){return *itr;}
+    if(itr!=end){
+        if(++itr!=end){return *itr;}
+        else{return *(--itr);}}
     return 0;
 }
 
@@ -24,6 +26,9 @@ int main(int argc,char **argv)
     //std::cout<<"Scene file: "<<argv[1]<<std::endl;
     char *restart=Get_Command_Option(argv,argv+argc,"-restart");
     if(restart){simulation->Set_Restart(std::stoi(restart));}
+    if(Get_Command_Option(argv,argv+argc,"-substeps")){
+        simulation->substeps=true;
+    }
     std::ifstream config(Get_Command_Option(argv,argv+argc,"-scene"),std::ifstream::in);
     PARSE_SCENE<TV>::Parse_Scene(config,*simulation);
 

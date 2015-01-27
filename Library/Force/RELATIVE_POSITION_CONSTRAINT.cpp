@@ -31,7 +31,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         FRAME<TV> frame2=rigid_structure2->frame;
         TV direction=data.Minimum_Offset(frame1*constraint.v1,frame2*constraint.v2);
         T distance=direction.norm();
-        direction.normalize();
+        Safe_Normalize(direction);
         terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index2,direction.transpose()*index_map.Velocity_Map(*rigid_structure2,constraint.v2)));
         terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index1,-direction.transpose()*index_map.Velocity_Map(*rigid_structure1,constraint.v1)));
         constraint_rhs(i,0)=constraint.target_distance-distance;
@@ -84,10 +84,8 @@ Viewer(const DATA<TV>& data,osg::Node* node)
         int body_index2=constraint.s2;
         auto rigid_structure1=rigid_data->structures[body_index1];
         auto rigid_structure2=rigid_data->structures[body_index2];
-        FRAME<TV> frame1=rigid_structure1->frame;
-        FRAME<TV> frame2=rigid_structure2->frame;
-        auto firstAttachment=frame1.position+frame1.orientation._transformVector(constraint.v1);
-        auto secondAttachment=frame2.position+frame2.orientation._transformVector(constraint.v2);
+        auto firstAttachment=rigid_structure1->frame*constraint.v1;
+        auto secondAttachment=rigid_structure2->frame*constraint.v2;
         (*vertices)[0].set(firstAttachment(0),firstAttachment(1),firstAttachment(2));
         (*vertices)[1].set(secondAttachment(0),secondAttachment(1),secondAttachment(2));
         lineGeometry->setVertexArray(vertices);

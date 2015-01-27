@@ -5,8 +5,7 @@
 #include <Eigen/Dense>
 
 namespace Mechanics{
-template<class TV> class DATA;
-template<class TV> class FORCE;
+template<class TV> class SIMULATION;
 
 template<class TV>
 class PREDICATE
@@ -20,8 +19,8 @@ public:
     SUBTYPE Get_Subtype()
         {return subtype;}
 
-    virtual T Scalar(const DATA<TV>& data,const FORCE<TV>& force){}
-    virtual TV Vector(const DATA<TV>& data,const FORCE<TV>& force){}
+    virtual T Scalar(const SIMULATION<TV>& simulation){}
+    virtual TV Vector(const SIMULATION<TV>& simulation){}
 };
     
 template<class TV>
@@ -36,7 +35,7 @@ public:
     DISTANCE_PREDICATE() {subtype=PREDICATE<TV>::SCALAR;}
     ~DISTANCE_PREDICATE() {}
 
-    T Scalar(const DATA<TV>& data,const FORCE<TV>& force);
+    T Scalar(const SIMULATION<TV>& simulation);
     DEFINE_TYPE_NAME("distance")
 };
 
@@ -52,7 +51,7 @@ public:
     RIGID_STRUCTURE_POSITION_PREDICATE() {subtype=PREDICATE<TV>::VECTOR;}
     ~RIGID_STRUCTURE_POSITION_PREDICATE() {}
 
-    TV Vector(const DATA<TV>& data,const FORCE<TV>& force);
+    TV Vector(const SIMULATION<TV>& simulation);
     DEFINE_TYPE_NAME("rigid_structure_position")
 };
 

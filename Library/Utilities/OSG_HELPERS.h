@@ -3,6 +3,7 @@
 
 #include <Data/FRAME.h>
 #include <Eigen/Geometry>
+#include <osg/Geode>
 #include <osg/PositionAttitudeTransform>
 #include <iostream>
 
@@ -29,6 +30,24 @@ class OSG_HELPERS<Matrix<T,3,1>>
         transform->setAttitude(quat);
     }
 };
+
+inline osg::Node* getNamedChild(osg::Group* group,const std::string& name)
+{
+    for(int i=0;i<group->getNumChildren();i++){
+        if(group->getChild(i)->getName()==name){
+            return group->getChild(i);
+        }}
+    return 0;
+}
+
+inline osg::Drawable* getNamedDrawable(osg::Geode* geode,const std::string& name)
+{
+    for(int i=0;i<geode->getNumDrawables();i++){
+        if(geode->getDrawable(i)->getName()==name){
+            return geode->getDrawable(i);
+        }}
+    return 0;
+}
 
 }
 

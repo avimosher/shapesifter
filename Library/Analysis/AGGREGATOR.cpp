@@ -5,19 +5,18 @@ using namespace Mechanics;
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 template<class TV> void AGGREGATOR<TV>::
-Aggregate(std::shared_ptr<PREDICATE<TV>> predicate,const DATA<TV>& data,const FORCE<TV>& force)
+Aggregate(std::shared_ptr<PREDICATE<TV>> predicate,const SIMULATION<TV>& simulation)
 {
     switch(predicate->Get_Subtype()){
         case PREDICATE<TV>::SCALAR:
-            Aggregate_Subtype(predicate->Scalar(data,force));
+            Aggregate_Subtype(predicate->Scalar(simulation));
             break;
         case PREDICATE<TV>::VECTOR:
-            Aggregate_Subtype(predicate->Vector(data,force));
+            Aggregate_Subtype(predicate->Vector(simulation));
             break;
         default:
             // TODO: error
             break;
-
     }
 }
 GENERIC_TYPE_DEFINITION(AGGREGATOR)
