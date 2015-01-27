@@ -82,10 +82,23 @@ Viewer(osg::Node* node)
         rigid_group->setName("RIGID_STRUCTURE_DATA");
         for(int i=0;i<structures.size();i++){
             auto transform=new osg::PositionAttitudeTransform();
-            auto unitCube=new osg::Sphere(osg::Vec3(0,0,0),structures[i]->radius);
-            auto unitCubeDrawable=new osg::ShapeDrawable(unitCube);
             auto basicShapesGeode=new osg::Geode();
-            basicShapesGeode->addDrawable(unitCubeDrawable);
+            if(structures[i]->collision_extent){
+                auto cylinder=new osg::Cylinder(osg::Vec3(0,0,0),structures[i]->radius,2*structures[i]->collision_extent);
+                auto cylinderDrawable=new osg::ShapeDrawable(cylinder);
+                basicShapesGeode->addDrawable(cylinderDrawable);
+                auto topSphere=new osg::Sphere(osg::Vec3(0,0,structures[i]->collision_extent),structures[i]->radius);
+                auto topSphereDrawable=new osg::ShapeDrawable(topSphere);
+                basicShapesGeode->addDrawable(topSphereDrawable);
+                auto bottomSphere=new osg::Sphere(osg::Vec3(0,0,-structures[i]->collision_extent),structures[i]->radius);
+                auto bottomSphereDrawable=new osg::ShapeDrawable(bottomSphere);
+                basicShapesGeode->addDrawable(bottomSphereDrawable);
+            }
+            else{
+                auto unitSphere=new osg::Sphere(osg::Vec3(0,0,0),structures[i]->radius);
+                auto unitSphereDrawable=new osg::ShapeDrawable(unitSphere);
+                basicShapesGeode->addDrawable(unitSphereDrawable);
+            }
             transform->addChild(basicShapesGeode);
             rigid_group->addChild(transform);
         }
