@@ -66,7 +66,7 @@ Unpack_Positions(const Matrix<T,Dynamic,1>& positions)
 }
 /////////////////////////////////////////////////////////////////////// 
 template<class TV> void DATA<TV>::
-Step(QUALITY& step_quality)
+Step()
 {
     for(auto data_type : (*this)){
         int data_size=data_type.second->Size();

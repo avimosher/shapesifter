@@ -26,20 +26,20 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
         solve_forces;
 
     int count=0;
-    QUALITY solve_quality;
-    while(!equation->Satisfied(data,force,solve_vector,dt,time)){
+    QUALITY<T> solve_quality;
+    while(!equation->Satisfied(data,force,solve_vector,solve_quality)){
         solve_vector=equation->Solve(solve_vector);
         solve_velocities=solve_vector.block(0,0,data.Velocity_DOF(),1);
         solve_forces=solve_vector.block(data.Velocity_DOF(),0,solve_vector.rows()-data.Velocity_DOF(),1);
-
-        current_velocities+=(T).15*solve_velocities;
+        
+        current_velocities+=solve_quality.Scale_Result()*solve_velocities;//(T).15*solve_velocities;
 
         // NOTE: for the sake of things like snap constraints, it's good that this puts the velocity in data (and the initial velocity should probably be zero)
         // step data according to result
         data.Unpack_Positions(positions);
         data.Unpack_Velocities(current_velocities);
         data.Unpack_Positions(positions);
-        data.Step(solve_quality);
+        data.Step();
 
         force.Unpack_Forces(solve_forces);
         equation->Linearize(data,force,current_velocities,dt,time,false); // make force balance a force as well?

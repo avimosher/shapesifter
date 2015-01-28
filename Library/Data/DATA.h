@@ -9,7 +9,6 @@
 #include <unordered_map>
 
 namespace Mechanics{
-class QUALITY;
 
 template<class TV>
 class DATA : public std::unordered_map<std::string,std::shared_ptr<DATA_TYPE<TV>>>
@@ -33,7 +32,7 @@ public:
     void Unpack_Velocities(const Matrix<T,Dynamic,1>& velocities);
     void Pack_Positions(Matrix<T,Dynamic,1>& positions);
     void Unpack_Positions(const Matrix<T,Dynamic,1>& positions);
-    void Step(QUALITY& step_quality);
+    void Step();
     void Viewer(osg::Group*& root);
 };
 }

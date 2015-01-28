@@ -30,7 +30,7 @@ int main(int argc,char **argv)
         simulation->substeps=true;
     }
     std::ifstream config(Get_Command_Option(argv,argv+argc,"-scene"),std::ifstream::in);
-    PARSE_SCENE<TV>::Parse_Scene(config,*simulation);
+    if(!PARSE_SCENE<TV>::Parse_Scene(config,*simulation)){return 1;}
 
     DRIVER<TV> driver(simulation);
     simulation->last_time=10;

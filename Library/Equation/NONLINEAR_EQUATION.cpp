@@ -3,6 +3,7 @@
 #include <Equation/EQUATION_STEP.h>
 #include <Equation/NONLINEAR_EQUATION.h>
 #include <Evolution/EVOLUTION.h>
+#include <Evolution/QUALITY.h>
 #include <Force/FORCE.h>
 #include <Force/FORCE_TYPE.h>
 #include <Parsing/PARSER_REGISTRY.h>
@@ -52,18 +53,12 @@ Solve(const Matrix<T,Dynamic,1>& guess)
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> bool NONLINEAR_EQUATION<TV>::
-Satisfied(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& solve_result,const T dt,const T time)
+Satisfied(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& solve_result,QUALITY<T>& solve_quality)
 {
-    T norm;
-    // TODO: this if can PROBABLY be eliminated
-    if(solve_result.rows()){
-        Matrix<T,Dynamic,1> residual=right_hand_side;
-        int velocity_count=data.Velocity_DOF();
-        residual-=matrix.block(0,velocity_count,matrix.rows(),matrix.cols()-velocity_count)*solve_result.block(velocity_count,0,solve_result.rows()-velocity_count,1);
-        norm=residual.squaredNorm();}
-    else{
-        norm=right_hand_side.squaredNorm();
-    }
+    int velocity_count=data.Velocity_DOF();
+    auto residual=right_hand_side-matrix.block(0,velocity_count,matrix.rows(),matrix.cols()-velocity_count)*solve_result.block(velocity_count,0,solve_result.rows()-velocity_count,1);
+    T norm=residual.norm();
+    solve_quality.Update(norm);
     std::cout<<"Norm: "<<norm<<std::endl;
     return norm<1e-8;
 }
