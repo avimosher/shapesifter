@@ -22,17 +22,15 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     if(stochastic){
         stored_right_hand_side.resize(right_hand_side.rows(),1);
         stored_right_hand_side.setZero();
-        for(auto iterator=data.find("RIGID_STRUCTURE_DATA");iterator!=data.end();++iterator){
-            auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(iterator->second);
-            for(int i=0;i<(*rigid_data).structures.size();i++){
-                T translational_diffusion_coefficient=kT/(6*M_PI*eta*radius);
-                T translational_variance=sqrt(2*translational_diffusion_coefficient*dt);
-                //std::normal_distribution<> distribution(0,translational_variance);
-                //T random_displacement=distribution(generator);
-                //TV test;test.fill(random_displacement);
-                //std::cout<<test<<std::endl;
-                stored_right_hand_side.template block<TV::SizeAtCompileTime,1>(TWIST<TV>::STATIC_SIZE*i,0)=random.Direction();
-            }
+        auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.Find("RIGID_STRUCTURE_DATA"));
+        for(int i=0;i<(*rigid_data).structures.size();i++){
+            T translational_diffusion_coefficient=kT/(6*M_PI*eta*radius);
+            T translational_variance=sqrt(2*translational_diffusion_coefficient*dt);
+            //std::normal_distribution<> distribution(0,translational_variance);
+            //T random_displacement=distribution(generator);
+            //TV test;test.fill(random_displacement);
+            //std::cout<<test<<std::endl;
+            stored_right_hand_side.template block<TV::SizeAtCompileTime,1>(TWIST<TV>::STATIC_SIZE*i,0)=random.Direction();
         }
     }
     right_hand_side+=stored_right_hand_side;

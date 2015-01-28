@@ -19,7 +19,7 @@ public:
     TWIST<TV> twist;
     T radius;
     T collision_radius;
-    T collision_extent;
+    T collision_extent; // defined in the Z direction
 #if 0
     MOMENT<TV> moi;
 #endif

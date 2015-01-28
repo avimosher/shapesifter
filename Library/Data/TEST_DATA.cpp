@@ -11,6 +11,6 @@ DEFINE_AND_REGISTER_PARSER(TEST_DATA,void)
     auto test_data=std::make_shared<TEST_DATA<TV>>();
     test_data->internal_data=node["internal_data"].asDouble();
     std::cout<<test_data->internal_data<<std::endl;
-    simulation.data.insert({test_data->Name(),test_data});
+    simulation.data.push_back(test_data);
     return 0;
 }

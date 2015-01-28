@@ -25,7 +25,7 @@ DEFINE_AND_REGISTER_TEMPLATE_PARSER(DISTANCE_PREDICATE,PREDICATE)
 template<class TV> TV RIGID_STRUCTURE_POSITION_PREDICATE<TV>::
 Vector(const SIMULATION<TV>& simulation)
 {
-    auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(simulation.data.find("RIGID_STRUCTURE_DATA")->second);
+    auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(simulation.data.Find("RIGID_STRUCTURE_DATA"));
     auto rigid_structure=rigid_data->Structure(name);
     return rigid_structure->frame*offset;
 }

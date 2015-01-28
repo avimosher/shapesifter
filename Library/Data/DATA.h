@@ -11,7 +11,7 @@
 namespace Mechanics{
 
 template<class TV>
-class DATA : public std::unordered_map<std::string,std::shared_ptr<DATA_TYPE<TV>>>
+class DATA:public std::vector<std::shared_ptr<DATA_TYPE<TV>>>
 {
     typedef typename TV::Scalar T;
 
@@ -25,6 +25,11 @@ public:
 
     TV Minimum_Offset(const TV& X1,const TV& X2) const{
         return X2-X1;
+    }
+
+    std::shared_ptr<DATA_TYPE<TV>> Find(const std::string& name) const{
+        Finder<std::shared_ptr<DATA_TYPE<TV>>> finder={name};
+        return *(std::find_if(this->begin(),this->end(),finder));
     }
 
     int Velocity_DOF() const;

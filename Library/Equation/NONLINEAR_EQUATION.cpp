@@ -26,6 +26,11 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& velocities,
     int size=full_right_hand_side(0,0).rows();
     matrix.resize(size,size);
     full_matrix(0,0).resize(size,size);
+    // TODO: one block matrix per data type too
+    /*for(int i=0;i<data.size();i++){
+        // TODO: require force terms for velocity to be added in block form?  This however won't pass properly.  Use a helper function to break them up.
+        data
+        }*/
     for(int i=0;i<matrix.rows();i++){force_terms.push_back(Triplet<T>(i,i,1));} // identity portion
     for(int i=0;i<force.size();i++){
         // Eigen nicely sums duplicate entries in a Triplet list - perfect.
@@ -59,8 +64,8 @@ Satisfied(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& solve_resul
     auto residual=right_hand_side-matrix.block(0,velocity_count,matrix.rows(),matrix.cols()-velocity_count)*solve_result.block(velocity_count,0,solve_result.rows()-velocity_count,1);
     T norm=residual.norm();
     solve_quality.Update(norm);
-    std::cout<<"Norm: "<<norm<<std::endl;
-    return norm<1e-8;
+    //std::cout<<"Norm: "<<norm<<std::endl;
+    return norm<1e-4;
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(NONLINEAR_EQUATION)

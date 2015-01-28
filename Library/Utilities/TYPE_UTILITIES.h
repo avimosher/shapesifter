@@ -30,4 +30,15 @@ using namespace Eigen;
     virtual std::string Name()       \
     {return Static_Name();}
 
+template<class T>
+struct Finder
+{
+    const std::string name;
+    
+    bool operator()(const T& other) const
+    {
+        return other->Name()==name;
+    }
+};
+
 #endif
