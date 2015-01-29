@@ -5,14 +5,14 @@
 #include <Parsing/PARSER_REGISTRY.h>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
-/*template<class TV> void RIGID_STRUCTURE<TV>::
+template<class TV> void RIGID_STRUCTURE<TV>::
 Initialize_Inertia(const T eta)
 {
-    T rotational_drag=8*M_PI*eta*cube(radius);
+    T rotational_drag=8*M_PI*eta*std::pow(radius,3);
     T linear_drag=6*M_PI*eta*radius;
     if(!collision_extent){
-        translation_inertia=TV::Constant(linear_drag);
-        rotation_inertia=T_SPIN::Constant(rotational_drag);
+        moi.translation=TV::Constant(linear_drag);
+        moi.rotation=T_SPIN::Constant(rotational_drag);
     }
     else{
         T p=collision_extent/collision_radius+1;
@@ -21,14 +21,14 @@ Initialize_Inertia(const T eta)
         
         // Perrin friction factors
         T half_length=collision_extent+collision_radius;
-        T equivalent_linear_drag=6*pi*eta*pow(half_length*collision_radius*collision_radius,1.0f/3.0f);
-        translation_inertia=TV::Constant(2*pow(p,2.0f/3.0f)/S*equivalent_linear_drag);
-        rotation_inertia(2)=4.0f/3.0f*E*E/(2-S/(p*p))*rotational_drag;
+        T equivalent_linear_drag=6*M_PI*eta*std::pow(half_length*collision_radius*collision_radius,1.0f/3.0f);
+        moi.translation=TV::Constant(2*std::pow(p,2.0f/3.0f)/S*equivalent_linear_drag);
+        moi.rotation(2)=4.0f/3.0f*E*E/(2-S/(p*p))*rotational_drag;
         for(int spin=0;spin<2;spin++){
-            rotation_inertia(spin)=4.0f/3.0f*(1/(p*p)-p*p)/(2-S*(2-1/(p*p)))*rotational_drag;
+            moi.rotation(spin)=4.0f/3.0f*(1/(p*p)-p*p)/(2-S*(2-1/(p*p)))*rotational_drag;
         }
     }
-    }*/
+}
 ///////////////////////////////////////////////////////////////////////
 GENERIC_CEREAL_REGISTRATION(RIGID_STRUCTURE)
 GENERIC_TYPE_DEFINITION(RIGID_STRUCTURE)

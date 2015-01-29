@@ -49,6 +49,13 @@ std::ostream& operator<<(std::ostream& os,const Quaternion<T>& rotation)
 
 // define utilities for manipulating form of Eigen matrices with non-scalar entries
 namespace Mechanics{
+template<class T,int dim>
+void Flatten_Term(int row,int col,const Eigen::DiagonalMatrix<T,dim>& term,std::vector<Eigen::Triplet<T>>& flat_terms)
+{
+    for(int i=0;i<dim;i++){
+        flat_terms.push_back(Eigen::Triplet<T>(row*dim+i,col*dim+i,term.diagonal()(i)));}
+}
+
 template<class T,int rows,int cols>
 void Flatten_Matrix(const std::vector<Eigen::Triplet<Eigen::Matrix<T,rows,cols>>>& block_terms,Eigen::SparseMatrix<T>& flat_matrix)
 {

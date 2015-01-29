@@ -19,8 +19,6 @@ Unpack_Forces(const Matrix<T,Dynamic,1>& forces)
 template<class TV> ROTATION<TV> ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::
 Find_Appropriate_Rotation(const ROTATION<TV>& rotation1,const ROTATION<TV>& rotation2)
 {
-    //std::cout<<"pre-scale: "<<rotation1.inverse()*(rotation2*rotation1.inverse()).inverse()<<std::endl;
-    //std::cout<<"post-scale: "<<ROTATION<TV>(rotation1.inverse()*(rotation2*rotation1.inverse()).inverse()).Scale_Angle((T).5)<<std::endl;
     return ROTATION<TV>(rotation1.inverse()*(rotation2*rotation1.inverse()).inverse()).Scale_Angle((T).5);
 }
 ///////////////////////////////////////////////////////////////////////
@@ -55,9 +53,6 @@ Construct_Constraint_Matrix(const ROTATION<TV>& rotation,const ROTATION<TV>& rel
     auto dadw=-s/2*axis;
     auto dCdu=at*(ROTATION_MATRIX::Identity()*relative_rotation.W()-relative_rotation_cross_product_matrix);
     auto dCda=relative_rotation.Vec()*at;
-    //std::cout<<"Axis: "<<axis<<" angle: "<<angle<<" error: "<<error<<" rotation_error: "<<rotation_error<<std::endl;
-    //std::cout<<"dCda: "<<dCda<<" dadw: "<<dadw<<" dCdu: "<<dCdu<<" dudw: "<<dudw<<" axis_projection: "<<axis_projection<<" axis_orthogonal_projection: "<<axis_orthogonal_projection<<" relative_rotation_cross_product_matrix: "<<relative_rotation_cross_product_matrix<<std::endl;
-    //std::cout<<"Constraint matrix: "<<dCda*dadw.transpose()+dCdu*dudw<<std::endl;
     return dCda*dadw.transpose()+dCdu*dudw;
 }
 ///////////////////////////////////////////////////////////////////////
@@ -88,13 +83,11 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                     ROTATION<TV> composed_rotation(structure2->frame.orientation.inverse()*structure1->frame.orientation*interaction.relative_orientation.inverse());
                     orientation_compatibility=std::max((T)0,1-abs(composed_rotation.Angle())/interaction.bond_orientation_threshold);
                 }
-                //std::cout<<"bond distance: "<<bond_distance<<" orientation: "<<orientation_compatibility<<std::endl;
                 T compatibility=orientation_compatibility*position_compatibility;
                 T association_rate=compatibility/interaction.base_association_time;
                 T cumulative_distribution=1-exp(-association_rate*remembered_dt);
                 constraint_active=random.Uniform((T)0,(T)1)<cumulative_distribution;
             }
-            //std::cout<<"Constraint: "<<constraint_active<<std::endl;
             if(constraint_active){constraints.push_back(i);}
         }
     }
@@ -120,22 +113,13 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
 
         ROTATION<TV> R1_current=ROTATION<TV>::From_Rotation_Vector(structure1->twist.angular);
         ROTATION<TV> R2_current=ROTATION<TV>::From_Rotation_Vector(structure2->twist.angular);
-        //std::cout<<"Current: "<<structure1->twist.angular.transpose()<<" "<<structure2->twist.angular<<std::endl;
-        //std::cout<<"R1_current: "<<R1_current<<std::endl;
-        //std::cout<<"orientation1: "<<structure1->frame.orientation<<std::endl;
-        //std::cout<<"Relative: "<<interaction.relative_orientation.inverse()<<std::endl;
         ROTATION<TV> R1_base=(R1_current.inverse()*structure1->frame.orientation)*interaction.relative_orientation.inverse();
-        //std::cout<<"R1: "<<R1_base<<std::endl;
         ROTATION<TV> R2_base=R2_current.inverse()*structure2->frame.orientation;
-        //std::cout<<"R2: "<<R2_base<<std::endl;
         ROTATION<TV> RC=Find_Appropriate_Rotation(R1_current*R1_base,R2_current*R2_base);
-        //std::cout<<"RC: "<<RC<<std::endl;
         T_SPIN first_rotation_error_vector,second_rotation_error_vector;
-        //std::cout<<"s1: "<<interaction.s1<<" s2: "<<interaction.s2<<std::endl;
         angular_terms.push_back(Triplet<ANGULAR_CONSTRAINT_MATRIX>(i,interaction.s1,Construct_Constraint_Matrix(R1_current,R1_base*RC,first_rotation_error_vector)*angular_to_constraint));
         angular_terms.push_back(Triplet<ANGULAR_CONSTRAINT_MATRIX>(i,interaction.s2,-Construct_Constraint_Matrix(R2_current,R2_base*RC,second_rotation_error_vector)*angular_to_constraint));
         auto total_rotation_error=first_rotation_error_vector-second_rotation_error_vector;
-        //std::cout<<"Displacement: "<<displacement.transpose()<<" angular: "<<total_rotation_error.transpose()<<std::endl;
         rhs.template block<TwistSize,1>(LinearSize,0)=-total_rotation_error;
         constraint_rhs.template block<FullSize,1>(FullSize*i,0)=rhs;
         auto remembered=force_memory[i];

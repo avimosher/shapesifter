@@ -70,6 +70,7 @@ public:
     virtual void Pack_Positions(Block<Matrix<T,Dynamic,1>>& positions);
     virtual void Unpack_Positions(const Matrix<T,Dynamic,1>& positions);
     void Step(const DATA<TV>& data);
+    virtual void Inertia(std::vector<Triplet<T>>& force_terms);
     virtual void Viewer(osg::Node* node);
 
     DEFINE_TYPE_NAME("RIGID_STRUCTURE_DATA")

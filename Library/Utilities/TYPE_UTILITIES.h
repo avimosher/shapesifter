@@ -3,6 +3,7 @@
 
 #include <cereal/types/polymorphic.hpp>
 #include <Eigen/Dense>
+#include <Eigen/Sparse>
 using namespace Eigen;
 
 #define GENERIC_SCALAR_TYPE_DEFINITION(TYPE,T) \

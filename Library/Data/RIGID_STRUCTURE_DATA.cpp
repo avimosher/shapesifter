@@ -70,6 +70,14 @@ Step(const DATA<TV>& data)
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RIGID_STRUCTURE_DATA<TV>::
+Inertia(std::vector<Triplet<T>>& force_terms)
+{
+    for(int i=0;i<structures.size();i++){
+        Flatten_Term(i,i,structures[i]->Inertia_Matrix(),force_terms);
+    }
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void RIGID_STRUCTURE_DATA<TV>::
 Viewer(osg::Node* node)
 {
     osg::Group* group=node->asGroup();

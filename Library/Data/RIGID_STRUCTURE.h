@@ -2,6 +2,7 @@
 #define __RIGID_STRUCTURE__
 
 #include <Data/FRAME.h>
+#include <Data/MOMENT.h>
 #include <Data/TWIST.h>
 #include <Utilities/TYPE_UTILITIES.h>
 #include <cereal/archives/binary.hpp>
@@ -12,17 +13,16 @@ template<class TV>
 class RIGID_STRUCTURE
 {
     typedef typename TV::Scalar T;
+    typedef typename ROTATION<TV>::SPIN T_SPIN;
 public:
-    enum DEFINITIONS{STATIC_SIZE=FRAME<TV>::STATIC_SIZE};
+    enum DEFINITIONS{PositionSize=FRAME<TV>::STATIC_SIZE,VelocitySize=TWIST<TV>::STATIC_SIZE};
     std::string name;
     FRAME<TV> frame;
     TWIST<TV> twist;
+    MOMENT<TV> moi;
     T radius;
     T collision_radius;
     T collision_extent; // defined in the Z direction
-#if 0
-    MOMENT<TV> moi;
-#endif
 
     RIGID_STRUCTURE(){}
     ~RIGID_STRUCTURE(){}
@@ -93,11 +93,20 @@ public:
         return displacement;
     }
 
+    DiagonalMatrix<T,VelocitySize> Inertia_Matrix()
+    {
+        Matrix<T,VelocitySize,1> inertia;
+        inertia<<moi.translation,
+            moi.rotation;
+        return inertia.asDiagonal();
+    }
+
     template<class Archive>
     void serialize(Archive& archive) {
         archive(name,frame,twist,radius,collision_radius,collision_extent);
     }
 
+    void Initialize_Inertia(const T eta);
     DEFINE_TYPE_NAME("RIGID_STRUCTURE")
 };
 }

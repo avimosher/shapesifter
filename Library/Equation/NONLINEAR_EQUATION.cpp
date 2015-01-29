@@ -20,27 +20,28 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& velocities,
     full_matrix.resize(full_size,full_size);
     full_right_hand_side.resize(full_size,1);
 
-    std::vector<Triplet<T>> force_terms;
+    std::vector<std::vector<Triplet<T>>> force_terms;
     full_right_hand_side(0,0).resize(data.Velocity_DOF(),1);
     full_right_hand_side(0,0).setZero();
     int size=full_right_hand_side(0,0).rows();
     matrix.resize(size,size);
     full_matrix(0,0).resize(size,size);
     // TODO: one block matrix per data type too
-    /*for(int i=0;i<data.size();i++){
-        // TODO: require force terms for velocity to be added in block form?  This however won't pass properly.  Use a helper function to break them up.
-        data
-        }*/
-    for(int i=0;i<matrix.rows();i++){force_terms.push_back(Triplet<T>(i,i,1));} // identity portion
+    for(int i=0;i<data.size();i++){
+        data[i]->Inertia(force_terms[i]);
+    }
+    //for(int i=0;i<matrix.rows();i++){force_terms.push_back(Triplet<T>(i,i,1));} // identity portion
     for(int i=0;i<force.size();i++){
-        // Eigen nicely sums duplicate entries in a Triplet list - perfect.
-        force[i]->Linearize(data,dt,time,force_terms,full_matrix(i+1,0),full_right_hand_side(0,0),full_right_hand_side(i+1,0),stochastic);
+        // TODO: force_terms needs to be properly handled when there are multiple data types
+        force[i]->Linearize(data,dt,time,force_terms[0],full_matrix(i+1,0),full_right_hand_side(0,0),full_right_hand_side(i+1,0),stochastic);
         full_matrix(0,i+1)=full_matrix(i+1,0).transpose();
     }
     // for the sake of sanity, assume that each force adds a constraint block as well as a contribution to the velocity block
     // Each such block will be required to be in terms of elementary T types, but they will remain separate.  This is a good compromise.
     // build matrix from force terms and constraint terms.  Not that this is sufficiently general...
-    full_matrix(0,0).setFromTriplets(force_terms.begin(),force_terms.end());
+    for(int i=0;i<data.size();i++){
+        full_matrix(i,i).setFromTriplets(force_terms[i].begin(),force_terms[i].end());
+    }
     Merge_Block_Matrices(full_matrix,matrix);
     full_right_hand_side(0,0)-=full_matrix(0,0)*velocities;
     Merge_Block_Vectors(full_right_hand_side,right_hand_side);
