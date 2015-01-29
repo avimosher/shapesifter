@@ -15,7 +15,7 @@ public:
     T up_to_date_time;
     std::vector<EVOLUTION_STEP<TV>*> prerequisites;
 
-    EVOLUTION_STEP(){}
+    EVOLUTION_STEP():up_to_date_time(0){}
     ~EVOLUTION_STEP(){}
 
     bool Up_To_Date(SIMULATION<TV>& simulation,const T dt,const T time){

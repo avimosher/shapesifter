@@ -5,11 +5,9 @@
 
 namespace Mechanics{
 
-template<class TV>
+template<class T>
 class RANDOM
 {
-    typedef typename TV::Scalar T;
-
 public:
     std::random_device& Random_Device();
     std::mt19937& Generator();
@@ -17,7 +15,13 @@ public:
     std::uniform_real_distribution<T>& Uniform_Distribution();
     T Uniform(const T& a,const T& b);
     T Gaussian();
-    TV Direction();
+    T Gaussian(T mean,T stddev);
+
+    template<class TV> TV Direction(){
+        TV direction;
+        for(int i=0;i<TV::RowsAtCompileTime;i++){direction(i)=Gaussian();}
+        return direction.normalized();
+    }
 };
 }
 #endif

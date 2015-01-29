@@ -2,52 +2,51 @@
 #include <Utilities/TYPE_UTILITIES.h>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
-template<class TV> std::random_device& RANDOM<TV>::
+template<class T> std::random_device& RANDOM<T>::
 Random_Device()
 {
     static std::random_device device;
     return device;
 }
 ///////////////////////////////////////////////////////////////////////
-template<class TV> std::mt19937& RANDOM<TV>::
+template<class T> std::mt19937& RANDOM<T>::
 Generator()
 {
     static std::mt19937 generator(Random_Device()());
     return generator;
 }
 ///////////////////////////////////////////////////////////////////////
-template<class TV> std::normal_distribution<>& RANDOM<TV>::
+template<class T> std::normal_distribution<>& RANDOM<T>::
 Normal_Distribution()
 {
     static std::normal_distribution<> normal_distribution(0,1);
     return normal_distribution;
 }
 ///////////////////////////////////////////////////////////////////////
-template<class TV> std::uniform_real_distribution<typename TV::Scalar>& RANDOM<TV>::
+template<class T> std::uniform_real_distribution<T>& RANDOM<T>::
 Uniform_Distribution()
 {
     static std::uniform_real_distribution<T> uniform_distribution(0,1);
     return uniform_distribution;
 }
 ///////////////////////////////////////////////////////////////////////
-template<class TV> typename TV::Scalar RANDOM<TV>::
+template<class T> T RANDOM<T>::
 Uniform(const T& a,const T& b)
 {
     return Uniform_Distribution()(Generator())*(b-a)+a;
 }
 ///////////////////////////////////////////////////////////////////////
-template<class TV> typename TV::Scalar RANDOM<TV>::
+template<class T> T RANDOM<T>::
 Gaussian()
 {
     return Normal_Distribution()(Generator());
 }
 ///////////////////////////////////////////////////////////////////////
-template<class TV> TV RANDOM<TV>::
-Direction()
+template<class T> T RANDOM<T>::
+Gaussian(T mean,T stddev)
 {
-    TV direction;
-    for(int i=0;i<TV::RowsAtCompileTime;i++){direction(i)=Gaussian();}
-    return direction.normalized();
+    return mean+stddev*Gaussian();
 }
 ///////////////////////////////////////////////////////////////////////
-GENERIC_TYPE_DEFINITION(RANDOM)
+template class RANDOM<float>;
+template class RANDOM<double>;

@@ -7,7 +7,7 @@ namespace Mechanics{
 template<class TV> class DATA;
 
 template<class TV>
-class BROWNIAN_FORCE : public FORCE_TYPE<TV>
+class BROWNIAN_FORCE:public FORCE_TYPE<TV>
 {
     typedef typename TV::Scalar T;
 

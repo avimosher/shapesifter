@@ -59,7 +59,7 @@ Construct_Constraint_Matrix(const ROTATION<TV>& rotation,const ROTATION<TV>& rel
 template<class TV> void ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::
 Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
 {
-    RANDOM<TV> random;
+    RANDOM<T> random;
     auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.Find("RIGID_STRUCTURE_DATA"));
     if(stochastic){
         constraints.clear();
