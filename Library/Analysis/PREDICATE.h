@@ -33,7 +33,6 @@ public:
     std::shared_ptr<PREDICATE<TV>> second_endpoint;
 
     DISTANCE_PREDICATE() {subtype=PREDICATE<TV>::SCALAR;}
-    ~DISTANCE_PREDICATE() {}
 
     T Scalar(const SIMULATION<TV>& simulation);
     DEFINE_TYPE_NAME("distance")
@@ -49,10 +48,38 @@ public:
     TV offset;
 
     RIGID_STRUCTURE_POSITION_PREDICATE() {subtype=PREDICATE<TV>::VECTOR;}
-    ~RIGID_STRUCTURE_POSITION_PREDICATE() {}
 
     TV Vector(const SIMULATION<TV>& simulation);
     DEFINE_TYPE_NAME("rigid_structure_position")
+};
+
+template<class TV>
+class LESS_THAN_PREDICATE:public PREDICATE<TV>
+{
+    typedef typename TV::Scalar T;
+public:
+    using PREDICATE<TV>::subtype;
+    std::shared_ptr<PREDICATE<TV>> a;
+    std::shared_ptr<PREDICATE<TV>> b;
+
+    LESS_THAN_PREDICATE() {subtype=PREDICATE<TV>::SCALAR;}
+
+    T Scalar(const SIMULATION<TV>& simulation);
+    DEFINE_TYPE_NAME("less_than")
+};
+
+template<class TV>
+class SCALAR_PREDICATE:public PREDICATE<TV>
+{
+    typedef typename TV::Scalar T;
+public:
+    using PREDICATE<TV>::subtype;
+    T scalar;
+
+    SCALAR_PREDICATE() {subtype=PREDICATE<TV>::SCALAR;}
+
+    T Scalar(const SIMULATION<TV>& simulation);
+    DEFINE_TYPE_NAME("scalar")
 };
 
 }

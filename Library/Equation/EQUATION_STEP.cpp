@@ -36,7 +36,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
 
         // NOTE: for the sake of things like snap constraints, it's good that this puts the velocity in data (and the initial velocity should probably be zero)
         // step data according to result
-        data.Unpack_Positions(positions);
+        //data.Unpack_Positions(positions);
         data.Unpack_Velocities(current_velocities);
         data.Unpack_Positions(positions);
         data.Step();

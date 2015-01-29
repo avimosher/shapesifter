@@ -25,12 +25,41 @@
                  "offset1": [1,0,0],
                  "structure2": "right",
                  "offset2": [-1,0,0],
-                 "bond_distance_threshold": 1,
+                 "bond_distance_threshold": 4,
                  "bond_orientation_threshold": 1.5,
                  "base_dissociation_time": 100,
-                 "base_association_time": 0.001
+                 "base_association_time": 0.0001
              }
          ]
+        },
+        {"type": "ANALYTE",
+         "prerequisites": ["evolution"],
+         "predicate": {
+             "type": "scalar",
+             "scalar": 1
+         },
+         "aggregator": {
+             "type": "sum"
+         },
+         "condition": {
+             "type": "less_than",
+             "a": {
+                 "type": "distance",
+                 "first": {
+                     "type": "rigid_structure_position",
+                     "name": "left",
+                     "offset": [1,0,0]},
+                 "second": {
+                     "type": "rigid_structure_position",
+                     "name": "right",
+                     "offset": [-1,0,0]}
+             },
+             "b": {
+                 "type": "scalar",
+                 "scalar": 0.1
+             }
+         }
+
         },
         {"type": "ANALYTE",
          "prerequisites": ["evolution"],
@@ -39,15 +68,34 @@
              "first": {
                  "type": "rigid_structure_position",
                  "name": "left",
-                 "offset": [0,0,0]},
+                 "offset": [1,0,0]},
              "second": {
                  "type": "rigid_structure_position",
                  "name": "right",
-                 "offset": [0,0,0]}
+                 "offset": [-1,0,0]}
          },
          "aggregator": {
              "type": "average"
+         },
+         "condition": {
+             "type": "less_than",
+             "a": {
+                 "type": "distance",
+                 "first": {
+                     "type": "rigid_structure_position",
+                     "name": "left",
+                     "offset": [1,0,0]},
+                 "second": {
+                     "type": "rigid_structure_position",
+                     "name": "right",
+                     "offset": [-1,0,0]}
+             },
+             "b": {
+                 "type": "scalar",
+                 "scalar": 0.5
+             }
          }
+
         }
     ]
 }

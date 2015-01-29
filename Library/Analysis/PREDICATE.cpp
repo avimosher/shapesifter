@@ -40,3 +40,34 @@ DEFINE_AND_REGISTER_TEMPLATE_PARSER(RIGID_STRUCTURE_POSITION_PREDICATE,PREDICATE
 }
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
+template<class TV> typename TV::Scalar LESS_THAN_PREDICATE<TV>::
+Scalar(const SIMULATION<TV>& simulation)
+{
+    return a->Scalar(simulation)<b->Scalar(simulation);
+}
+//////////////////////////////////////////////////////////////////////
+GENERIC_TYPE_DEFINITION(LESS_THAN_PREDICATE)
+DEFINE_AND_REGISTER_TEMPLATE_PARSER(LESS_THAN_PREDICATE,PREDICATE)
+{
+    auto predicate=std::make_shared<LESS_THAN_PREDICATE<TV>>();
+    predicate->a=PARSER_REGISTRY<TV,PREDICATE<TV>>::Parse(node["a"],simulation);
+    predicate->b=PARSER_REGISTRY<TV,PREDICATE<TV>>::Parse(node["b"],simulation);
+    return predicate;
+}
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+template<class TV> typename TV::Scalar SCALAR_PREDICATE<TV>::
+Scalar(const SIMULATION<TV>& simulation)
+{
+    return scalar;
+}
+//////////////////////////////////////////////////////////////////////
+GENERIC_TYPE_DEFINITION(SCALAR_PREDICATE)
+DEFINE_AND_REGISTER_TEMPLATE_PARSER(SCALAR_PREDICATE,PREDICATE)
+{
+    auto predicate=std::make_shared<SCALAR_PREDICATE<TV>>();
+    Parse_Scalar(node["scalar"],predicate->scalar);
+    return predicate;
+}
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////

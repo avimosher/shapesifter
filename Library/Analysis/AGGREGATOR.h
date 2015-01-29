@@ -44,5 +44,26 @@ public:
     DEFINE_TYPE_NAME("average")
 };
 
+template<class TV>
+class SUM_AGGREGATOR:public AGGREGATOR<TV>
+{
+    typedef typename TV::Scalar T;
+    int t_count;
+    T t_total;
+    int tv_count;
+    TV tv_total;
+public:
+    SUM_AGGREGATOR();
+
+    virtual void Aggregate_Subtype(const T aggregate)
+    {t_count++;t_total+=aggregate;}
+
+    virtual void Aggregate_Subtype(const TV& aggregate)
+    {tv_count++;tv_total+=aggregate;}
+
+    virtual void Print_Report(std::ostream& out);
+    DEFINE_TYPE_NAME("sum")
+};
+
 }
 #endif

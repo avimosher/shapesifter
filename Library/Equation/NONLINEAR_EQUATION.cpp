@@ -63,11 +63,12 @@ template<class TV> bool NONLINEAR_EQUATION<TV>::
 Satisfied(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& solve_result,QUALITY<T>& solve_quality)
 {
     int velocity_count=data.Velocity_DOF();
-    auto residual=right_hand_side-matrix.block(0,velocity_count,matrix.rows(),matrix.cols()-velocity_count)*solve_result.block(velocity_count,0,solve_result.rows()-velocity_count,1);
+    //auto residual=right_hand_side-matrix.block(0,velocity_count,matrix.rows(),matrix.cols()-velocity_count)*solve_result.block(velocity_count,0,solve_result.rows()-velocity_count,1);
+    auto residual=right_hand_side-matrix*solve_result;
     T norm=residual.norm();
     solve_quality.Update(norm);
     //std::cout<<"Norm: "<<norm<<std::endl;
-    return norm<1e-4;
+    return norm<1e-6;
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(NONLINEAR_EQUATION)

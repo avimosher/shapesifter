@@ -40,6 +40,7 @@ public:
         Quaternion<T> q;
         q.w()=cos((T).5*spin_magnitude);
         q.vec()=(T).5*sinc((T).5*spin_magnitude)*rotation_vector;
+        q.normalize();
         return q;
     }
 
