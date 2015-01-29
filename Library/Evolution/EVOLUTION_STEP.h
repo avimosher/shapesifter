@@ -12,6 +12,7 @@ class EVOLUTION_STEP
     typedef typename TV::Scalar T;
 
 public:
+    std::string name;
     T up_to_date_time;
     std::vector<EVOLUTION_STEP<TV>*> prerequisites;
 

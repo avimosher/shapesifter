@@ -31,6 +31,23 @@
                  "base_association_time": 0.001
              }
          ]
+        },
+        {"type": "ANALYTE",
+         "prerequisites": ["evolution"],
+         "predicate": {
+             "type": "distance",
+             "first": {
+                 "type": "rigid_structure_position",
+                 "name": "left",
+                 "offset": [0,0,0]},
+             "second": {
+                 "type": "rigid_structure_position",
+                 "name": "right",
+                 "offset": [0,0,0]}
+         },
+         "aggregator": {
+             "type": "average"
+         }
         }
     ]
 }
