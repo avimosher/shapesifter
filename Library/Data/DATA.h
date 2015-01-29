@@ -16,6 +16,8 @@ class DATA:public std::vector<std::shared_ptr<DATA_TYPE<TV>>>
     typedef typename TV::Scalar T;
 
 public:
+    std::unordered_map<std::string,T> globals;
+
     DATA(){}
     ~DATA(){}
 
@@ -39,6 +41,8 @@ public:
     void Unpack_Positions(const Matrix<T,Dynamic,1>& positions);
     void Step();
     void Viewer(osg::Group*& root);
+
+    DEFINE_TYPE_NAME("DATA")
 };
 }
 #endif

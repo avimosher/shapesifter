@@ -14,6 +14,7 @@ class BROWNIAN_FORCE : public FORCE_TYPE<TV>
     Matrix<T,Dynamic,1> stored_right_hand_side;
 public:
     T temperature;
+    T eta;
 
     BROWNIAN_FORCE(){}
     ~BROWNIAN_FORCE(){}

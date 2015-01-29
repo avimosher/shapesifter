@@ -16,7 +16,7 @@ using namespace Mechanics;
 template<class TV> void NONLINEAR_EQUATION<TV>::
 Linearize(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& velocities,const T dt,const T time,const bool stochastic)
 {
-    int full_size=1+force.size();
+    int full_size=data.size()+force.size();
     full_matrix.resize(full_size,full_size);
     full_right_hand_side.resize(full_size,1);
 
@@ -27,6 +27,7 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& velocities,
     matrix.resize(size,size);
     full_matrix(0,0).resize(size,size);
     // TODO: one block matrix per data type too
+    force_terms.resize(data.size());
     for(int i=0;i<data.size();i++){
         data[i]->Inertia(force_terms[i]);
     }

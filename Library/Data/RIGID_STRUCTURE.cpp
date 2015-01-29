@@ -40,6 +40,7 @@ DEFINE_AND_REGISTER_PARSER(RIGID_STRUCTURE,void)
     Parse_Scalar(node["radius"],structure->radius,(T)0);
     Parse_Scalar(node["collision_radius"],structure->collision_radius,structure->radius);
     structure->name=node["name"].asString();
+    structure->Initialize_Inertia(simulation.data.globals["eta"]);
     auto data_element=simulation.data.Find(RIGID_STRUCTURE_DATA<TV>::Static_Name());
     auto rigid_structure_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data_element);
     rigid_structure_data->structures.push_back(structure);

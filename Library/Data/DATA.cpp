@@ -1,6 +1,7 @@
 #include <Data/DATA.h>
-#include <iostream>
+#include <Parsing/PARSER_REGISTRY.h>
 #include <fstream>
+#include <iostream>
 #include <cereal/archives/binary.hpp>
 #include <osg/Group>
 using namespace Mechanics;
@@ -83,3 +84,12 @@ Viewer(osg::Group*& root)
 }
 /////////////////////////////////////////////////////////////////////// 
 GENERIC_TYPE_DEFINITION(DATA)
+DEFINE_AND_REGISTER_PARSER(DATA,void)
+{
+    for(Json::ValueIterator itr=node.begin();itr!=node.end();itr++){
+        if(itr.key()!="type"){
+            Parse_Scalar(*itr,simulation.data.globals[itr.key().asString()]);
+        }
+    }
+    return 0;
+}
