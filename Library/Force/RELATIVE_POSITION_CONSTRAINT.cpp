@@ -96,7 +96,7 @@ GENERIC_TYPE_DEFINITION(RELATIVE_POSITION_CONSTRAINT)
 DEFINE_AND_REGISTER_PARSER(RELATIVE_POSITION_CONSTRAINT,void)
 {
     auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(simulation.data.Find("RIGID_STRUCTURE_DATA"));
-    auto relative_position_constraint=std::make_shared<RELATIVE_POSITION_CONSTRAINT<TV>>();
+    auto relative_position_constraint=simulation.force.template Find_Or_Create<RELATIVE_POSITION_CONSTRAINT<TV>>();
     Json::Value constraints=node["constraints"];
     for(Json::ValueIterator it=constraints.begin();it!=constraints.end();it++){
         typename RELATIVE_POSITION_CONSTRAINT<TV>::CONSTRAINT constraint;
@@ -107,6 +107,6 @@ DEFINE_AND_REGISTER_PARSER(RELATIVE_POSITION_CONSTRAINT,void)
         constraint.target_distance=(*it)["distance"].asDouble();
         relative_position_constraint->constraints.push_back(constraint);
     }
-    simulation.force.push_back(relative_position_constraint);
+    //simulation.force.push_back(relative_position_constraint);
     return 0;
 }

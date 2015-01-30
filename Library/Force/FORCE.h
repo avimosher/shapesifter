@@ -22,6 +22,17 @@ public:
     FORCE(){}
     ~FORCE(){}
 
+    template<class SUBTYPE> std::shared_ptr<SUBTYPE> Find_Or_Create() {
+        Finder<std::shared_ptr<FORCE_TYPE<TV>>> finder={SUBTYPE::Static_Name()};
+        auto found=std::find_if(this->begin(),this->end(),finder);
+        if(found==this->end()){
+            auto force=std::make_shared<SUBTYPE>();
+            this->push_back(force);
+            return force;
+        }
+        return std::static_pointer_cast<SUBTYPE>(*found);
+    }
+
     T Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T target_time);
     int Force_DOF() const;
     void Pack_Forces(Matrix<T,Dynamic,1>& forces);

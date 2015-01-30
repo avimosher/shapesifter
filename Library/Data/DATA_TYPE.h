@@ -20,10 +20,6 @@ public:
     DATA_TYPE(){}
     ~DATA_TYPE(){}
 
-    bool operator==(const std::string& name){
-        return Name()==name;
-    }
-
     virtual int Size()=0;
     virtual int Velocity_DOF() const {return 0;}
     virtual int Position_DOF() const {return 0;}

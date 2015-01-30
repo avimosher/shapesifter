@@ -33,11 +33,13 @@
          ]
         },
         {"type": "FLEXIBLE_LINKER",
-         "first_endpoint": "left",
-         "second_endpoint": "right",
+         "structure1": "left",
+         "offset1": [1,0,0],
+         "structure2": "right",
+         "offset2": [-1,0,0],
          "links": 5,
          "link_radius": 0.2,
-         "link_length": 1
+         "link_offset": [2,0,0]
         },
         {"type": "ANALYTE",
          "prerequisites": ["evolution"],
