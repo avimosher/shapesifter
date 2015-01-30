@@ -1,0 +1,108 @@
+{
+    "output_directory": "association_dissociation",
+    "root": [
+        {"type": "DATA",
+         "eta": 3.5},
+        {"type": "RIGID_STRUCTURE_DATA"},
+        {"type": "RIGID_STRUCTURE",
+         "position": [1, 1, 1],
+         "radius": 1,
+         "name": "left"
+        },
+        {"type": "RIGID_STRUCTURE",
+         "position": [3, 1, 1],
+         "radius": 1,
+         "collision_extent": 2,
+         "name": "right"
+        },
+        {"type": "BROWNIAN_FORCE",
+         "temperature": 300},
+        {"type": "NONLINEAR_EQUATION"},
+        {"type": "ASSOCIATION_DISSOCIATION_CONSTRAINT",
+         "interactions": [
+             {
+                 "structure1": "left",
+                 "offset1": [1,0,0],
+                 "structure2": "right",
+                 "offset2": [-1,0,0],
+                 "bond_distance_threshold": 4,
+                 "bond_orientation_threshold": 1.5,
+                 "base_dissociation_time": 100,
+                 "base_association_time": 0.0001
+             }
+         ]
+        },
+        {"type": "FLEXIBLE_LINKER",
+         "first_endpoint": "left",
+         "second_endpoint": "right",
+         "links": 5,
+         "link_radius": 0.2,
+         "link_length": 1
+        },
+        {"type": "ANALYTE",
+         "prerequisites": ["evolution"],
+         "predicate": {
+             "type": "scalar",
+             "scalar": 1
+         },
+         "aggregator": {
+             "type": "sum"
+         },
+         "condition": {
+             "type": "less_than",
+             "a": {
+                 "type": "distance",
+                 "first": {
+                     "type": "rigid_structure_position",
+                     "name": "left",
+                     "offset": [1,0,0]},
+                 "second": {
+                     "type": "rigid_structure_position",
+                     "name": "right",
+                     "offset": [-1,0,0]}
+             },
+             "b": {
+                 "type": "scalar",
+                 "scalar": 0.1
+             }
+         }
+
+        },
+        {"type": "ANALYTE",
+         "prerequisites": ["evolution"],
+         "predicate": {
+             "type": "distance",
+             "first": {
+                 "type": "rigid_structure_position",
+                 "name": "left",
+                 "offset": [1,0,0]},
+             "second": {
+                 "type": "rigid_structure_position",
+                 "name": "right",
+                 "offset": [-1,0,0]}
+         },
+         "aggregator": {
+             "type": "average"
+         },
+         "condition": {
+             "type": "less_than",
+             "a": {
+                 "type": "distance",
+                 "first": {
+                     "type": "rigid_structure_position",
+                     "name": "left",
+                     "offset": [1,0,0]},
+                 "second": {
+                     "type": "rigid_structure_position",
+                     "name": "right",
+                     "offset": [-1,0,0]}
+             },
+             "b": {
+                 "type": "scalar",
+                 "scalar": 0.5
+             }
+         }
+
+        }
+    ]
+}
