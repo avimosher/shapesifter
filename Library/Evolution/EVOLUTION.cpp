@@ -8,7 +8,7 @@ using namespace Mechanics;
 template<class TV> typename TV::Scalar EVOLUTION<TV>::
 Compute_Dt(SIMULATION<TV>& simulation,const T time,const T target_time,bool& done)
 {
-    T dt=.1;
+    T dt=.01;
     done=time+dt>=target_time;
     return dt;
 }

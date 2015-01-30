@@ -3,6 +3,7 @@
 #include <Driver/SIMULATION.h>
 #include <Evolution/EVOLUTION.h>
 #include <Force/FORCE.h>
+#include <Force/FORCE_TYPE.h>
 #include <Utilities/OSG_HELPERS.h>
 #include <fstream>
 #include <cereal/archives/binary.hpp>
@@ -40,7 +41,7 @@ Write(const int frame)
     stringStream<<output_directory<<"/frame."<<frame;
     std::ofstream output(stringStream.str().c_str(),std::ios::out);
     cereal::BinaryOutputArchive archive(output);
-    archive(time,title,data);
+    archive(time,title,data,force);
 }
 /////////////////////////////////////////////////////////////////////// 
 template<class TV> bool SIMULATION<TV>::
@@ -51,7 +52,7 @@ Read(const int frame)
     std::ifstream input(stringStream.str().c_str(),std::ios::in);
     if(!input.is_open()){return false;}
     cereal::BinaryInputArchive archive(input);
-    archive(time,title,data);
+    archive(time,title,data,force);
     return true;
 }
 /////////////////////////////////////////////////////////////////////// 

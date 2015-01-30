@@ -12,6 +12,7 @@ Initialize()
         simulation->current_frame=simulation->restart_frame;
         simulation->Read(simulation->restart_frame);
     }
+    else{simulation->Write(simulation->current_frame);}
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void DRIVER<TV>::

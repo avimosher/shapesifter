@@ -7,9 +7,12 @@
 #include <Parsing/PARSER_REGISTRY.h>
 #include <Utilities/EIGEN_HELPERS.h>
 #include <Utilities/HASHING.h>
+#include <Utilities/OSG_HELPERS.h>
 #include <Utilities/RANDOM.h>
 #include <iostream>
+#include <osg/Geometry>
 #include <math.h>
+#include <osg/Geode>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
@@ -59,6 +62,45 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     call_count++;
 }
 ///////////////////////////////////////////////////////////////////////
+template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
+Viewer(const DATA<TV>& data,osg::Node* node)
+{
+    osg::Group* group=node->asGroup();
+    group->removeChild(getNamedChild(group,Static_Name()));
+    auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.Find("RIGID_STRUCTURE_DATA"));
+    osg::Group* volume_exclusion_group=new osg::Group();
+    volume_exclusion_group->setName(Static_Name());
+    for(int i=0;i<constraints.size();i++){
+        auto lineGeometry=new osg::Geometry();
+        auto vertices=new osg::Vec3Array(2);
+        const CONSTRAINT& constraint=constraints[i];
+        int body_index1=constraint.first;
+        int body_index2=constraint.second;
+        auto rigid_structure1=rigid_data->structures[body_index1];
+        auto rigid_structure2=rigid_data->structures[body_index2];
+        auto firstAttachment=rigid_structure1->frame.position;
+        auto secondAttachment=rigid_structure2->frame.position;
+        (*vertices)[0].set(firstAttachment(0),firstAttachment(1),firstAttachment(2));
+        (*vertices)[1].set(secondAttachment(0),secondAttachment(1),secondAttachment(2));
+        lineGeometry->setVertexArray(vertices);
+        auto colors=new osg::Vec4Array;
+        colors->push_back(osg::Vec4(0.0f,0.0f,1.0f,1.0f));
+        lineGeometry->setColorArray(colors);
+        lineGeometry->setColorBinding(osg::Geometry::BIND_OVERALL);
+        auto normals=new osg::Vec3Array;
+        normals->push_back(osg::Vec3f(0.0f,-1.0f,0.0f));
+        lineGeometry->setNormalArray(normals);
+        lineGeometry->setNormalBinding(osg::Geometry::BIND_OVERALL);
+        
+        lineGeometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES,0,2));
+        auto lineGeode=new osg::Geode();
+        lineGeode->addDrawable(lineGeometry);
+        volume_exclusion_group->addChild(lineGeode);
+    }
+    group->addChild(volume_exclusion_group);
+}
+///////////////////////////////////////////////////////////////////////
+GENERIC_CEREAL_REGISTRATION(VOLUME_EXCLUSION_CONSTRAINT)
 GENERIC_TYPE_DEFINITION(VOLUME_EXCLUSION_CONSTRAINT)
 DEFINE_AND_REGISTER_PARSER(VOLUME_EXCLUSION_CONSTRAINT,void)
 {

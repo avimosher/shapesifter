@@ -47,6 +47,14 @@ void serialize(Archive& archive,Eigen::Quaternion<T>& rotation)
 {
     archive(rotation.coeffs());
 }
+
+// define cereal serializers for std::pair
+/*template<class Archive,class T1,class T2>
+void Serialize(Archive& archive,std::pair<T1,T2>& p)
+{
+    archive(p.first,p.second);
+    }*/
+
 }
 #endif
 

@@ -64,7 +64,9 @@ template<class TV> void RIGID_STRUCTURE_DATA<TV>::
 Step(const DATA<TV>& data)
 {
     for(int i=0;i<structures.size();i++){
+        TV p1=structures[i]->frame.position;
         structures[i]->frame=Updated_Frame(data,structures[i]->frame,structures[i]->twist);
+        std::cout<<"Kick in center of mass for "<<i<<": "<<(structures[i]->frame.position-p1).transpose()<<std::endl;
         //std::cout<<i<<": "<<structures[i]->frame.position.transpose()<<std::endl;
     }
 }
@@ -94,17 +96,21 @@ Viewer(osg::Node* node)
             if(structures[i]->collision_extent){
                 auto cylinder=new osg::Cylinder(osg::Vec3(0,0,0),structures[i]->radius,2*structures[i]->collision_extent);
                 auto cylinderDrawable=new osg::ShapeDrawable(cylinder);
+                cylinderDrawable->setColor(osg::Vec4(1.0f,1.0f,1.0f,0.5f));
                 basicShapesGeode->addDrawable(cylinderDrawable);
                 auto topSphere=new osg::Sphere(osg::Vec3(0,0,structures[i]->collision_extent),structures[i]->radius);
                 auto topSphereDrawable=new osg::ShapeDrawable(topSphere);
+                topSphereDrawable->setColor(osg::Vec4(1.0f,1.0f,1.0f,0.5f));
                 basicShapesGeode->addDrawable(topSphereDrawable);
                 auto bottomSphere=new osg::Sphere(osg::Vec3(0,0,-structures[i]->collision_extent),structures[i]->radius);
                 auto bottomSphereDrawable=new osg::ShapeDrawable(bottomSphere);
+                bottomSphereDrawable->setColor(osg::Vec4(1.0f,1.0f,1.0f,0.5f));
                 basicShapesGeode->addDrawable(bottomSphereDrawable);
             }
             else{
                 auto unitSphere=new osg::Sphere(osg::Vec3(0,0,0),structures[i]->radius);
                 auto unitSphereDrawable=new osg::ShapeDrawable(unitSphere);
+                unitSphereDrawable->setColor(osg::Vec4(1.0f,1.0f,1.0f,0.5f));
                 basicShapesGeode->addDrawable(unitSphereDrawable);
             }
             transform->addChild(basicShapesGeode);

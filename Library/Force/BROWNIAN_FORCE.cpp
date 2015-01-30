@@ -38,10 +38,12 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             T random_angle=random.Gaussian(T(),rotational_variance);
             stored_right_hand_side.template block<T_SPIN::SizeAtCompileTime,1>(TWIST<TV>::STATIC_SIZE*i+TV::SizeAtCompileTime,0)=random_spin_orientation*rotational_resistance*random_angle*one_over_dt;
         }
+        std::cout<<stored_right_hand_side.transpose()<<std::endl;
     }
     right_hand_side+=stored_right_hand_side;
 }
 ///////////////////////////////////////////////////////////////////////
+GENERIC_CEREAL_REGISTRATION(BROWNIAN_FORCE)
 GENERIC_TYPE_DEFINITION(BROWNIAN_FORCE)
 DEFINE_AND_REGISTER_PARSER(BROWNIAN_FORCE,void)
 {

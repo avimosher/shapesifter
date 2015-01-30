@@ -46,7 +46,7 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& velocities,
     Merge_Block_Matrices(full_matrix,matrix);
     full_right_hand_side(0,0)-=full_matrix(0,0)*velocities;
     Merge_Block_Vectors(full_right_hand_side,right_hand_side);
-    //std::cout<<matrix<<std::endl;
+    std::cout<<matrix<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>::
@@ -67,7 +67,10 @@ Satisfied(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& solve_resul
     auto residual=right_hand_side-matrix*solve_result;
     T norm=residual.norm();
     solve_quality.Update(norm);
-    //std::cout<<"Norm: "<<norm<<std::endl;
+    //std::cout<<"solve result: "<<solve_result.transpose()<<std::endl;
+    //std::cout<<"rhs: "<<right_hand_side.transpose()<<std::endl;
+    //std::cout<<"residual: "<<residual.transpose()<<std::endl;
+    std::cout<<"Norm: "<<norm<<std::endl;
     return norm<1e-6;
 }
 ///////////////////////////////////////////////////////////////////////

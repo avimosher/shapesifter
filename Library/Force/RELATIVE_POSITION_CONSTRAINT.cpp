@@ -92,6 +92,7 @@ Viewer(const DATA<TV>& data,osg::Node* node)
     }
 }
 ///////////////////////////////////////////////////////////////////////
+GENERIC_CEREAL_REGISTRATION(RELATIVE_POSITION_CONSTRAINT)
 GENERIC_TYPE_DEFINITION(RELATIVE_POSITION_CONSTRAINT)
 DEFINE_AND_REGISTER_PARSER(RELATIVE_POSITION_CONSTRAINT,void)
 {
@@ -107,6 +108,7 @@ DEFINE_AND_REGISTER_PARSER(RELATIVE_POSITION_CONSTRAINT,void)
         constraint.target_distance=(*it)["distance"].asDouble();
         relative_position_constraint->constraints.push_back(constraint);
     }
-    //simulation.force.push_back(relative_position_constraint);
+    relative_position_constraint->stored_forces.resize(relative_position_constraint->constraints.size());
+    relative_position_constraint->stored_forces.setZero();
     return 0;
 }

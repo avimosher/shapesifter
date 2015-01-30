@@ -25,10 +25,10 @@
                  "offset1": [1,0,0],
                  "structure2": "right",
                  "offset2": [-1,0,0],
-                 "bond_distance_threshold": 4,
+                 "bond_distance_threshold": 0.5,
                  "bond_orientation_threshold": 1.5,
                  "base_dissociation_time": 100,
-                 "base_association_time": 0.0001
+                 "base_association_time": 0.001
              }
          ]
         },
@@ -39,7 +39,7 @@
          "offset2": [-1,0,0],
          "links": 5,
          "link_radius": 0.2,
-         "link_offset": [2,0,0]
+         "link_offset": [0.5,0,0]
         },
         {"type": "ANALYTE",
          "prerequisites": ["evolution"],
@@ -105,6 +105,7 @@
              }
          }
 
-        }
+        },
+        {"type": "VOLUME_EXCLUSION_CONSTRAINT"}
     ]
 }
