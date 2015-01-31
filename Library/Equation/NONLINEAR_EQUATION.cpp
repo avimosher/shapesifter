@@ -46,7 +46,7 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& velocities,
     Merge_Block_Matrices(full_matrix,matrix);
     full_right_hand_side(0,0)-=full_matrix(0,0)*velocities;
     Merge_Block_Vectors(full_right_hand_side,right_hand_side);
-    std::cout<<matrix<<std::endl;
+    //std::cout<<matrix<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>::

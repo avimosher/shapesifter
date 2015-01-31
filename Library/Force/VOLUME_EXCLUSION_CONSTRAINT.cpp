@@ -44,6 +44,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             T distance_condition=-.001;
             std::pair<int,T> remembered=force_memory[CONSTRAINT(s1,s2)];
             if(constraint_violation<distance_condition || (remembered.first==call_count && remembered.second<0)){
+                std::cout<<"Constraint between "<<s1<<" and "<<s2<<std::endl;
                 terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s2,direction.transpose()*index_map.Velocity_Map(offset2)));
                 terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s1,-direction.transpose()*index_map.Velocity_Map(offset1)));
                 rhs.push_back(-constraint_violation);
@@ -65,7 +66,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
 template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
 Viewer(const DATA<TV>& data,osg::Node* node)
 {
-    osg::Group* group=node->asGroup();
+    /*osg::Group* group=node->asGroup();
     group->removeChild(getNamedChild(group,Static_Name()));
     auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.Find("RIGID_STRUCTURE_DATA"));
     osg::Group* volume_exclusion_group=new osg::Group();
@@ -97,7 +98,7 @@ Viewer(const DATA<TV>& data,osg::Node* node)
         lineGeode->addDrawable(lineGeometry);
         volume_exclusion_group->addChild(lineGeode);
     }
-    group->addChild(volume_exclusion_group);
+    group->addChild(volume_exclusion_group);*/
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_CEREAL_REGISTRATION(VOLUME_EXCLUSION_CONSTRAINT)

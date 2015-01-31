@@ -2,6 +2,8 @@
 #define __RELATIVE_POSITION_CONSTRAINT__
 
 #include <Force/FORCE_TYPE.h>
+#include <cereal/archives/binary.hpp>
+#include <cereal/types/vector.hpp>
 
 namespace Mechanics{
 
@@ -17,11 +19,20 @@ public:
         int s2;
         TV v2;
         T target_distance;
+
+        template<class Archive>
+        void serialize(Archive& archive)
+        {archive(s1,v1,s2,v2,target_distance);}
     };
     std::vector<CONSTRAINT> constraints;
 
     RELATIVE_POSITION_CONSTRAINT(){}
     ~RELATIVE_POSITION_CONSTRAINT(){}
+
+    template<class Archive>
+    void serialize(Archive& archive)
+    {archive(constraints);}
+
 
     void Linearize(DATA<TV>& data,const T dt,const T time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic);
     void Viewer(const DATA<TV>& data,osg::Node* node);

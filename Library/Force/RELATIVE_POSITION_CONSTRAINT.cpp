@@ -6,11 +6,12 @@
 #include <Indexing/RIGID_STRUCTURE_INDEX_MAP.h>
 #include <Parsing/PARSER_REGISTRY.h>
 #include <Utilities/EIGEN_HELPERS.h>
+#include <Utilities/OSG_HELPERS.h>
 #include <Utilities/RANDOM.h>
-#include <osg/Geode>
-#include <osg/Geometry>
 #include <iostream>
 #include <math.h>
+#include <osg/Geode>
+#include <osg/Geometry>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::
@@ -45,15 +46,10 @@ template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::
 Viewer(const DATA<TV>& data,osg::Node* node)
 {
     osg::Group* group=node->asGroup();
-    osg::Group* relative_position_group=NULL;
-    for(int i=0;i<group->getNumChildren();i++){
-        if(group->getChild(i)->getName()=="RELATIVE_POSITION_CONSTRAINT"){
-            relative_position_group=(osg::Group*)group->getChild(i);
-        }
-    }
+    osg::Group* relative_position_group=(osg::Group*)getNamedChild(group,Static_Name());
     if(!relative_position_group){
         relative_position_group=new osg::Group();
-        relative_position_group->setName("RELATIVE_POSITION_CONSTRAINT");
+        relative_position_group->setName(Static_Name());
         for(int i=0;i<constraints.size();i++){
             auto lineGeometry=new osg::Geometry();
             auto vertices=new osg::Vec3Array(2);
@@ -75,6 +71,7 @@ Viewer(const DATA<TV>& data,osg::Node* node)
         group->addChild(relative_position_group);
     }
     auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.Find("RIGID_STRUCTURE_DATA"));
+    std::cout<<"Drawing "<<constraints.size()<<" constraints"<<std::endl;
     for(int i=0;i<constraints.size();i++){
         auto lineGeode=(osg::Geode*)relative_position_group->getChild(i);
         auto lineGeometry=(osg::Geometry*)lineGeode->getDrawable(0);
@@ -86,6 +83,7 @@ Viewer(const DATA<TV>& data,osg::Node* node)
         auto rigid_structure2=rigid_data->structures[body_index2];
         auto firstAttachment=rigid_structure1->frame*constraint.v1;
         auto secondAttachment=rigid_structure2->frame*constraint.v2;
+        std::cout<<"first: "<<firstAttachment.transpose()<<" second: "<<secondAttachment.transpose()<<std::endl;
         (*vertices)[0].set(firstAttachment(0),firstAttachment(1),firstAttachment(2));
         (*vertices)[1].set(secondAttachment(0),secondAttachment(1),secondAttachment(2));
         lineGeometry->setVertexArray(vertices);
