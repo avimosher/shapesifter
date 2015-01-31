@@ -43,6 +43,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             T constraint_violation=distance-rigid_structure1->collision_radius-rigid_structure2->collision_radius;
             T distance_condition=-.001;
             std::pair<int,T> remembered=force_memory[CONSTRAINT(s1,s2)];
+            //std::cout<<s1<<" "<<rigid_structure1->name<<" "<<s2<<" "<<rigid_structure2->name<<": constraint violation "<<constraint_violation<<std::endl;
+            //std::cout<<"s1 com: "<<rigid_structure1->frame.position.transpose()<<" s2 com: "<<rigid_structure2->frame.position.transpose()<<" r1: "<<rigid_structure1->collision_radius<<" r2: "<<rigid_structure2->collision_radius<<std::endl;
             if(constraint_violation<distance_condition || (remembered.first==call_count && remembered.second<0)){
                 std::cout<<"Constraint between "<<s1<<" and "<<s2<<std::endl;
                 terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s2,direction.transpose()*index_map.Velocity_Map(offset2)));
@@ -66,17 +68,19 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
 template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
 Viewer(const DATA<TV>& data,osg::Node* node)
 {
-    /*osg::Group* group=node->asGroup();
+    osg::Group* group=node->asGroup();
     group->removeChild(getNamedChild(group,Static_Name()));
     auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.Find("RIGID_STRUCTURE_DATA"));
     osg::Group* volume_exclusion_group=new osg::Group();
     volume_exclusion_group->setName(Static_Name());
+    std::cout<<"Volume exclusion constraints: "<<constraints.size()<<std::endl;
     for(int i=0;i<constraints.size();i++){
         auto lineGeometry=new osg::Geometry();
         auto vertices=new osg::Vec3Array(2);
         const CONSTRAINT& constraint=constraints[i];
         int body_index1=constraint.first;
         int body_index2=constraint.second;
+        std::cout<<"Between "<<body_index1<<" and "<<body_index2<<std::endl;
         auto rigid_structure1=rigid_data->structures[body_index1];
         auto rigid_structure2=rigid_data->structures[body_index2];
         auto firstAttachment=rigid_structure1->frame.position;
@@ -98,7 +102,7 @@ Viewer(const DATA<TV>& data,osg::Node* node)
         lineGeode->addDrawable(lineGeometry);
         volume_exclusion_group->addChild(lineGeode);
     }
-    group->addChild(volume_exclusion_group);*/
+    group->addChild(volume_exclusion_group);
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_CEREAL_REGISTRATION(VOLUME_EXCLUSION_CONSTRAINT)

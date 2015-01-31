@@ -85,7 +85,7 @@ public:
         segment2[0]=centroid2-major_axis2;
         segment2[1]=centroid2+major_axis2;
         Segment_Segment_Displacement(segment1,segment2,weights);
-        TV closest_point1=centroid1+(2*weights(1)-1)*major_axis1;
+        TV closest_point1=centroid1+(2*weights(0)-1)*major_axis1;
         TV closest_point2=centroid2+(2*weights(1)-1)*major_axis2;
         TV displacement=closest_point2-closest_point1;
         offset1=closest_point1-centroid1+displacement*collision_radius;

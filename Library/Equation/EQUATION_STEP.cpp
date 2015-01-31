@@ -32,6 +32,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
         solve_velocities=solve_vector.block(0,0,data.Velocity_DOF(),1);
         solve_forces=solve_vector.block(data.Velocity_DOF(),0,solve_vector.rows()-data.Velocity_DOF(),1);
         
+        std::cout<<"Solve scale: "<<solve_quality.Scale_Result()<<std::endl;
         current_velocities+=solve_quality.Scale_Result()*solve_velocities;//(T).15*solve_velocities;
 
         // NOTE: for the sake of things like snap constraints, it's good that this puts the velocity in data (and the initial velocity should probably be zero)

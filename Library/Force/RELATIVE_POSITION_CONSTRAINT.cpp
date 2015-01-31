@@ -71,7 +71,6 @@ Viewer(const DATA<TV>& data,osg::Node* node)
         group->addChild(relative_position_group);
     }
     auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.Find("RIGID_STRUCTURE_DATA"));
-    std::cout<<"Drawing "<<constraints.size()<<" constraints"<<std::endl;
     for(int i=0;i<constraints.size();i++){
         auto lineGeode=(osg::Geode*)relative_position_group->getChild(i);
         auto lineGeometry=(osg::Geometry*)lineGeode->getDrawable(0);
@@ -83,7 +82,6 @@ Viewer(const DATA<TV>& data,osg::Node* node)
         auto rigid_structure2=rigid_data->structures[body_index2];
         auto firstAttachment=rigid_structure1->frame*constraint.v1;
         auto secondAttachment=rigid_structure2->frame*constraint.v2;
-        std::cout<<"first: "<<firstAttachment.transpose()<<" second: "<<secondAttachment.transpose()<<std::endl;
         (*vertices)[0].set(firstAttachment(0),firstAttachment(1),firstAttachment(2));
         (*vertices)[1].set(secondAttachment(0),secondAttachment(1),secondAttachment(2));
         lineGeometry->setVertexArray(vertices);
