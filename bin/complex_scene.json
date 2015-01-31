@@ -15,8 +15,6 @@
          "collision_extent": 2,
          "name": "right"
         },
-        {"type": "BROWNIAN_FORCE",
-         "temperature": 300},
         {"type": "NONLINEAR_EQUATION"},
         {"type": "ASSOCIATION_DISSOCIATION_CONSTRAINT",
          "interactions": [
