@@ -44,18 +44,41 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& velocities,
         full_matrix(i,i).setFromTriplets(force_terms[i].begin(),force_terms[i].end());
     }
     Merge_Block_Matrices(full_matrix,matrix);
-    full_right_hand_side(0,0)-=full_matrix(0,0)*velocities;
+    //full_right_hand_side(0,0)-=full_matrix(0,0)*velocities;
     Merge_Block_Vectors(full_right_hand_side,right_hand_side);
     //std::cout<<matrix<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
+template<class TV> typename TV::Scalar NONLINEAR_EQUATION<TV>::
+Calculate_RHS_And_Norm(const DATA<TV>& data,const FORCE<TV>& force,const Matrix<T,Dynamic,1>& velocities)
+{
+    Matrix<T,Dynamic,1> forces;force.Pack_Forces(forces); // ask for stored forces appropriate for this solve
+    Matrix<T,Dynamic,1> current_solution(right_hand_side.size());
+    current_solution<<velocities,
+        forces;
+    int velocity_count=data.Velocity_DOF();
+    right_hand_side.block(0,0,velocity_count,1)-=matrix.block(0,0,velocity_count,matrix.cols())*current_solution;
+    std::cout<<"Current solution: "<<current_solution.transpose()<<std::endl;
+    std::cout<<"RHS: "<<right_hand_side.transpose()<<std::endl;
+    return right_hand_side.squaredNorm();
+}
+///////////////////////////////////////////////////////////////////////
 template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>::
-Solve(const Matrix<T,Dynamic,1>& guess)
+Solve(const Matrix<T,Dynamic,1>& guess,T lambda)
 {
     const int solve_iterations=200;
     MINRES<SparseMatrix<T>> solver;
     solver.setMaxIterations(solve_iterations);
+    SparseMatrix<T> matrix_copy(matrix.rows(),matrix.cols());
+    std::vector<Triplet<T>> diag(matrix.rows());
+    for(int i=0;i<matrix.rows();i++){diag[i]=Triplet<T>(i,i,matrix.diagonal()[i]*lambda);}
+    //for(int i=0;i<matrix.rows();i++){diag[i]=Triplet<T>(i,i,1/lambda);}
+    matrix_copy.setFromTriplets(diag.begin(),diag.end());
+    matrix_copy+=matrix;
+    std::cout<<matrix<<std::endl;
+    //solver.compute(matrix_copy);
     solver.compute(matrix);
+    //solver.compute(matrix+SparseMatrix<T>((lambda*matrix.diagonal()).asDiagonal()));
     return solver.solveWithGuess(right_hand_side,guess);
 }
 ///////////////////////////////////////////////////////////////////////

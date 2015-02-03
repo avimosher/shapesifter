@@ -16,6 +16,22 @@ Unpack_Forces(const Matrix<T,Dynamic,1>& forces)
     }
 }
 ///////////////////////////////////////////////////////////////////////
+template<class TV> void ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::
+Increment_Forces(const Matrix<T,Dynamic,1>& forces)
+{
+    call_count++;
+    for(int i=0;i<constraints.size();i++){
+        if(force_memory.count(constraints[i])){
+            auto& memory=force_memory[constraints[i]];
+            memory.first=call_count;
+            memory.second+=forces.template block<FullSize,1>(i*FullSize,0);
+        }
+        else{
+            force_memory[constraints[i]]=std::pair<int,FORCE_VECTOR>(call_count,forces.template block<FullSize,1>(i*FullSize,0));
+        }
+    }
+}
+///////////////////////////////////////////////////////////////////////
 template<class TV> ROTATION<TV> ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::
 Find_Appropriate_Rotation(const ROTATION<TV>& rotation1,const ROTATION<TV>& rotation2)
 {

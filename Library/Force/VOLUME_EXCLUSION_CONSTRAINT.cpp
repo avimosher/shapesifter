@@ -24,6 +24,20 @@ Unpack_Forces(const Matrix<T,Dynamic,1>& forces)
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
+Increment_Forces(const Matrix<T,Dynamic,1>& forces)
+{
+    for(int i=0;i<constraints.size();i++){
+        if(force_memory.count(constraints[i])){// this could be compressed if I could be sure that the force would be initialized properly
+            auto& memory=force_memory[constraints[i]];
+            memory.first=call_count;
+            memory.second+=forces(i,0);}
+        else{
+            force_memory[constraints[i]]=std::pair<int,T>(call_count,forces(i,0));
+        }
+    }
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
 Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
 {
     auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.Find("RIGID_STRUCTURE_DATA"));

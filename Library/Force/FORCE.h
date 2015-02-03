@@ -35,8 +35,9 @@ public:
 
     T Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T target_time);
     int Force_DOF() const;
-    void Pack_Forces(Matrix<T,Dynamic,1>& forces);
+    void Pack_Forces(Matrix<T,Dynamic,1>& forces) const;
     void Unpack_Forces(const Matrix<T,Dynamic,1>& forces);
+    void Increment_Forces(const Matrix<T,Dynamic,1>& forces);
     void Viewer(const DATA<TV>& data,osg::Group*& root);
 };
 }

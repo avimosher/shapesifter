@@ -113,7 +113,7 @@ void Merge_Block_Vectors(const Eigen::Matrix<Eigen::Matrix<T,Eigen::Dynamic,1>,E
     for(int i=0;i<block_matrix.rows();i++){
         auto& block=block_matrix(i,0);
         rowbase+=block.rows();}
-    matrix.resize(rowbase,1);
+    matrix.resize(rowbase,1);matrix.setZero();
     rowbase=0;
     for(int i=0;i<block_matrix.rows();i++){
         auto& block=block_matrix(i,0);

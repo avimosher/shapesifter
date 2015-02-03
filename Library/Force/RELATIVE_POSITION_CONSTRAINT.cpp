@@ -32,6 +32,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         FRAME<TV> frame2=rigid_structure2->frame;
         TV direction=data.Minimum_Offset(frame1*constraint.v1,frame2*constraint.v2);
         T distance=direction.norm();
+        std::cout<<"Constraint distance: "<<distance<<std::endl;
         Safe_Normalize(direction);
         terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index2,direction.transpose()*index_map.Velocity_Map(*rigid_structure2,constraint.v2)));
         terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index1,-direction.transpose()*index_map.Velocity_Map(*rigid_structure1,constraint.v1)));

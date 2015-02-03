@@ -1,5 +1,8 @@
 {
+    "output_directory": "relative_position",
     "root": [
+        {"type": "DATA",
+         "eta": 3.5},
         {"type": "RIGID_STRUCTURE_DATA"},
         {"type": "RIGID_STRUCTURE",
          "name": "left",
@@ -11,44 +14,17 @@
          "position": [5, 1, 1],
          "radius": 1
         },
-        {"type": "RIGID_STRUCTURE",
-         "name": "third",
-         "position": [9, 1, 1],
-         "radius": 1
-        },
-        {"type": "BROWNIAN_FORCE"},
+        {"type": "BROWNIAN_FORCE",
+         "temperature": 300},
         {"type": "RELATIVE_POSITION_CONSTRAINT",
          "constraints": [
              {"structure1": "left",
               "offset1": [0, 0, 0],
               "structure2": "right",
               "offset2": [0, 0, 0],
-              "distance": 10},
-             {"structure1": "right",
-              "offset1": [0, 0, 0],
-              "structure2": "third",
-              "offset2": [0, 0, 0],
               "distance": 10}
          ]
         },
-        {"type": "ANALYTE",
-         "prerequisites": ["evolution"],
-         "predicate": {
-             "type": "distance",
-             "first": {
-                 "type": "rigid_structure_position",
-                 "name": "left",
-                 "offset": [0, 0, 0]},
-             "second": {
-                 "type": "rigid_structure_position",
-                 "name": "third",
-                 "offset": [0, 0, 0]}
-         },
-         "aggregator": {
-             "type": "average"
-         }
-        },
-        {"type": "NONLINEAR_EQUATION"},
-        {"type": "VOLUME_EXCLUSION_CONSTRAINT"}
+        {"type": "NONLINEAR_EQUATION"}
     ]
 }

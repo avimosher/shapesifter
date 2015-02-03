@@ -11,7 +11,7 @@ Force_DOF() const
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void FORCE<TV>::
-Pack_Forces(Matrix<T,Dynamic,1>& forces)
+Pack_Forces(Matrix<T,Dynamic,1>& forces) const
 {
     forces.resize(Force_DOF(),1);
     int current_position=0;
@@ -30,6 +30,17 @@ Unpack_Forces(const Matrix<T,Dynamic,1>& forces)
     for(auto force_type : (*this)){
         int force_size=force_type->Force_DOF();
         force_type->Unpack_Forces(forces.block(current_position,0,force_size,1));
+        current_position+=force_size;
+    }
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void FORCE<TV>::
+Increment_Forces(const Matrix<T,Dynamic,1>& forces)
+{
+    int current_position=0;
+    for(auto force_type : (*this)){
+        int force_size=force_type->Force_DOF();
+        force_type->Increment_Forces(forces.block(current_position,0,force_size,1));
         current_position+=force_size;
     }
 }
