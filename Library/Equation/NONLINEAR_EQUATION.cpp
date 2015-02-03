@@ -76,10 +76,13 @@ Solve(const Matrix<T,Dynamic,1>& guess,T lambda)
     matrix_copy.setFromTriplets(diag.begin(),diag.end());
     matrix_copy+=matrix;
     std::cout<<matrix<<std::endl;
+    std::cout<<"Solve RHS: "<<right_hand_side.transpose()<<std::endl;
     //solver.compute(matrix_copy);
     solver.compute(matrix);
     //solver.compute(matrix+SparseMatrix<T>((lambda*matrix.diagonal()).asDiagonal()));
-    return solver.solveWithGuess(right_hand_side,guess);
+    auto solution=solver.solveWithGuess(right_hand_side,guess);
+    std::cout<<"Solution: "<<solution.transpose()<<std::endl;
+    return solution;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> bool NONLINEAR_EQUATION<TV>::

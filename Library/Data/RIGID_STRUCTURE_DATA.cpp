@@ -67,7 +67,7 @@ Step(const DATA<TV>& data)
         TV p1=structures[i]->frame.position;
         structures[i]->frame=Updated_Frame(data,structures[i]->frame,structures[i]->twist);
         //std::cout<<"Kick in center of mass for "<<i<<": "<<(structures[i]->frame.position-p1).transpose()<<std::endl;
-        //std::cout<<i<<": "<<structures[i]->frame.position.transpose()<<std::endl;
+        std::cout<<i<<": "<<structures[i]->frame.position.transpose()<<std::endl;
     }
 }
 ///////////////////////////////////////////////////////////////////////

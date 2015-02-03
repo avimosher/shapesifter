@@ -14,6 +14,11 @@
          "position": [5, 1, 1],
          "radius": 1
         },
+        {"type": "RIGID_STRUCTURE",
+         "name": "third",
+         "position": [9, 1, 1],
+         "radius": 1
+        },
         {"type": "BROWNIAN_FORCE",
          "temperature": 300},
         {"type": "RELATIVE_POSITION_CONSTRAINT",
@@ -21,6 +26,11 @@
              {"structure1": "left",
               "offset1": [0, 0, 0],
               "structure2": "right",
+              "offset2": [0, 0, 0],
+              "distance": 10},
+             {"structure1": "right",
+              "offset1": [0, 0, 0],
+              "structure2": "third",
               "offset2": [0, 0, 0],
               "distance": 10}
          ]
