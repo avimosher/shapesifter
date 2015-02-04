@@ -24,7 +24,7 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& velocities,
     full_right_hand_side(0,0).resize(data.Velocity_DOF(),1);
     full_right_hand_side(0,0).setZero();
     int size=full_right_hand_side(0,0).rows();
-    matrix.resize(size,size);
+    J.resize(size,size);
     full_matrix(0,0).resize(size,size);
     // TODO: one block matrix per data type too
     force_terms.resize(data.size());
@@ -43,9 +43,11 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& velocities,
     for(int i=0;i<data.size();i++){
         full_matrix(i,i).setFromTriplets(force_terms[i].begin(),force_terms[i].end());
     }
-    Merge_Block_Matrices(full_matrix,matrix);
+    Merge_Block_Matrices(full_matrix,J);
     //full_right_hand_side(0,0)-=full_matrix(0,0)*velocities;
     Merge_Block_Vectors(full_right_hand_side,right_hand_side);
+    right_hand_side_full=J*right_hand_side;
+    matrix=J.adjoint()*J;
     //std::cout<<matrix<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
@@ -57,7 +59,8 @@ Calculate_RHS_And_Norm(const DATA<TV>& data,const FORCE<TV>& force,const Matrix<
     current_solution<<velocities,
         forces;
     int velocity_count=data.Velocity_DOF();
-    right_hand_side.block(0,0,velocity_count,1)-=matrix.block(0,0,velocity_count,matrix.cols())*current_solution;
+    right_hand_side.block(0,0,velocity_count,1)-=J.block(0,0,velocity_count,matrix.cols())*current_solution;
+    right_hand_side_full=J*right_hand_side;
     std::cout<<"Current solution: "<<current_solution.transpose()<<std::endl;
     std::cout<<"RHS: "<<right_hand_side.transpose()<<std::endl;
     return right_hand_side.squaredNorm();
@@ -76,11 +79,11 @@ Solve(const Matrix<T,Dynamic,1>& guess,T lambda)
     matrix_copy.setFromTriplets(diag.begin(),diag.end());
     matrix_copy+=matrix;
     std::cout<<matrix<<std::endl;
-    std::cout<<"Solve RHS: "<<right_hand_side.transpose()<<std::endl;
+    std::cout<<"Solve RHS: "<<right_hand_side_full.transpose()<<std::endl;
     //solver.compute(matrix_copy);
     solver.compute(matrix);
     //solver.compute(matrix+SparseMatrix<T>((lambda*matrix.diagonal()).asDiagonal()));
-    auto solution=solver.solveWithGuess(right_hand_side,guess);
+    auto solution=solver.solveWithGuess(right_hand_side_full,guess);
     std::cout<<"Solution: "<<solution.transpose()<<std::endl;
     return solution;
 }

@@ -19,6 +19,10 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     current_velocities.resize(data.Velocity_DOF(),1);current_velocities.setZero();
     data.Pack_Positions(positions);
     equation->Linearize(data,force,current_velocities,dt,time,true);
+    force.Pack_Forces(solve_forces);
+    solve_forces.setZero();
+    force.Unpack_Forces(solve_forces);
+
     T last_norm=equation->Calculate_RHS_And_Norm(data,force,current_velocities);
     std::cout<<"First norm: "<<last_norm<<std::endl;
 

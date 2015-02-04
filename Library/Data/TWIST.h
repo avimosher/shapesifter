@@ -16,7 +16,8 @@ class TWIST
     typedef typename TV::Scalar T;
     typedef typename ROTATION<TV>::SPIN T_SPIN;
 public:
-    enum DEFINITIONS{STATIC_SIZE=TV::SizeAtCompileTime+T_SPIN::SizeAtCompileTime};
+    //enum DEFINITIONS{STATIC_SIZE=TV::SizeAtCompileTime+T_SPIN::SizeAtCompileTime};
+    enum DEFINITIONS{STATIC_SIZE=TV::SizeAtCompileTime};
     TV linear;
     T_SPIN angular;
 
@@ -27,19 +28,20 @@ public:
     {
         Eigen::Matrix<T,STATIC_SIZE,1> packed;
         packed.template block<TV::SizeAtCompileTime,1>(0,0)=linear;
-        packed.template block<T_SPIN::SizeAtCompileTime,1>(TV::SizeAtCompileTime,0)=angular;
+        //packed.template block<T_SPIN::SizeAtCompileTime,1>(TV::SizeAtCompileTime,0)=angular;
         return packed;
     }
 
     const void Unpack(const Eigen::Matrix<T,STATIC_SIZE,1>& packed)
     {
         linear=packed.template block<TV::SizeAtCompileTime,1>(0,0);
-        angular=packed.template block<T_SPIN::SizeAtCompileTime,1>(TV::SizeAtCompileTime,0);
+        //angular=packed.template block<T_SPIN::SizeAtCompileTime,1>(TV::SizeAtCompileTime,0);
     }
 
     template<class Archive>
     void serialize(Archive& archive) {
-        archive(linear,angular);
+        //archive(linear,angular);
+        archive(linear);
     }
 };
 }

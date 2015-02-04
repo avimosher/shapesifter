@@ -16,6 +16,8 @@ public:
     SparseMatrix<T> matrix;
     Matrix<SparseMatrix<T>,Dynamic,Dynamic> full_matrix;
     Matrix<T,Dynamic,1> right_hand_side;
+    Matrix<T,Dynamic,1> right_hand_side_full;
+    SparseMatrix<T> J;
     Matrix<Matrix<T,Dynamic,1>,Dynamic,1> full_right_hand_side;
 
     NONLINEAR_EQUATION(){};

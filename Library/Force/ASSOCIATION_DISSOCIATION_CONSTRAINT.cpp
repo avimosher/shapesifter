@@ -75,6 +75,7 @@ Construct_Constraint_Matrix(const ROTATION<TV>& rotation,const ROTATION<TV>& rel
 template<class TV> void ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::
 Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
 {
+#if 0
     RANDOM<T> random;
     auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.Find("RIGID_STRUCTURE_DATA"));
     if(stochastic){
@@ -145,6 +146,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     constraint_terms.resize(constraints.size()*FullSize,rigid_data->structures.size()*FullSize);
     Flatten_Matrices(linear_terms,constraints.size()*LinearSize,angular_terms,constraint_terms);
     remembered_dt=dt;
+#endif
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_CEREAL_REGISTRATION(ASSOCIATION_DISSOCIATION_CONSTRAINT)
