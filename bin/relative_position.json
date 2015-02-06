@@ -19,8 +19,6 @@
          "position": [9, 1, 1],
          "radius": 1
         },
-        {"type": "BROWNIAN_FORCE",
-         "temperature": 300},
         {"type": "RELATIVE_POSITION_CONSTRAINT",
          "constraints": [
              {"structure1": "left",

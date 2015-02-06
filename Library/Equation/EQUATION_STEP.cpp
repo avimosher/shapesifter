@@ -34,7 +34,6 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
 
     int count=0;
     QUALITY<T> solve_quality;
-    T lambda=5;
     T epsilon=1e-8;
     int bad_count=0;
     while(last_norm>epsilon){//!equation->Satisfied(data,force,solve_vector,solve_quality)){
@@ -113,52 +112,6 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
             last_norm=norm;
         }
 #endif
-        /*
-
-        T m=solve_vector.transpose()*equation->Gradient();
-        T alpha;
-        T initial_norm;// TODO must be set
-        T t=-c*m;
-        solve_velocities=solve_vector.block(0,0,data.Velocity_DOF(),1);
-
-
-        // line search
-        while(initial_norm-equation->Norm(alpha*solve_vector)>alpha*t){
-            // update positions properly for linearization
-            data.Unpack_Positions(positions);
-            data.Unpack_Velocities(current_velocities+alpha*solve_velocities); // get positions from these velocities
-            data.Step();
-            force.Unpack_Forces(
-            equation->Linearize(data,force,alpha*solve_velocities,dt,time,false); // linearize equations at candidate positions
-            // assume new velocities/forces are zero and calculate norm (which is based on rhs)
-
-            // if converged, can leave the result alone?  But need to increment forces.  Also, will now be linearized around correct point for next step!
-            }*/
-
-
-        /*current_velocities+=alpha*solve_velocities;
-        force.Increment_Forces(solve_vector.block(data.Velocity_DOF(),0,solve_vector.rows()-data.Velocity_DOF(),1));
-        //solve_forces=solve_vector.block(data.Velocity_DOF(),0,solve_vector.rows()-data.Velocity_DOF(),1);
-        
-        std::cout<<"Solve scale: "<<solve_quality.Scale_Result()<<std::endl;
-        //current_velocities+=solve_quality.Scale_Result()*solve_velocities;
-
-        // NOTE: for the sake of things like snap constraints, it's good that this puts the velocity in data (and the initial velocity should probably be zero)
-        // step data according to result
-        //data.Unpack_Positions(positions);
-        data.Unpack_Velocities(current_velocities);
-        data.Unpack_Positions(positions);
-        data.Step();
-
-        force.Unpack_Forces(solve_forces);
-        equation->Linearize(data,force,current_velocities,dt,time,false); // make force balance a force as well?
-        solve_velocities.setZero();
-        force.Pack_Forces(solve_forces);
-        solve_vector.resize(current_velocities.size()+solve_forces.size());solve_vector.setZero();
-        //solve_vector<<solve_velocities,
-        //    solve_forces;
-
-        */
         count++;
         if(simulation.substeps){
             simulation.title="Substep for "+std::to_string(count)+" frame "+std::to_string(simulation.current_frame);

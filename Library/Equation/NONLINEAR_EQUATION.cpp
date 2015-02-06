@@ -67,22 +67,13 @@ Calculate_RHS_And_Norm(const DATA<TV>& data,const FORCE<TV>& force,const Matrix<
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>::
-Solve(const Matrix<T,Dynamic,1>& guess,T lambda)
+Solve(const Matrix<T,Dynamic,1>& guess)
 {
     const int solve_iterations=200;
     MINRES<SparseMatrix<T>> solver;
     solver.setMaxIterations(solve_iterations);
-    SparseMatrix<T> matrix_copy(matrix.rows(),matrix.cols());
-    std::vector<Triplet<T>> diag(matrix.rows());
-    for(int i=0;i<matrix.rows();i++){diag[i]=Triplet<T>(i,i,matrix.diagonal()[i]*lambda);}
-    //for(int i=0;i<matrix.rows();i++){diag[i]=Triplet<T>(i,i,1/lambda);}
-    matrix_copy.setFromTriplets(diag.begin(),diag.end());
-    matrix_copy+=matrix;
-    std::cout<<matrix<<std::endl;
     std::cout<<"Solve RHS: "<<right_hand_side_full.transpose()<<std::endl;
-    //solver.compute(matrix_copy);
     solver.compute(matrix);
-    //solver.compute(matrix+SparseMatrix<T>((lambda*matrix.diagonal()).asDiagonal()));
     auto solution=solver.solveWithGuess(right_hand_side_full,guess);
     std::cout<<"Solution: "<<solution.transpose()<<std::endl;
     return solution;
