@@ -1,6 +1,7 @@
 #ifndef __RIGID_STRUCTURE__
 #define __RIGID_STRUCTURE__
 
+#include <Data/DATA.h>
 #include <Data/FRAME.h>
 #include <Data/MOMENT.h>
 #include <Data/TWIST.h>
