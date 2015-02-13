@@ -35,6 +35,7 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& velocities,
     for(int i=0;i<force.size();i++){
         // TODO: force_terms needs to be properly handled when there are multiple data types
         force[i]->Linearize(data,dt,time,force_terms[0],full_matrix(i+1,0),full_right_hand_side(0,0),full_right_hand_side(i+1,0),stochastic);
+        force[i]->Special(data,dt,time);
         full_matrix(0,i+1)=full_matrix(i+1,0).transpose();
     }
     // for the sake of sanity, assume that each force adds a constraint block as well as a contribution to the velocity block

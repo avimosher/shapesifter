@@ -6,12 +6,13 @@
 #include <Indexing/RIGID_STRUCTURE_INDEX_MAP.h>
 #include <Parsing/PARSER_REGISTRY.h>
 #include <Utilities/EIGEN_HELPERS.h>
+#include <Utilities/MATH.h>
 #include <Utilities/OSG_HELPERS.h>
 #include <Utilities/RANDOM.h>
 #include <iostream>
+#include <osg/Geometry>
 #include <math.h>
 #include <osg/Geode>
-#include <osg/Geometry>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::
@@ -41,6 +42,49 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     constraint_terms.resize(constraints.size(),RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE*rigid_data->structures.size());
     Flatten_Matrix(terms,constraint_terms);
     stored_forces.resize(constraints.size());
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::
+Special(DATA<TV>& data,const T dt,const T target_time)
+{
+    auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.Find("RIGID_STRUCTURE_DATA"));
+    typedef Matrix<T,1,RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE> CONSTRAINT_VECTOR;
+    std::vector<Triplet<CONSTRAINT_VECTOR>> terms;
+    RIGID_STRUCTURE_INDEX_MAP<TV> index_map;
+    for(int i=0;i<constraints.size();i++){
+        const CONSTRAINT& constraint=constraints[i];
+        int body_index1=constraint.s1;
+        int body_index2=constraint.s2;
+        auto rigid_structure1=rigid_data->structures[body_index1];
+        auto rigid_structure2=rigid_data->structures[body_index2];
+        FRAME<TV> frame1=rigid_structure1->frame;
+        FRAME<TV> frame2=rigid_structure2->frame;
+        TV x1=frame1*constraint.v1;
+        TV x2=frame2*constraint.v2;
+        TV direction=data.Minimum_Offset(x1,x2);
+        TV offset1=frame1*constraint.v1; // this is not actually right.  I need the old values for rotation.
+        TV offset2=frame2*constraint.v2;
+
+        auto a=rigid_structure1->twist.angular;
+        auto norm_a=a.norm();
+        auto half_data_da=a; // zero for translation, componentwise values for rotation
+        auto dw_da=-sin(norm_a/2)/(norm_a)*half_data_da.transpose();
+        auto dq_da=cos(norm_a/2)*a*half_data_da.transpose()/(sqr(norm_a))+sin(norm_a/2)*(Matrix<T,t,t>::Identity()/norm_a-a*half_data_da.transpose()/cube(norm_a));
+        auto w=cos(norm_a/2);
+        auto q=sin(norm_a/2)*a/norm_a;
+        Matrix<T,d,t+d> dvt_da; // identity for translation parts, zero for rotation
+        dvt_da.template block<d,d>(0,0).setIdentity();
+        dvt_da.template block<d,t>(0,d).setZero();
+
+        auto dvror_da_partial=-2*Cross_Product_Matrix(offset2)*(q*dw_da+w*dq_da);
+        auto dx2_da=dvt_da;//+dvror_da;
+        dx2_da.template block<d,t>(0,d)=dvror_da_partial;
+        auto dx1_da=dx2_da;
+        //auto dx1_da=dvt_da+dvror_da; // TODO: specialize these to the right unknowns
+        auto dx2mx1_da=dx2_da; // TODO: which a?
+        auto dd_da=(dx2_da-dx1_da)/norm_a-direction*(2*(x2-x1).transpose()*dx2mx1_da)/cube(norm_a);
+        auto final=direction.transpose()*dd_da+direction.transpose()*(dx2_da-dx1_da);
+    }
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::

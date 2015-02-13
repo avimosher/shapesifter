@@ -12,8 +12,6 @@ Parsers()
 }
 ///////////////////////////////////////////////////////////////////////
 #define SCALAR_TYPE_DEFINITION(TYPE,T,RET)           \
-    template class TYPE<Matrix<T,1,1>,RET>;          \
-    template class TYPE<Matrix<T,2,1>,RET>;          \
     template class TYPE<Matrix<T,3,1>,RET>;
 
 #define PARSER_TYPE_DEFINITION(RET) \
@@ -23,8 +21,6 @@ Parsers()
 PARSER_TYPE_DEFINITION(void)
 
 #define COMPLEX_SCALAR_TYPE_DEFINITION(TYPE,T,RET)           \
-    template class TYPE<Matrix<T,1,1>,RET<Matrix<T,1,1>>>;     \
-    template class TYPE<Matrix<T,2,1>,RET<Matrix<T,2,1>>>;     \
     template class TYPE<Matrix<T,3,1>,RET<Matrix<T,3,1>>>;
 
 #define COMPLEX_PARSER_TYPE_DEFINITION(RET) \

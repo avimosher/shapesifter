@@ -7,8 +7,6 @@
 using namespace Eigen;
 
 #define GENERIC_SCALAR_TYPE_DEFINITION(TYPE,T) \
-    template class TYPE<Matrix<T,1,1>>;        \
-    template class TYPE<Matrix<T,2,1>>;        \
     template class TYPE<Matrix<T,3,1>>;
 
 #define GENERIC_TYPE_DEFINITION(TYPE)          \
@@ -16,8 +14,6 @@ using namespace Eigen;
     GENERIC_SCALAR_TYPE_DEFINITION(TYPE,double)
 
 #define GENERIC_SCALAR_CEREAL_REGISTRATION(TYPE,T) \
-    CEREAL_REGISTER_TYPE(TYPE<Matrix<T,1,1> >);    \
-    CEREAL_REGISTER_TYPE(TYPE<Matrix<T,2,1> >);    \
     CEREAL_REGISTER_TYPE(TYPE<Matrix<T,3,1> >);
 
 #define GENERIC_CEREAL_REGISTRATION(TYPE) \

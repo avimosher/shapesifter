@@ -38,7 +38,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     int bad_count=0;
     while(last_norm>epsilon){//!equation->Satisfied(data,force,solve_vector,solve_quality)){
         std::cout<<"Entering loop"<<std::endl;
-        solve_vector=equation->Solve(solve_vector,lambda);
+        solve_vector=equation->Solve(solve_vector);
         solve_velocities=solve_vector.block(0,0,data.Velocity_DOF(),1);
 
         // setting up positions; forces handle themselves

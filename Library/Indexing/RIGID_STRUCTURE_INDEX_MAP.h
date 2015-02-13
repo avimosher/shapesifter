@@ -29,7 +29,7 @@ public:
         return unknown_map;
     }
 
-    static auto DP_DA(const TV& a,const TV& offset){
+    /*static auto DP_DA(const TV& a,const TV& offset){
         auto norm_a=a.norm();
         auto s=sin(norm_a/2);
         auto c=cos(norm_a/2);
@@ -52,7 +52,7 @@ public:
         auto d2wda2=-dqda; // interestingly, this appears to be correct
         auto d2qda2=
         return -2*Cross_Product_Matrix(offset)*(d2wda2*q+2*dwda*dqda+w*d2qda2);
-    }
+        }*/
 
 };
 }
