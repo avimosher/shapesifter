@@ -5,6 +5,7 @@
 #include <Data/FRAME.h>
 #include <Data/RIGID_STRUCTURE.h>
 #include <Data/TWIST.h>
+#include <Utilities/MATH.h>
 #include <Utilities/TYPE_UTILITIES.h>
 #include <cereal/archives/binary.hpp>
 #include <cereal/types/vector.hpp>
@@ -12,11 +13,6 @@
 
 namespace Mechanics{
 template<class TV> class RIGID_STRUCTURE;
-
-template<class T>
-inline T sinc(const T x) // sin(x)/x
-{if(abs(x)<1e-8) return 1;return sin(x)/x;}
-
 
 template<class TV>
 class RIGID_STRUCTURE_DATA:public DATA_TYPE<TV>

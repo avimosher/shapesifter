@@ -67,11 +67,15 @@ Special(DATA<TV>& data,const T dt,const T target_time)
 
         auto a=rigid_structure1->twist.angular;
         auto norm_a=a.norm();
+        std::cout<<norm_a<<std::endl;
         auto half_data_da=a; // zero for translation, componentwise values for rotation
-        auto dw_da=-sin(norm_a/2)/(norm_a)*half_data_da.transpose();
-        auto dq_da=cos(norm_a/2)*a*half_data_da.transpose()/(sqr(norm_a))+sin(norm_a/2)*(Matrix<T,t,t>::Identity()/norm_a-a*half_data_da.transpose()/cube(norm_a));
+        auto data_da=2*a; // zero for translation, componentwise values for rotation
+        auto dw_da=-sinc(norm_a/2)*data_da.transpose();
+        auto a_norma=(norm_a>1e-8)?(TV)(a/norm_a):TV::UnitX();
+        Matrix<T,3,3> dq_da=cos(norm_a/2)*a_norma*a_norma.transpose()+sinc(norm_a/2)*(2*Matrix<T,t,t>::Identity()-2*a_norma*a_norma.transpose());
+        std::cout<<dq_da<<std::endl;
         auto w=cos(norm_a/2);
-        auto q=sin(norm_a/2)*a/norm_a;
+        auto q=sinc(norm_a/2)*a/2;
         Matrix<T,d,t+d> dvt_da; // identity for translation parts, zero for rotation
         dvt_da.template block<d,d>(0,0).setIdentity();
         dvt_da.template block<d,t>(0,d).setZero();
@@ -79,10 +83,13 @@ Special(DATA<TV>& data,const T dt,const T target_time)
         auto dvror_da_partial=-2*Cross_Product_Matrix(offset2)*(q*dw_da+w*dq_da);
         auto dx2_da=dvt_da;//+dvror_da;
         dx2_da.template block<d,t>(0,d)=dvror_da_partial;
+        std::cout<<dx2_da<<std::endl;
         auto dx1_da=dx2_da;
         //auto dx1_da=dvt_da+dvror_da; // TODO: specialize these to the right unknowns
         auto dx2mx1_da=dx2_da; // TODO: which a?
-        auto dd_da=(dx2_da-dx1_da)/norm_a-direction*(2*(x2-x1).transpose()*dx2mx1_da)/cube(norm_a);
+        auto distance=(x2-x1).norm();
+        auto dd_da=(dx2_da-dx1_da)/distance-direction*(2*(x2-x1).transpose()*dx2mx1_da)/cube(distance);
+        std::cout<<dd_da<<std::endl;
         auto final=direction.transpose()*dd_da+direction.transpose()*(dx2_da-dx1_da);
     }
 }
