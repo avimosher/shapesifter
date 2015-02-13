@@ -63,7 +63,7 @@ env_projects.Append(LIBS=directories)
 env_projects.Append(LIBPATH=['#'+build_base+'/Library'])
 
 Find_SConscripts(env_projects,'Projects')
-#Find_SConscripts(env_projects,'Tests')
+Find_SConscripts(env_projects,'Tests')
 
     
 
