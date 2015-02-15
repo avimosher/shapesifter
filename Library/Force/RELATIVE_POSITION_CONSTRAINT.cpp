@@ -45,12 +45,11 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::
-Special(DATA<TV>& data,const T dt,const T target_time)
+Constraint_Satisfaction(DATA<TV>& data,const T dt,const T target_time,Matrix<T,Dynamic,1>& satisfaction)
 {
     auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.Find("RIGID_STRUCTURE_DATA"));
     typedef Matrix<T,1,RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE> CONSTRAINT_VECTOR;
-    std::vector<Triplet<CONSTRAINT_VECTOR>> terms;
-    RIGID_STRUCTURE_INDEX_MAP<TV> index_map;
+    satisfaction.resize(constraints.size());
     for(int i=0;i<constraints.size();i++){
         const CONSTRAINT& constraint=constraints[i];
         int body_index1=constraint.s1;
@@ -59,39 +58,41 @@ Special(DATA<TV>& data,const T dt,const T target_time)
         auto rigid_structure2=rigid_data->structures[body_index2];
         FRAME<TV> frame1=rigid_structure1->frame;
         FRAME<TV> frame2=rigid_structure2->frame;
+        std::cout<<"P1: "<<(frame1*constraint.v1).transpose()<<" P2: "<<(frame2*constraint.v2).transpose()<<std::endl;
+        TV direction=data.Minimum_Offset(frame1*constraint.v1,frame2*constraint.v2);
+        T distance=direction.norm();
+        satisfaction(i)=distance-constraint.target_distance;
+    }
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::
+Special(DATA<TV>& data,const T dt,const T target_time,SparseMatrix<T>& gradient)
+{
+    auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.Find("RIGID_STRUCTURE_DATA"));
+    typedef Matrix<T,1,RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE> CONSTRAINT_VECTOR;
+    std::vector<Triplet<Matrix<T,1,t+d>>> terms;
+    RIGID_STRUCTURE_INDEX_MAP<TV> index_map;
+    for(int i=0;i<constraints.size();i++){
+        const CONSTRAINT& constraint=constraints[i];
+        int body_index1=constraint.s1;
+        int body_index2=constraint.s2;
+        auto structure1=rigid_data->structures[body_index1];
+        auto structure2=rigid_data->structures[body_index2];
+        FRAME<TV> frame1=structure1->frame;
+        FRAME<TV> frame2=structure2->frame;
         TV x1=frame1*constraint.v1;
         TV x2=frame2*constraint.v2;
         TV direction=data.Minimum_Offset(x1,x2);
-        TV offset1=frame1*constraint.v1; // this is not actually right.  I need the old values for rotation.
+        frame1.orientation=ROTATION<TV>::From_Rotation_Vector(structure1->twist.angular).inverse()*frame1.orientation;
+        frame2.orientation=ROTATION<TV>::From_Rotation_Vector(structure2->twist.angular).inverse()*frame2.orientation;
+        TV offset1=frame1*constraint.v1;
         TV offset2=frame2*constraint.v2;
-
-        auto a=rigid_structure1->twist.angular;
-        auto norm_a=a.norm();
-        std::cout<<norm_a<<std::endl;
-        auto half_data_da=a; // zero for translation, componentwise values for rotation
-        auto data_da=2*a; // zero for translation, componentwise values for rotation
-        auto dw_da=-sinc(norm_a/2)*data_da.transpose();
-        auto a_norma=(norm_a>1e-8)?(TV)(a/norm_a):TV::UnitX();
-        Matrix<T,3,3> dq_da=cos(norm_a/2)*a_norma*a_norma.transpose()+sinc(norm_a/2)*(2*Matrix<T,t,t>::Identity()-2*a_norma*a_norma.transpose());
-        std::cout<<dq_da<<std::endl;
-        auto w=cos(norm_a/2);
-        auto q=sinc(norm_a/2)*a/2;
-        Matrix<T,d,t+d> dvt_da; // identity for translation parts, zero for rotation
-        dvt_da.template block<d,d>(0,0).setIdentity();
-        dvt_da.template block<d,t>(0,d).setZero();
-
-        auto dvror_da_partial=-2*Cross_Product_Matrix(offset2)*(q*dw_da+w*dq_da);
-        auto dx2_da=dvt_da;//+dvror_da;
-        dx2_da.template block<d,t>(0,d)=dvror_da_partial;
-        std::cout<<dx2_da<<std::endl;
-        auto dx1_da=dx2_da;
-        //auto dx1_da=dvt_da+dvror_da; // TODO: specialize these to the right unknowns
-        auto dx2mx1_da=dx2_da; // TODO: which a?
-        auto distance=(x2-x1).norm();
-        auto dd_da=(dx2_da-dx1_da)/distance-direction*(2*(x2-x1).transpose()*dx2mx1_da)/cube(distance);
-        std::cout<<dd_da<<std::endl;
-        auto final=direction.transpose()*dd_da+direction.transpose()*(dx2_da-dx1_da);
+        terms.push_back(Triplet<Matrix<T,1,t+d>>(i,body_index2,DC_DA(structure1->twist.angular,offset1,x1,x2,direction)));
+        terms.push_back(Triplet<Matrix<T,1,t+d>>(i,body_index1,-DC_DA(structure2->twist.angular,offset2,x1,x2,direction)));
     }
+    gradient.resize(constraints.size(),(t+d)*rigid_data->structures.size());
+    Flatten_Matrix(terms,gradient);
+    //std::cout<<constraint_matrix<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::

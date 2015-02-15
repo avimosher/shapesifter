@@ -48,7 +48,7 @@ def Find_SConscripts(env,dir):
         env.SConscript(c,variant_dir=build_base+'/'+os.path.dirname(c),exports={'env': env,'Automatic_Program': Automatic_Program})
 
 # Compiler flags
-env.Append(CXXFLAGS="-std=c++11")
+env.Append(CXXFLAGS="-std=c++1y")
 if env['TYPE']=='debug':        
     env.Append(CXXFLAGS="-g")
 elif env['TYPE']=='release':
