@@ -35,7 +35,7 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& velocities,
     for(int i=0;i<force.size();i++){
         // TODO: force_terms needs to be properly handled when there are multiple data types
         force[i]->Linearize(data,dt,time,force_terms[0],full_matrix(i+1,0),full_right_hand_side(0,0),full_right_hand_side(i+1,0),stochastic);
-        force[i]->Special(data,dt,time);
+        //force[i]->Special(data,dt,time);
         full_matrix(0,i+1)=full_matrix(i+1,0).transpose();
     }
     // for the sake of sanity, assume that each force adds a constraint block as well as a contribution to the velocity block
@@ -47,9 +47,11 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& velocities,
     Merge_Block_Matrices(full_matrix,J);
     //full_right_hand_side(0,0)-=full_matrix(0,0)*velocities;
     Merge_Block_Vectors(full_right_hand_side,right_hand_side);
-    right_hand_side_full=J*right_hand_side;
-    matrix=J.adjoint()*J;
-    //std::cout<<matrix<<std::endl;
+    //right_hand_side_full=J*right_hand_side;
+    //matrix=J.adjoint()*J;
+    right_hand_side_full=right_hand_side;
+    matrix=J;
+    std::cout<<matrix<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> typename TV::Scalar NONLINEAR_EQUATION<TV>::
@@ -61,7 +63,8 @@ Calculate_RHS_And_Norm(const DATA<TV>& data,const FORCE<TV>& force,const Matrix<
         forces;
     int velocity_count=data.Velocity_DOF();
     right_hand_side.block(0,0,velocity_count,1)-=J.block(0,0,velocity_count,matrix.cols())*current_solution;
-    right_hand_side_full=J*right_hand_side;
+    //right_hand_side_full=J*right_hand_side;
+    right_hand_side_full=right_hand_side;
     std::cout<<"Current solution: "<<current_solution.transpose()<<std::endl;
     std::cout<<"RHS: "<<right_hand_side.transpose()<<std::endl;
     return right_hand_side.squaredNorm();

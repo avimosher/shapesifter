@@ -87,7 +87,7 @@ Special(DATA<TV>& data,const T dt,const T target_time,SparseMatrix<T>& gradient)
         frame2.orientation=ROTATION<TV>::From_Rotation_Vector(structure2->twist.angular).inverse()*frame2.orientation;
         TV offset1=frame1*constraint.v1;
         TV offset2=frame2*constraint.v2;
-        Hessian(structure1->twist.angular,offset1,x1,x2,direction,1);
+        //Hessian(structure1->twist.angular,offset1,x1,x2,direction,1);
         terms.push_back(Triplet<Matrix<T,1,t+d>>(i,body_index2,DC_DA(structure1->twist.angular,offset1,x1,x2,direction)));
         terms.push_back(Triplet<Matrix<T,1,t+d>>(i,body_index1,-DC_DA(structure2->twist.angular,offset2,x1,x2,direction)));
     }

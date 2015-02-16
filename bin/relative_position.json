@@ -6,7 +6,7 @@
         {"type": "RIGID_STRUCTURE_DATA"},
         {"type": "RIGID_STRUCTURE",
          "name": "left",
-         "position": [1, 1, 1],
+         "position": [1, 2, 1],
          "radius": 1
         },
         {"type": "RIGID_STRUCTURE",
@@ -16,7 +16,7 @@
         },
         {"type": "RIGID_STRUCTURE",
          "name": "third",
-         "position": [9, 1, 1],
+         "position": [9, 2, 1],
          "radius": 1
         },
         {"type": "RELATIVE_POSITION_CONSTRAINT",

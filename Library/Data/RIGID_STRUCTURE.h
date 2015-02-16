@@ -97,9 +97,8 @@ public:
     DiagonalMatrix<T,VelocitySize> Inertia_Matrix()
     {
         Matrix<T,VelocitySize,1> inertia;
-        //inertia<<moi.translation,
-        //    moi.rotation;
-        inertia<<moi.translation;
+        inertia<<moi.translation,
+            moi.rotation;
         return inertia.asDiagonal();
     }
 

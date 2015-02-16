@@ -46,6 +46,7 @@ public:
         Matrix<T,d,t+d> dx_da; // identity for translation parts, zero for rotation
         dx_da.template block<d,d>(0,0).setIdentity();
         dx_da.template block<d,t>(0,d)=-2*Cross_Product_Matrix(offset)*(q*dw_da+w*dq_da);
+        //dx_da.template block<d,t>(0,d)=Cross_Product_Matrix(offset).transpose();
 
         std::cout<<dx_da<<std::endl;
         
@@ -54,7 +55,8 @@ public:
         std::cout<<dd_da<<std::endl;
         TV normalized_direction=direction.normalized();
         std::cout<<normalized_direction<<std::endl;
-        auto final=normalized_direction.transpose()*dd_da+normalized_direction.transpose()*(dx_da);
+        auto final=direction.transpose()*dd_da+normalized_direction.transpose()*(dx_da);
+        //auto final=normalized_direction.transpose()*(dx_da);
         std::cout<<final<<std::endl;
         return final;
     }
