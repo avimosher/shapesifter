@@ -72,12 +72,12 @@ public:
         
         auto distance=std::max((T)1e-3,(x2-x1).norm());
         auto dd_da=dx_da/distance-direction/cube(distance)*direction.transpose()*dx_da;
-        std::cout<<"DD_DA: "<<dd_da<<std::endl;
+        //std::cout<<"DD_DA: "<<dd_da<<std::endl;
         TV normalized_direction=direction.normalized();
         //std::cout<<normalized_direction<<std::endl;
         auto final=direction.transpose()*dd_da+normalized_direction.transpose()*(dx_da);
         //auto final=normalized_direction.transpose()*(dx_da);
-        std::cout<<final<<std::endl;
+        //std::cout<<final<<std::endl;
         return final;
     }
 
