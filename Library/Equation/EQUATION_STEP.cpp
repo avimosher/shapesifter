@@ -19,9 +19,9 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     current_velocities.resize(data.Velocity_DOF(),1);current_velocities.setZero();
     data.Pack_Positions(positions);
     equation->Linearize(data,force,current_velocities,dt,time,true);
-    force.Pack_Forces(solve_forces);
+    /*force.Pack_Forces(solve_forces);
     solve_forces.setZero();
-    force.Unpack_Forces(solve_forces);
+    force.Unpack_Forces(solve_forces);*/
 
     T last_norm=equation->Calculate_RHS_And_Norm(data,force,current_velocities);
     std::cout<<"First norm: "<<last_norm<<std::endl;
@@ -39,6 +39,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     while(last_norm>epsilon){//!equation->Satisfied(data,force,solve_vector,solve_quality)){
         std::cout<<"Entering loop"<<std::endl;
         solve_vector=equation->Solve(solve_vector);
+        std::cout<<"Solve vector: "<<solve_vector.transpose()<<std::endl;
         solve_velocities=solve_vector.block(0,0,data.Velocity_DOF(),1);
 
         // setting up positions; forces handle themselves
@@ -61,7 +62,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
             data.Unpack_Velocities(current_velocities+ratio*solve_velocities);
             data.Step();
             force.Increment_Forces(ratio*solve_forces);
-            equation->Linearize(data,force,current_velocities+solve_velocities,dt,time,false); // linearize around a point and calculate norm there
+            equation->Linearize(data,force,current_velocities+ratio*solve_velocities,dt,time,false); // linearize around a point and calculate norm there
             norm=equation->Calculate_RHS_And_Norm(data,force,current_velocities+ratio*solve_velocities);
             std::cout<<"Norm with ratio "<<ratio<<" is "<<norm<<std::endl;
         }

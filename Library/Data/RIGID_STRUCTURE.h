@@ -99,6 +99,7 @@ public:
         Matrix<T,VelocitySize,1> inertia;
         inertia<<moi.translation,
             moi.rotation;
+        inertia*=-1;
         return inertia.asDiagonal();
     }
 

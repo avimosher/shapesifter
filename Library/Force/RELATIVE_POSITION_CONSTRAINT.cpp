@@ -42,7 +42,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         TV offset2=frame2.orientation._transformVector(constraint.v2);
         terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index2,DC_DA(rigid_structure2->twist.angular,offset2,x1,x2,direction)));
         terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index1,-DC_DA(rigid_structure1->twist.angular,offset1,x1,x2,direction)));
-        auto force_balance_contribution2=-stored_forces(i)*DD_DV(rigid_structure2->twist.angular,offset2,x1,x2,direction);
+        auto force_balance_contribution2=stored_forces(i)*DD_DV(rigid_structure2->twist.angular,offset2,x1,x2,direction);
         auto force_balance_contribution1=-stored_forces(i)*DD_DV(rigid_structure1->twist.angular,offset1,x1,x2,direction);
         for(int j=0;j<d;j++){
             for(int k=0;k<d;k++){
@@ -57,7 +57,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     }
     constraint_terms.resize(constraints.size(),RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE*rigid_data->structures.size());
     Flatten_Matrix(terms,constraint_terms);
-    stored_forces.resize(constraints.size());
+    //stored_forces.resize(constraints.size());
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::
@@ -104,8 +104,8 @@ Special(DATA<TV>& data,const T dt,const T target_time,SparseMatrix<T>& gradient)
         TV offset1=frame1*constraint.v1;
         TV offset2=frame2*constraint.v2;
         //Hessian(structure1->twist.angular,offset1,x1,x2,direction,1);
-        terms.push_back(Triplet<Matrix<T,1,t+d>>(i,body_index2,DC_DA(structure1->twist.angular,offset1,x1,x2,direction)));
-        terms.push_back(Triplet<Matrix<T,1,t+d>>(i,body_index1,-DC_DA(structure2->twist.angular,offset2,x1,x2,direction)));
+        terms.push_back(Triplet<Matrix<T,1,t+d>>(i,body_index2,DC_DA(structure2->twist.angular,offset1,x1,x2,direction)));
+        terms.push_back(Triplet<Matrix<T,1,t+d>>(i,body_index1,-DC_DA(structure1->twist.angular,offset2,x1,x2,direction)));
     }
     gradient.resize(constraints.size(),(t+d)*rigid_data->structures.size());
     Flatten_Matrix(terms,gradient);
@@ -175,6 +175,6 @@ DEFINE_AND_REGISTER_PARSER(RELATIVE_POSITION_CONSTRAINT,void)
         relative_position_constraint->constraints.push_back(constraint);
     }
     relative_position_constraint->stored_forces.resize(relative_position_constraint->constraints.size());
-    relative_position_constraint->stored_forces.setZero();
+    relative_position_constraint->stored_forces=Matrix<T,Dynamic,1>::Constant(relative_position_constraint->constraints.size(),10);
     return 0;
 }

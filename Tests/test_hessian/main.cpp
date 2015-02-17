@@ -57,7 +57,7 @@ int main(int argc,char **argv)
 
     simulation->data.Unpack_Positions(positions);
     RANDOM<T> random;
-    structure2->twist.angular+=random.template Direction<TV>()/100;
+    structure2->twist.angular+=random.template Direction<TV>()/10;
     Matrix<T,Dynamic,1> final_velocities;final_velocities.setZero();
     simulation->data.Pack_Velocities(final_velocities);
 

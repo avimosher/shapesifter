@@ -52,6 +52,7 @@ public:
         
         auto distance=std::max((T)1e-3,(x2-x1).norm());
         auto dd_da=dx_da/distance-direction/cube(distance)*direction.transpose()*dx_da;
+        return dd_da;
     }
     
     Matrix<T,1,t+d> DC_DA(const T_SPIN& a,const TV& offset,const TV& x1,const TV& x2,const TV& direction){
