@@ -42,10 +42,12 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         TV offset2=frame2.orientation._transformVector(constraint.v2);
         terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index2,DC_DA(rigid_structure2->twist.angular,offset2,x1,x2,direction)));
         terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index1,-DC_DA(rigid_structure1->twist.angular,offset1,x1,x2,direction)));
-        auto force_balance_contribution2=stored_forces(i)*DD_DV(rigid_structure2->twist.angular,offset2,x1,x2,direction);
-        auto force_balance_contribution1=-stored_forces(i)*DD_DV(rigid_structure1->twist.angular,offset1,x1,x2,direction);
+        Matrix<T,d,t+d> force_balance_contribution2=stored_forces(i)*DD_DV(rigid_structure2->twist.angular,offset2,x1,x2,direction);
+        Matrix<T,d,t+d> force_balance_contribution1=-stored_forces(i)*DD_DV(rigid_structure1->twist.angular,offset1,x1,x2,direction);
+        std::cout<<"FBC1: "<<force_balance_contribution1<<std::endl;
         for(int j=0;j<d;j++){
             for(int k=0;k<d;k++){
+                std::cout<<"("<<j<<","<<k<<"): "<<force_balance_contribution1(j,k)<<std::endl;
                 force_terms.push_back(Triplet<T>(body_index1*(t+d)+j,body_index1*(t+d)+k,force_balance_contribution1(j,k)));
                 force_terms.push_back(Triplet<T>(body_index2*(t+d)+j,body_index2*(t+d)+k,force_balance_contribution2(j,k)));
             }
