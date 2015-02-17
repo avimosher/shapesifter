@@ -47,10 +47,10 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& velocities,
     Merge_Block_Matrices(full_matrix,J);
     //full_right_hand_side(0,0)-=full_matrix(0,0)*velocities;
     Merge_Block_Vectors(full_right_hand_side,right_hand_side);
-    //right_hand_side_full=J*right_hand_side;
-    //matrix=J.adjoint()*J;
-    right_hand_side_full=right_hand_side;
-    matrix=J;
+    right_hand_side_full=J*right_hand_side;
+    matrix=J.adjoint()*J;
+    //right_hand_side_full=right_hand_side;
+    //matrix=J;
     std::cout<<matrix<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
@@ -62,9 +62,9 @@ Calculate_RHS_And_Norm(const DATA<TV>& data,const FORCE<TV>& force,const Matrix<
     current_solution<<velocities,
         forces;
     int velocity_count=data.Velocity_DOF();
-    right_hand_side.block(0,0,velocity_count,1)-=J.block(0,0,velocity_count,matrix.cols())*current_solution;
-    //right_hand_side_full=J*right_hand_side;
-    right_hand_side_full=right_hand_side;
+    right_hand_side.block(0,0,velocity_count,1)-=matrix.block(0,0,velocity_count,matrix.cols())*current_solution;
+    right_hand_side_full=J*right_hand_side;
+    //right_hand_side_full=right_hand_side;
     std::cout<<"Current solution: "<<current_solution.transpose()<<std::endl;
     std::cout<<"RHS: "<<right_hand_side.transpose()<<std::endl;
     return right_hand_side.squaredNorm();

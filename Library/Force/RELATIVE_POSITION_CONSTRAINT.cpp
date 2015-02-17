@@ -34,9 +34,25 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         TV direction=data.Minimum_Offset(frame1*constraint.v1,frame2*constraint.v2);
         T distance=direction.norm();
         std::cout<<"Constraint distance: "<<distance<<std::endl;
-        Safe_Normalize(direction);
-        terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index2,direction.transpose()*index_map.Velocity_Map(*rigid_structure2,constraint.v2)));
-        terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index1,-direction.transpose()*index_map.Velocity_Map(*rigid_structure1,constraint.v1)));
+        TV x1=frame1*constraint.v1;
+        TV x2=frame2*constraint.v2;
+        frame1.orientation=ROTATION<TV>::From_Rotation_Vector(rigid_structure1->twist.angular).inverse()*frame1.orientation;
+        frame2.orientation=ROTATION<TV>::From_Rotation_Vector(rigid_structure2->twist.angular).inverse()*frame2.orientation;
+        TV offset1=frame1.orientation._transformVector(constraint.v1);
+        TV offset2=frame2.orientation._transformVector(constraint.v2);
+        terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index2,DC_DA(rigid_structure2->twist.angular,offset2,x1,x2,direction)));
+        terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index1,-DC_DA(rigid_structure1->twist.angular,offset1,x1,x2,direction)));
+        auto force_balance_contribution2=-stored_forces(i)*DD_DV(rigid_structure2->twist.angular,offset2,x1,x2,direction);
+        auto force_balance_contribution1=-stored_forces(i)*DD_DV(rigid_structure1->twist.angular,offset1,x1,x2,direction);
+        for(int j=0;j<d;j++){
+            for(int k=0;k<d;k++){
+                force_terms.push_back(Triplet<T>(body_index1*(t+d)+j,body_index1*(t+d)+k,force_balance_contribution1(j,k)));
+                force_terms.push_back(Triplet<T>(body_index2*(t+d)+j,body_index2*(t+d)+k,force_balance_contribution2(j,k)));
+            }
+        }
+        //Safe_Normalize(direction);
+        //terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index2,direction.transpose()*index_map.Velocity_Map(*rigid_structure2,constraint.v2)));
+        //terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index1,-direction.transpose()*index_map.Velocity_Map(*rigid_structure1,constraint.v1)));
         constraint_rhs(i,0)=constraint.target_distance-distance;
     }
     constraint_terms.resize(constraints.size(),RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE*rigid_data->structures.size());
