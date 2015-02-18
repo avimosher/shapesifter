@@ -11,7 +11,7 @@
         },
         {"type": "RIGID_STRUCTURE",
          "name": "right",
-         "position": [5, 2, 1],
+         "position": [5, 1, 1],
          "radius": 1
         },
         {"type": "RELATIVE_POSITION_CONSTRAINT",

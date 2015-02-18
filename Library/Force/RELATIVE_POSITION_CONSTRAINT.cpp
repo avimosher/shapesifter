@@ -40,10 +40,13 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         frame2.orientation=ROTATION<TV>::From_Rotation_Vector(rigid_structure2->twist.angular).inverse()*frame2.orientation;
         TV offset1=frame1.orientation._transformVector(constraint.v1);
         TV offset2=frame2.orientation._transformVector(constraint.v2);
-        terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index2,50*DC_DA(rigid_structure2->twist.angular,offset2,x1,x2,direction)));
-        terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index1,-50*DC_DA(rigid_structure1->twist.angular,offset1,x1,x2,direction)));
-        Matrix<T,d,t+d> force_balance_contribution2=50*stored_forces(i)*DD_DV(rigid_structure2->twist.angular,offset2,x1,x2,direction);
-        Matrix<T,d,t+d> force_balance_contribution1=-50*stored_forces(i)*DD_DV(rigid_structure1->twist.angular,offset1,x1,x2,direction);
+        T factor=50;
+        CONSTRAINT_VECTOR DC_DA2=factor*DC_DA(rigid_structure2->twist.angular,offset2,x1,x2,direction);
+        CONSTRAINT_VECTOR DC_DA1=factor*DC_DA(rigid_structure1->twist.angular,offset1,x1,x2,direction);
+        terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index2,DC_DA2));
+        terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index1,-DC_DA1));
+        Matrix<T,d,t+d> force_balance_contribution2=factor*stored_forces(i)*DD_DV(rigid_structure2->twist.angular,offset2,x1,x2,direction);
+        Matrix<T,d,t+d> force_balance_contribution1=-factor*stored_forces(i)*DD_DV(rigid_structure1->twist.angular,offset1,x1,x2,direction);
         for(int j=0;j<d;j++){
             for(int k=0;k<d;k++){
                 force_terms.push_back(Triplet<T>(body_index1*(t+d)+j,body_index1*(t+d)+k,force_balance_contribution1(j,k)));
@@ -53,11 +56,17 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         //Safe_Normalize(direction);
         //terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index2,direction.transpose()*index_map.Velocity_Map(*rigid_structure2,constraint.v2)));
         //terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index1,-direction.transpose()*index_map.Velocity_Map(*rigid_structure1,constraint.v1)));
-        constraint_rhs(i,0)=50*(constraint.target_distance-distance);
+        constraint_rhs(i,0)=factor*(constraint.target_distance-distance);
+
+        // contribution to force-balance RHS
+        std::cout<<"RHS contribution: "<<(DC_DA1.transpose()*stored_forces[i]).transpose()<<std::endl;
+        right_hand_side.template block<t+d,1>(body_index1*(t+d),0)+=DC_DA1.transpose()*stored_forces[i];
+        right_hand_side.template block<t+d,1>(body_index2*(t+d),0)-=DC_DA2.transpose()*stored_forces[i];
     }
     constraint_terms.resize(constraints.size(),RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE*rigid_data->structures.size());
     Flatten_Matrix(terms,constraint_terms);
-    //stored_forces.resize(constraints.size());
+    //std::cout<<constraint_terms<<std::endl;
+    stored_forces.resize(constraints.size());
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::

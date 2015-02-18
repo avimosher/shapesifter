@@ -18,12 +18,12 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     FORCE<TV>& force=simulation.force;
     current_velocities.resize(data.Velocity_DOF(),1);current_velocities.setZero();
     data.Pack_Positions(positions);
-    equation->Linearize(data,force,current_velocities,dt,time,true);
+    T last_norm=equation->Linearize(data,force,dt,time,true);
     /*force.Pack_Forces(solve_forces);
     solve_forces.setZero();
     force.Unpack_Forces(solve_forces);*/
 
-    T last_norm=equation->Calculate_RHS_And_Norm(data,force,current_velocities);
+    //T last_norm=equation->Calculate_RHS_And_Norm(data,force,current_velocities);
     std::cout<<"First norm: "<<last_norm<<std::endl;
 
     force.Pack_Forces(solve_forces);
@@ -49,8 +49,8 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
         solve_forces=solve_vector.block(data.Velocity_DOF(),0,solve_vector.rows()-data.Velocity_DOF(),1);
         force.Increment_Forces(solve_forces);
         std::cout<<"Before first loop linearize"<<std::endl;
-        equation->Linearize(data,force,current_velocities+solve_velocities,dt,time,false); // linearize around a point and calculate norm there
-        T norm=equation->Calculate_RHS_And_Norm(data,force,current_velocities+solve_velocities);
+        T norm=equation->Linearize(data,force,dt,time,false); // linearize around a point and calculate norm there
+        //T norm=equation->Calculate_RHS_And_Norm(data,force,current_velocities+solve_velocities);
 
         T ratio=1;
         std::cout<<"Norm with ratio "<<ratio<<" is "<<norm<<", last norm "<<last_norm<<std::endl;
@@ -62,9 +62,9 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
             data.Unpack_Velocities(current_velocities+ratio*solve_velocities);
             data.Step();
             force.Increment_Forces(ratio*solve_forces);
-            equation->Linearize(data,force,current_velocities+ratio*solve_velocities,dt,time,false); // linearize around a point and calculate norm there
-            norm=equation->Calculate_RHS_And_Norm(data,force,current_velocities+ratio*solve_velocities);
-            std::cout<<"Norm with ratio "<<ratio<<" is "<<norm<<std::endl;
+            norm=equation->Linearize(data,force,dt,time,false); // linearize around a point and calculate norm there
+            //norm=equation->Calculate_RHS_And_Norm(data,force,current_velocities+ratio*solve_velocities);
+            std::cout<<"Norm with ratio "<<ratio<<" is "<<norm<<" ("<<last_norm<<")"<<std::endl;
         }
         current_velocities+=ratio*solve_velocities;
         last_norm=norm;

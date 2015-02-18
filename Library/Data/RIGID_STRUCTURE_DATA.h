@@ -20,6 +20,7 @@ class RIGID_STRUCTURE_DATA:public DATA_TYPE<TV>
     typedef typename TV::Scalar T;
     typedef typename ROTATION<TV>::SPIN T_SPIN;
 public:
+    enum DEFINITIONS{s=TWIST<TV>::STATIC_SIZE};
     std::vector<std::shared_ptr<RIGID_STRUCTURE<TV>>> structures;
 
     RIGID_STRUCTURE_DATA(){}
@@ -67,7 +68,7 @@ public:
     virtual void Pack_Positions(Block<Matrix<T,Dynamic,1>>& positions);
     virtual void Unpack_Positions(const Matrix<T,Dynamic,1>& positions);
     void Step(const DATA<TV>& data);
-    virtual void Inertia(std::vector<Triplet<T>>& force_terms);
+    virtual void Inertia(std::vector<Triplet<T>>& force_terms,Matrix<T,Dynamic,1>& rhs);
     virtual void Viewer(osg::Node* node);
 
     DEFINE_TYPE_NAME("RIGID_STRUCTURE_DATA")

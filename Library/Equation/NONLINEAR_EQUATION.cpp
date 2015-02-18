@@ -13,8 +13,8 @@
 #include <Eigen/IterativeSolvers>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
-template<class TV> void NONLINEAR_EQUATION<TV>::
-Linearize(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& velocities,const T dt,const T time,const bool stochastic)
+template<class TV> typename TV::Scalar NONLINEAR_EQUATION<TV>::
+Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool stochastic)
 {
     int full_size=data.size()+force.size();
     full_matrix.resize(full_size,full_size);
@@ -29,9 +29,8 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& velocities,
     // TODO: one block matrix per data type too
     force_terms.resize(data.size());
     for(int i=0;i<data.size();i++){
-        data[i]->Inertia(force_terms[i]);
+        data[i]->Inertia(force_terms[i],full_right_hand_side[i]);
     }
-    //for(int i=0;i<matrix.rows();i++){force_terms.push_back(Triplet<T>(i,i,1));} // identity portion
     for(int i=0;i<force.size();i++){
         // TODO: force_terms needs to be properly handled when there are multiple data types
         force[i]->Linearize(data,dt,time,force_terms[0],full_matrix(i+1,0),full_right_hand_side(0,0),full_right_hand_side(i+1,0),stochastic);
@@ -52,6 +51,8 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& velocities,
     right_hand_side_full=right_hand_side;
     matrix=J;
     std::cout<<matrix<<std::endl;
+    std::cout<<"RHS: "<<right_hand_side.transpose()<<std::endl;
+    return right_hand_side.squaredNorm();
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> typename TV::Scalar NONLINEAR_EQUATION<TV>::

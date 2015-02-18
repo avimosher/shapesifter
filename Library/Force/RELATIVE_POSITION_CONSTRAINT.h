@@ -77,7 +77,7 @@ public:
         //std::cout<<normalized_direction<<std::endl;
         auto final=direction.transpose()*dd_da+normalized_direction.transpose()*(dx_da);
         //auto final=normalized_direction.transpose()*(dx_da);
-        //std::cout<<final<<std::endl;
+        //std::cout<<"DC_DA: "<<final<<std::endl;
         return final;
     }
 

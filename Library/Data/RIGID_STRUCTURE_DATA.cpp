@@ -72,10 +72,12 @@ Step(const DATA<TV>& data)
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RIGID_STRUCTURE_DATA<TV>::
-Inertia(std::vector<Triplet<T>>& force_terms)
+Inertia(std::vector<Triplet<T>>& force_terms,Matrix<T,Dynamic,1>& rhs)
 {
     for(int i=0;i<structures.size();i++){
         Flatten_Term(i,i,structures[i]->Inertia_Matrix(),force_terms);
+        std::cout<<"Twist "<<i<<": "<<structures[i]->twist.Pack().transpose()<<std::endl;
+        rhs.template block<s,1>(s*i,0)=-(structures[i]->Inertia_Matrix()*structures[i]->twist.Pack());
     }
 }
 ///////////////////////////////////////////////////////////////////////
