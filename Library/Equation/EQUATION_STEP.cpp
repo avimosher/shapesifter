@@ -19,11 +19,10 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     current_velocities.resize(data.Velocity_DOF(),1);current_velocities.setZero();
     data.Pack_Positions(positions);
     T last_norm=equation->Linearize(data,force,dt,time,true);
-    /*force.Pack_Forces(solve_forces);
+    force.Pack_Forces(solve_forces);
     solve_forces.setZero();
-    force.Unpack_Forces(solve_forces);*/
+    force.Unpack_Forces(solve_forces);
 
-    //T last_norm=equation->Calculate_RHS_And_Norm(data,force,current_velocities);
     std::cout<<"First norm: "<<last_norm<<std::endl;
 
     force.Pack_Forces(solve_forces);
@@ -36,7 +35,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     QUALITY<T> solve_quality;
     T epsilon=1e-8;
     int bad_count=0;
-    while(last_norm>epsilon){//!equation->Satisfied(data,force,solve_vector,solve_quality)){
+    while(last_norm>epsilon){
         std::cout<<"Entering loop"<<std::endl;
         solve_vector=equation->Solve(solve_vector);
         std::cout<<"Solve vector: "<<solve_vector.transpose()<<std::endl;
@@ -50,7 +49,6 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
         force.Increment_Forces(solve_forces);
         std::cout<<"Before first loop linearize"<<std::endl;
         T norm=equation->Linearize(data,force,dt,time,false); // linearize around a point and calculate norm there
-        //T norm=equation->Calculate_RHS_And_Norm(data,force,current_velocities+solve_velocities);
 
         T ratio=1;
         std::cout<<"Norm with ratio "<<ratio<<" is "<<norm<<", last norm "<<last_norm<<std::endl;
@@ -63,7 +61,6 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
             data.Step();
             force.Increment_Forces(ratio*solve_forces);
             norm=equation->Linearize(data,force,dt,time,false); // linearize around a point and calculate norm there
-            //norm=equation->Calculate_RHS_And_Norm(data,force,current_velocities+ratio*solve_velocities);
             std::cout<<"Norm with ratio "<<ratio<<" is "<<norm<<" ("<<last_norm<<")"<<std::endl;
         }
         current_velocities+=ratio*solve_velocities;

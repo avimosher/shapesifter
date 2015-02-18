@@ -18,7 +18,6 @@ public:
     ~EQUATION(){};
 
     virtual T Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool stochastic)=0;
-    virtual T Calculate_RHS_And_Norm(const DATA<TV>& data,const FORCE<TV>& force,const Matrix<T,Dynamic,1>& velocities)=0;
     virtual Matrix<T,Dynamic,1> Solve(const Matrix<T,Dynamic,1>& guess)=0;
     virtual bool Satisfied(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& solve_result,QUALITY<T>& solve_quality)=0;
 };

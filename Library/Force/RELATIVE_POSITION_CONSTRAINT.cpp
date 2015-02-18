@@ -59,7 +59,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         constraint_rhs(i,0)=factor*(constraint.target_distance-distance);
 
         // contribution to force-balance RHS
-        std::cout<<"RHS contribution: "<<(DC_DA1.transpose()*stored_forces[i]).transpose()<<std::endl;
+        //std::cout<<"RHS contribution: "<<(DC_DA1.transpose()*stored_forces[i]).transpose()<<std::endl;
         right_hand_side.template block<t+d,1>(body_index1*(t+d),0)+=DC_DA1.transpose()*stored_forces[i];
         right_hand_side.template block<t+d,1>(body_index2*(t+d),0)-=DC_DA2.transpose()*stored_forces[i];
     }
@@ -184,6 +184,6 @@ DEFINE_AND_REGISTER_PARSER(RELATIVE_POSITION_CONSTRAINT,void)
         relative_position_constraint->constraints.push_back(constraint);
     }
     relative_position_constraint->stored_forces.resize(relative_position_constraint->constraints.size());
-    relative_position_constraint->stored_forces=Matrix<T,Dynamic,1>::Constant(relative_position_constraint->constraints.size(),10);
+    relative_position_constraint->stored_forces.setZero();
     return 0;
 }

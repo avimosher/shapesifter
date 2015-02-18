@@ -44,30 +44,13 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
         full_matrix(i,i).setFromTriplets(force_terms[i].begin(),force_terms[i].end());
     }
     Merge_Block_Matrices(full_matrix,J);
-    //full_right_hand_side(0,0)-=full_matrix(0,0)*velocities;
     Merge_Block_Vectors(full_right_hand_side,right_hand_side);
     //right_hand_side_full=J*right_hand_side;
     //matrix=J.adjoint()*J;
     right_hand_side_full=right_hand_side;
     matrix=J;
-    std::cout<<matrix<<std::endl;
-    std::cout<<"RHS: "<<right_hand_side.transpose()<<std::endl;
-    return right_hand_side.squaredNorm();
-}
-///////////////////////////////////////////////////////////////////////
-template<class TV> typename TV::Scalar NONLINEAR_EQUATION<TV>::
-Calculate_RHS_And_Norm(const DATA<TV>& data,const FORCE<TV>& force,const Matrix<T,Dynamic,1>& velocities)
-{
-    Matrix<T,Dynamic,1> forces;force.Pack_Forces(forces); // ask for stored forces appropriate for this solve
-    Matrix<T,Dynamic,1> current_solution(right_hand_side.size());
-    current_solution<<velocities,
-        forces;
-    int velocity_count=data.Velocity_DOF();
-    right_hand_side.block(0,0,velocity_count,1)-=J.block(0,0,velocity_count,matrix.cols())*current_solution;
-    //right_hand_side_full=J*right_hand_side;
-    right_hand_side_full=right_hand_side;
-    std::cout<<"Current solution: "<<current_solution.transpose()<<std::endl;
-    std::cout<<"RHS: "<<right_hand_side.transpose()<<std::endl;
+    //std::cout<<matrix<<std::endl;
+    //std::cout<<"RHS: "<<right_hand_side.transpose()<<std::endl;
     return right_hand_side.squaredNorm();
 }
 ///////////////////////////////////////////////////////////////////////
@@ -75,9 +58,9 @@ template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>:
 Solve(const Matrix<T,Dynamic,1>& guess)
 {
     const int solve_iterations=200;
-    //MINRES<SparseMatrix<T>> solver;
-    //solver.compute(matrix);
-    GMRES<SparseMatrix<T>,IdentityPreconditioner> solver(matrix);
+    MINRES<SparseMatrix<T>> solver;
+    solver.compute(matrix);
+    //GMRES<SparseMatrix<T>,IdentityPreconditioner> solver(matrix);
     solver.setMaxIterations(solve_iterations);
     std::cout<<"Solve RHS: "<<right_hand_side_full.transpose()<<std::endl;
     auto solution=solver.solveWithGuess(right_hand_side_full,guess);
