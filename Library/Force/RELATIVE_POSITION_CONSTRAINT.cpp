@@ -40,7 +40,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         frame2.orientation=ROTATION<TV>::From_Rotation_Vector(rigid_structure2->twist.angular).inverse()*frame2.orientation;
         TV offset1=frame1.orientation._transformVector(constraint.v1);
         TV offset2=frame2.orientation._transformVector(constraint.v2);
-        T factor=50;
+        T factor=1;//50;
         CONSTRAINT_VECTOR DC_DA2=factor*DC_DA(rigid_structure2->twist.angular,offset2,x1,x2,direction);
         CONSTRAINT_VECTOR DC_DA1=factor*DC_DA(rigid_structure1->twist.angular,offset1,x1,x2,direction);
         terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index2,DC_DA2));

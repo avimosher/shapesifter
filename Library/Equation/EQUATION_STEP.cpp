@@ -17,6 +17,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     DATA<TV>& data=simulation.data;
     FORCE<TV>& force=simulation.force;
     current_velocities.resize(data.Velocity_DOF(),1);current_velocities.setZero();
+    data.Unpack_Velocities(current_velocities);
     data.Pack_Positions(positions);
     T last_norm=equation->Linearize(data,force,dt,time,true);
     force.Pack_Forces(solve_forces);
