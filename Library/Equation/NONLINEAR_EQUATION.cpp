@@ -34,7 +34,6 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     for(int i=0;i<force.size();i++){
         // TODO: force_terms needs to be properly handled when there are multiple data types
         force[i]->Linearize(data,dt,time,force_terms[0],full_matrix(i+1,0),full_right_hand_side(0,0),full_right_hand_side(i+1,0),stochastic);
-        //force[i]->Special(data,dt,time);
         full_matrix(0,i+1)=full_matrix(i+1,0).transpose();
     }
     // for the sake of sanity, assume that each force adds a constraint block as well as a contribution to the velocity block
@@ -64,24 +63,8 @@ Solve(const Matrix<T,Dynamic,1>& guess)
     solver.setMaxIterations(solve_iterations);
     std::cout<<"Solve RHS: "<<right_hand_side_full.transpose()<<std::endl;
     auto solution=solver.solveWithGuess(right_hand_side_full,guess);
-    std::cout<<"Iterations: "<<solver.iterations()<<" Error: "<<solver.error()<<std::endl;
     std::cout<<"Solution: "<<solution.transpose()<<std::endl;
     return solution;
-}
-///////////////////////////////////////////////////////////////////////
-template<class TV> bool NONLINEAR_EQUATION<TV>::
-Satisfied(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& solve_result,QUALITY<T>& solve_quality)
-{
-    int velocity_count=data.Velocity_DOF();
-    //auto residual=right_hand_side-matrix.block(0,velocity_count,matrix.rows(),matrix.cols()-velocity_count)*solve_result.block(velocity_count,0,solve_result.rows()-velocity_count,1);
-    auto residual=right_hand_side-matrix*solve_result;
-    T norm=residual.norm();
-    solve_quality.Update(norm);
-    //std::cout<<"solve result: "<<solve_result.transpose()<<std::endl;
-    //std::cout<<"rhs: "<<right_hand_side.transpose()<<std::endl;
-    //std::cout<<"residual: "<<residual.transpose()<<std::endl;
-    std::cout<<"Norm: "<<norm<<std::endl;
-    return norm<1e-6;
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(NONLINEAR_EQUATION)

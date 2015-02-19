@@ -25,7 +25,6 @@ public:
 
     T Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool stochastic);
     Matrix<T,Dynamic,1> Solve(const Matrix<T,Dynamic,1>& guess);
-    bool Satisfied(DATA<TV>& data,FORCE<TV>& force,const Matrix<T,Dynamic,1>& solve_result,QUALITY<T>& solve_quality);
     DEFINE_TYPE_NAME("NONLINEAR_EQUATION")
 };
 }
