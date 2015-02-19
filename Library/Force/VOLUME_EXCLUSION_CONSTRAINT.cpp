@@ -61,8 +61,19 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             //std::cout<<"s1 com: "<<rigid_structure1->frame.position.transpose()<<" s2 com: "<<rigid_structure2->frame.position.transpose()<<" r1: "<<rigid_structure1->collision_radius<<" r2: "<<rigid_structure2->collision_radius<<std::endl;
             if(constraint_violation<distance_condition || (remembered.first==call_count && remembered.second<0)){
                 std::cout<<"Constraint between "<<s1<<" and "<<s2<<std::endl;
-                terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s2,direction.transpose()*index_map.Velocity_Map(offset2)));
-                terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s1,-direction.transpose()*index_map.Velocity_Map(offset1)));
+                CONSTRAINT_VECTOR DC_DA2=factor*RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(rigid_structure2,offset2,x1,x2,direction);
+                CONSTRAINT_VECTOR DC_DA1=factor*RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(rigid_structure1,offset1,x1,x2,direction);
+                terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s2,DC_DA2));
+                terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s1,-DC_DA1));
+                Matrix<T,d,t+d> force_balance_contribution2=factor*remember.second*DD_DV(rigid_structure2,offset2,x1,x2,direction);
+                Matrix<T,d,t+d> force_balance_contribution1=-factor*remembered.second*DD_DV(rigid_structure1,offset1,x1,x2,direction);
+                for(int j=0;j<d;j++){
+                    for(int k=0;k<d;k++){
+                        force_terms.push_back(Triplet<T>(body_index1*(t+d)+j,body_index1*(t+d)+k,force_balance_contribution1(j,k)));
+                        force_terms.push_back(Triplet<T>(body_index2*(t+d)+j,body_index2*(t+d)+k,force_balance_contribution2(j,k)));
+                    }
+                }
+
                 rhs.push_back(-constraint_violation);
                 constraints.push_back(CONSTRAINT(s1,s2));
             }
