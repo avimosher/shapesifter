@@ -67,7 +67,7 @@ Step(const DATA<TV>& data)
         TV p1=structures[i]->frame.position;
         structures[i]->frame=Updated_Frame(data,structures[i]->frame,structures[i]->twist);
         //std::cout<<"Kick in center of mass for "<<i<<": "<<(structures[i]->frame.position-p1).transpose()<<std::endl;
-        std::cout<<i<<": "<<structures[i]->frame.position.transpose()<<std::endl;
+        //std::cout<<i<<": "<<structures[i]->frame.position.transpose()<<std::endl;
     }
 }
 ///////////////////////////////////////////////////////////////////////
@@ -76,7 +76,7 @@ Inertia(std::vector<Triplet<T>>& force_terms,Matrix<T,Dynamic,1>& rhs)
 {
     for(int i=0;i<structures.size();i++){
         Flatten_Term(i,i,structures[i]->Inertia_Matrix(),force_terms);
-        std::cout<<"Twist "<<i<<": "<<structures[i]->twist.Pack().transpose()<<std::endl;
+        //std::cout<<"Twist "<<i<<": "<<structures[i]->twist.Pack().transpose()<<std::endl;
         rhs.template block<s,1>(s*i,0)=-(structures[i]->Inertia_Matrix()*structures[i]->twist.Pack());
     }
 }

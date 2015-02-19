@@ -49,7 +49,7 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     right_hand_side_full=right_hand_side;
     matrix=J;
     //std::cout<<matrix<<std::endl;
-    //std::cout<<"RHS: "<<right_hand_side.transpose()<<std::endl;
+    std::cout<<"RHS: "<<right_hand_side.transpose()<<std::endl;
     return right_hand_side.squaredNorm();
 }
 ///////////////////////////////////////////////////////////////////////
@@ -61,9 +61,9 @@ Solve(const Matrix<T,Dynamic,1>& guess)
     solver.compute(matrix);
     //GMRES<SparseMatrix<T>,IdentityPreconditioner> solver(matrix);
     solver.setMaxIterations(solve_iterations);
-    std::cout<<"Solve RHS: "<<right_hand_side_full.transpose()<<std::endl;
+    //std::cout<<"Solve RHS: "<<right_hand_side_full.transpose()<<std::endl;
     auto solution=solver.solveWithGuess(right_hand_side_full,guess);
-    std::cout<<"Solution: "<<solution.transpose()<<std::endl;
+    //std::cout<<"Solution: "<<solution.transpose()<<std::endl;
     return solution;
 }
 ///////////////////////////////////////////////////////////////////////
