@@ -28,20 +28,20 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
 
     force.Pack_Forces(solve_forces);
     solve_velocities=current_velocities;
-    Matrix<T,Dynamic,1> solve_vector;solve_vector.resize(solve_velocities.size()+solve_forces.size());
-    solve_vector<<solve_velocities,
-        solve_forces;
 
     int count=0;
     QUALITY<T> solve_quality;
     T epsilon=1e-8;
-    int step_limit=5;
+    int step_limit=6;
+    T c1=.5,c2=.9;
     while(last_norm>epsilon){
-        solve_vector=equation->Solve(solve_vector);
+        auto solve_vector=equation->Solve();
         //std::cout<<"Solve vector: "<<solve_vector.transpose()<<std::endl;
         solve_velocities=solve_vector.block(0,0,data.Velocity_DOF(),1);
         solve_forces=solve_vector.block(data.Velocity_DOF(),0,solve_vector.rows()-data.Velocity_DOF(),1);
 
+        T sufficient_descent_factor=equation->Sufficient_Descent_Factor(solve_vector);
+        std::cout<<"Sufficient descent: "<<sufficient_descent_factor<<std::endl;
         T ratio=1,norm;
         int i=0;
 
@@ -53,7 +53,9 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
             data.Step();
             norm=equation->Linearize(data,force,dt,time,false); // linearize around a point and calculate norm there
             std::cout<<"Norm with ratio "<<ratio<<" is "<<norm<<" ("<<last_norm<<")"<<std::endl;
-            if(norm<=last_norm/2){ //TODO: properly implement "sufficient reduction" criterion
+            T curvature_factor=equation->Sufficient_Descent_Factor(solve_vector);
+            std::cout<<"Curvature factor: "<<curvature_factor<<std::endl;
+            if(norm<=last_norm+c1*sufficient_descent_factor*ratio && curvature_factor<0 && abs(curvature_factor)<=abs(c2*sufficient_descent_factor)){ //TODO: properly implement "sufficient reduction" criterion
                 break;
             }
             // restore previous state

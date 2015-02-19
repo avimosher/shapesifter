@@ -6,7 +6,7 @@
         {"type": "RIGID_STRUCTURE_DATA"},
         {"type": "RIGID_STRUCTURE",
          "name": "left",
-         "position": [-4, 2, 1],
+         "position": [-5, 1, 1],
          "radius": 1
         },
         {"type": "RIGID_STRUCTURE",
@@ -16,7 +16,7 @@
         },
         {"type": "RIGID_STRUCTURE",
          "name": "third",
-         "position": [14, 2, 1],
+         "position": [15, 1, 1],
          "radius": 1
         },
         {"type": "BROWNIAN_FORCE",
@@ -24,14 +24,14 @@
         {"type": "RELATIVE_POSITION_CONSTRAINT",
          "constraints": [
              {"structure1": "left",
-              "offset1": [0, 0, 0],
+              "offset1": [1, 0, 0],
               "structure2": "right",
-              "offset2": [0, 0, 0],
+              "offset2": [-1, 0, 0],
               "distance": 10},
              {"structure1": "right",
-              "offset1": [0, 0, 0],
+              "offset1": [1, 0, 0],
               "structure2": "third",
-              "offset2": [0, 0, 0],
+              "offset2": [-1, 0, 0],
               "distance": 10}
          ]
         },

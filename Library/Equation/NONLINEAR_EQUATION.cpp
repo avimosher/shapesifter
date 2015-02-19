@@ -54,7 +54,7 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>::
-Solve(const Matrix<T,Dynamic,1>& guess)
+Solve()
 {
     const int solve_iterations=200;
     MINRES<SparseMatrix<T>> solver;
@@ -62,9 +62,16 @@ Solve(const Matrix<T,Dynamic,1>& guess)
     //GMRES<SparseMatrix<T>,IdentityPreconditioner> solver(matrix);
     solver.setMaxIterations(solve_iterations);
     //std::cout<<"Solve RHS: "<<right_hand_side_full.transpose()<<std::endl;
-    auto solution=solver.solveWithGuess(right_hand_side_full,guess);
+    Matrix<T,Dynamic,1> solution=solver.solve(right_hand_side_full);
+    //std::cout<<"Iterations: "<<solver.iterations()<<std::endl;
     //std::cout<<"Solution: "<<solution.transpose()<<std::endl;
     return solution;
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> typename TV::Scalar NONLINEAR_EQUATION<TV>::
+Sufficient_Descent_Factor(const Matrix<T,Dynamic,1>& direction)
+{
+    return -direction.dot(matrix*right_hand_side_full);
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(NONLINEAR_EQUATION)

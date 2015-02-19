@@ -65,7 +65,6 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     }
     constraint_terms.resize(constraints.size(),RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE*rigid_data->structures.size());
     Flatten_Matrix(terms,constraint_terms);
-    //std::cout<<constraint_terms<<std::endl;
     stored_forces.resize(constraints.size());
 }
 ///////////////////////////////////////////////////////////////////////

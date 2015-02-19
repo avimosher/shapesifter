@@ -24,7 +24,8 @@ public:
     ~NONLINEAR_EQUATION(){};
 
     T Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool stochastic);
-    Matrix<T,Dynamic,1> Solve(const Matrix<T,Dynamic,1>& guess);
+    Matrix<T,Dynamic,1> Solve();
+    T Sufficient_Descent_Factor(const Matrix<T,Dynamic,1>& direction);
     DEFINE_TYPE_NAME("NONLINEAR_EQUATION")
 };
 }
