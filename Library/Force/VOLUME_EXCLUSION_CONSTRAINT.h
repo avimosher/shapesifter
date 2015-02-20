@@ -12,7 +12,9 @@ template<class TV>
 class VOLUME_EXCLUSION_CONSTRAINT : public FORCE_TYPE<TV>
 {
     typedef typename TV::Scalar T;
+    typedef typename ROTATION<TV>::SPIN T_SPIN;
 public:
+    enum DEFINITIONS{d=TV::RowsAtCompileTime,t=T_SPIN::RowsAtCompileTime};
     using FORCE_TYPE<TV>::stored_forces;
     typedef std::pair<int,int> CONSTRAINT;
     std::vector<CONSTRAINT> constraints;

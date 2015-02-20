@@ -48,22 +48,34 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     //matrix=J.adjoint()*J;
     right_hand_side_full=right_hand_side;
     matrix=J;
+    Matrix<T,Dynamic,1> rowExtrema(matrix.rows());rowExtrema.setZero();
+    for(int k=0;k<matrix.outerSize();k++){
+        for(typename SparseMatrix<T>::InnerIterator it(matrix,k);it;++it){
+            rowExtrema[it.row()]=std::max(rowExtrema[it.row()],std::abs(it.value()));
+        }
+    }
+    conditioner=rowExtrema;//.cwiseSqrt().cwiseInverse();
+    //std::cout<<"Conditioner: "<<conditioner.transpose()<<std::endl;
+    //matrix=conditioner.asDiagonal()*matrix*conditioner.asDiagonal();
+    right_hand_side_full=right_hand_side_full;
     //std::cout<<matrix<<std::endl;
-    std::cout<<"RHS: "<<right_hand_side.transpose()<<std::endl;
-    return right_hand_side.squaredNorm();
+    std::cout<<"RHS: "<<right_hand_side_full.transpose()<<std::endl;
+    return right_hand_side_full.squaredNorm();
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>::
 Solve()
 {
     const int solve_iterations=200;
+    //MINRES<SparseMatrix<T>,Lower,RowPreconditioner<T>> solver;
     MINRES<SparseMatrix<T>> solver;
     solver.compute(matrix);
+//solver.preconditioner().SetDiagonal(conditioner);
     //GMRES<SparseMatrix<T>,IdentityPreconditioner> solver(matrix);
     solver.setMaxIterations(solve_iterations);
     //std::cout<<"Solve RHS: "<<right_hand_side_full.transpose()<<std::endl;
     Matrix<T,Dynamic,1> solution=solver.solve(right_hand_side_full);
-    //std::cout<<"Iterations: "<<solver.iterations()<<std::endl;
+    std::cout<<"Iterations: "<<solver.iterations()<<std::endl;
     //std::cout<<"Solution: "<<solution.transpose()<<std::endl;
     return solution;
 }

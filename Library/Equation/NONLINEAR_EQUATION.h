@@ -4,9 +4,20 @@
 #include <Equation/EQUATION.h>
 #include <Utilities/TYPE_UTILITIES.h>
 #include <Eigen/Sparse>
+#include <Eigen/IterativeLinearSolvers>
 
 namespace Mechanics{
 template<class TV> class DATA;
+
+template<class T>
+class RowPreconditioner:public DiagonalPreconditioner<T>
+{
+public:
+    using DiagonalPreconditioner<T>::m_invdiag;
+
+    void SetDiagonal(const Matrix<T,Dynamic,1>& diagonal)
+    {m_invdiag=diagonal.cwiseInverse();}
+};
 
 template<class TV>
 class NONLINEAR_EQUATION : public EQUATION<TV>
@@ -19,6 +30,7 @@ public:
     Matrix<T,Dynamic,1> right_hand_side_full;
     SparseMatrix<T> J;
     Matrix<Matrix<T,Dynamic,1>,Dynamic,1> full_right_hand_side;
+    Matrix<T,Dynamic,1> conditioner;
 
     NONLINEAR_EQUATION(){};
     ~NONLINEAR_EQUATION(){};

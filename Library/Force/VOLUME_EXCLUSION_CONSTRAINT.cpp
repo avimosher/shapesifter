@@ -48,29 +48,30 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     constraints.clear();
     for(int s1=0;s1<rigid_data->structures.size();s1++){
         for(int s2=s1+1;s2<rigid_data->structures.size();s2++){
-            auto rigid_structure1=rigid_data->structures[s1];
-            auto rigid_structure2=rigid_data->structures[s2];
+            auto structure1=rigid_data->structures[s1];
+            auto structure2=rigid_data->structures[s2];
             TV offset1,offset2;
-            TV direction=rigid_structure1->Displacement(data,rigid_structure2,offset1,offset2);
+            TV direction=structure1->Displacement(data,structure2,offset1,offset2);
             T distance=direction.norm();
-            direction.normalize();
-            T constraint_violation=distance-rigid_structure1->collision_radius-rigid_structure2->collision_radius;
+            T constraint_violation=distance-structure1->collision_radius-structure2->collision_radius;
             T distance_condition=-.001;
             std::pair<int,T> remembered=force_memory[CONSTRAINT(s1,s2)];
             //std::cout<<s1<<" "<<rigid_structure1->name<<" "<<s2<<" "<<rigid_structure2->name<<": constraint violation "<<constraint_violation<<std::endl;
             //std::cout<<"s1 com: "<<rigid_structure1->frame.position.transpose()<<" s2 com: "<<rigid_structure2->frame.position.transpose()<<" r1: "<<rigid_structure1->collision_radius<<" r2: "<<rigid_structure2->collision_radius<<std::endl;
             if(constraint_violation<distance_condition || (remembered.first==call_count && remembered.second<0)){
+                TV x1=structure1->frame.position+offset1;
+                TV x2=structure2->frame.position+offset2;
                 std::cout<<"Constraint between "<<s1<<" and "<<s2<<std::endl;
-                CONSTRAINT_VECTOR DC_DA2=factor*RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(rigid_structure2,offset2,x1,x2,direction);
-                CONSTRAINT_VECTOR DC_DA1=factor*RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(rigid_structure1,offset1,x1,x2,direction);
+                CONSTRAINT_VECTOR DC_DA2=RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure2,offset2,x1,x2,direction);
+                CONSTRAINT_VECTOR DC_DA1=RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure1,offset1,x1,x2,direction);
                 terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s2,DC_DA2));
                 terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s1,-DC_DA1));
-                Matrix<T,d,t+d> force_balance_contribution2=factor*remember.second*DD_DV(rigid_structure2,offset2,x1,x2,direction);
-                Matrix<T,d,t+d> force_balance_contribution1=-factor*remembered.second*DD_DV(rigid_structure1,offset1,x1,x2,direction);
+                Matrix<T,d,t+d> force_balance_contribution2=remembered.second*RIGID_STRUCTURE_INDEX_MAP<TV>::DD_DV(*structure2,offset2,x1,x2,direction);
+                Matrix<T,d,t+d> force_balance_contribution1=-remembered.second*RIGID_STRUCTURE_INDEX_MAP<TV>::DD_DV(*structure1,offset1,x1,x2,direction);
                 for(int j=0;j<d;j++){
                     for(int k=0;k<d;k++){
-                        force_terms.push_back(Triplet<T>(body_index1*(t+d)+j,body_index1*(t+d)+k,force_balance_contribution1(j,k)));
-                        force_terms.push_back(Triplet<T>(body_index2*(t+d)+j,body_index2*(t+d)+k,force_balance_contribution2(j,k)));
+                        force_terms.push_back(Triplet<T>(s1*(t+d)+j,s1*(t+d)+k,force_balance_contribution1(j,k)));
+                        force_terms.push_back(Triplet<T>(s2*(t+d)+j,s2*(t+d)+k,force_balance_contribution2(j,k)));
                     }
                 }
 
