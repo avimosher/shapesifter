@@ -32,7 +32,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     int count=0;
     QUALITY<T> solve_quality;
     T epsilon=1e-8;
-    int step_limit=6;
+    int step_limit=16;
     T c1=.5,c2=.9;
     while(last_norm>epsilon){
         auto solve_vector=equation->Solve();
