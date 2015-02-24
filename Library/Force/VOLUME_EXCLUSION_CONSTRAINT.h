@@ -33,7 +33,7 @@ public:
 
     void Unpack_Forces(const Matrix<T,Dynamic,1>& forces);
     void Increment_Forces(const Matrix<T,Dynamic,1>& forces);
-    void Linearize(DATA<TV>& data,const T dt,const T time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic);
+    void Linearize(DATA<TV>& data,const T dt,const T time,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic);
     void Viewer(const DATA<TV>& data,osg::Node* node);
     DEFINE_TYPE_NAME("VOLUME_EXCLUSION_CONSTRAINT")
 };

@@ -16,7 +16,7 @@
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::
-Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
+Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
 {
     auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.Find("RIGID_STRUCTURE_DATA"));
     typedef Matrix<T,1,RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE> CONSTRAINT_VECTOR;
@@ -48,7 +48,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         TV offset2=frame2.orientation*constraint.v2;
         std::cout<<"Hessian term: "<<std::endl<<RIGID_STRUCTURE_INDEX_MAP<TV>::Hessian(structure1->twist.angular,structure2->twist.angular,offset1,offset2,x1,x2,direction,7,0)<<std::endl;
         std::cout<<"Hessian term: "<<std::endl<<RIGID_STRUCTURE_INDEX_MAP<TV>::Hessian(structure1->twist.angular,structure2->twist.angular,offset1,offset2,x1,x2,direction,0,7)<<std::endl;
-        std::cout<<"Hessian term: "<<std::endl<<RIGID_STRUCTURE_INDEX_MAP<TV>::Full_Hessian(structure1->twist.angular,structure2->twist.angular,offset1,offset2,x1,x2,direction)<<std::endl;
+        auto hessian=RIGID_STRUCTURE_INDEX_MAP<TV>::Full_Hessian(structure1->twist.angular,structure2->twist.angular,offset1,offset2,x1,x2,direction);
+        std::cout<<"Hessian term: "<<std::endl<<hessian<<std::endl;
         std::cout<<"DRDA REL: "<<force_balance_contribution1<<std::endl;
         std::cout<<"END DRDA"<<std::endl;
         for(int j=0;j<t+d;j++){
@@ -59,6 +60,11 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 if(abs(force_balance_contribution2(j,k))>1e-6){
                     force_terms.push_back(Triplet<T>(body_index2*(t+d)+j,body_index2*(t+d)+k,force_balance_contribution2(j,k)));
                 }
+                // Hessian terms
+                hessian_terms.push_back(Triplet<T>(body_index1*(t+d)+j,body_index1*(t+d)+k,hessian(j,k)));
+                hessian_terms.push_back(Triplet<T>(body_index1*(t+d)+j,body_index2*(t+d)+k,hessian(j,t+d+k)));
+                hessian_terms.push_back(Triplet<T>(body_index2*(t+d)+j,body_index1*(t+d)+k,hessian(t+d+j,k)));
+                hessian_terms.push_back(Triplet<T>(body_index2*(t+d)+j,body_index2*(t+d)+k,hessian(t+d+j,t+d+k)));
             }
         }
         //Safe_Normalize(direction);

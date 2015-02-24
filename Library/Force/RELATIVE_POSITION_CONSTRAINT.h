@@ -36,7 +36,7 @@ public:
     {archive(constraints);}
 
 
-    void Linearize(DATA<TV>& data,const T dt,const T time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic);
+    void Linearize(DATA<TV>& data,const T dt,const T time,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic);
     void Constraint_Satisfaction(DATA<TV>& data,const T dt,const T target_time,Matrix<T,Dynamic,1>& satisfaction);
     void Special(DATA<TV>& data,const T dt,const T time,SparseMatrix<T>& gradient);
     void Viewer(const DATA<TV>& data,osg::Node* node);
