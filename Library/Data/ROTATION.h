@@ -82,6 +82,10 @@ class ROTATION<Eigen::Matrix<T,3,1>>:public Eigen::Quaternion<T>
 
     ROTATION operator*(const ROTATION& rhs) const
     {return ((Eigen::Quaternion<T>)(*this))*((Eigen::Quaternion<T>)rhs);}
+
+    TV operator*(const TV& rhs) const
+    {return this->_transformVector(rhs);}
+
     TV Axis() const {return Eigen::AngleAxis<T>(*this).axis();}
     T Angle() const {return Eigen::AngleAxis<T>(*this).angle();}
 

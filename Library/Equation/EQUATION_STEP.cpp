@@ -35,6 +35,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     int step_limit=16;
     T c1=.5,c2=.9;
     while(last_norm>epsilon){
+        std::cout<<"\n\n\n*****LOOP "<<count<<" *******"<<std::endl;
         auto solve_vector=equation->Solve();
         //std::cout<<"Solve vector: "<<solve_vector.transpose()<<std::endl;
         solve_velocities=solve_vector.block(0,0,data.Velocity_DOF(),1);

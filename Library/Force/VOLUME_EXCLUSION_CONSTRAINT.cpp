@@ -76,14 +76,21 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 CONSTRAINT_VECTOR DC_DA1=factor*RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure1,object_offset1,x1,x2,direction);
                 terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s2,DC_DA2));
                 terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s1,-DC_DA1));
-                Matrix<T,t+d,t+d> force_balance_contribution2=factor*remembered.second*RIGID_STRUCTURE_INDEX_MAP<TV>::Velocity_Map(offset2).transpose()*RIGID_STRUCTURE_INDEX_MAP<TV>::DD_DV(*structure2,object_offset2,x1,x2,direction);
-                Matrix<T,t+d,t+d> force_balance_contribution1=-factor*remembered.second*RIGID_STRUCTURE_INDEX_MAP<TV>::Velocity_Map(offset1).transpose()*RIGID_STRUCTURE_INDEX_MAP<TV>::DD_DV(*structure1,object_offset1,x1,x2,direction);
+                Matrix<T,t+d,t+d> force_balance_contribution2=factor*remembered.second*RIGID_STRUCTURE_INDEX_MAP<TV>::DF_DA(*structure2,object_offset2,x1,x2,direction);
+                Matrix<T,t+d,t+d> force_balance_contribution1=-factor*remembered.second*RIGID_STRUCTURE_INDEX_MAP<TV>::DF_DA(*structure1,object_offset1,x1,x2,direction);
                 //Matrix<T,d,t+d> force_balance_contribution2=factor*remembered.second*RIGID_STRUCTURE_INDEX_MAP<TV>::DD_DV(*structure2,object_offset2,x1,x2,direction);
                 //Matrix<T,d,t+d> force_balance_contribution1=-factor*remembered.second*RIGID_STRUCTURE_INDEX_MAP<TV>::DD_DV(*structure1,object_offset1,x1,x2,direction);
+                std::cout<<"DRDA VOL: "<<force_balance_contribution1<<std::endl;
+                std::cout<<"END DRDA"<<std::endl;
+
                 for(int j=0;j<t+d;j++){
                     for(int k=0;k<t+d;k++){
-                        force_terms.push_back(Triplet<T>(s1*(t+d)+j,s1*(t+d)+k,force_balance_contribution1(j,k)));
-                        force_terms.push_back(Triplet<T>(s2*(t+d)+j,s2*(t+d)+k,force_balance_contribution2(j,k)));
+                        if(abs(force_balance_contribution1(j,k))>1e-6){
+                            force_terms.push_back(Triplet<T>(s1*(t+d)+j,s1*(t+d)+k,force_balance_contribution1(j,k)));
+                        }
+                        if(abs(force_balance_contribution2(j,k))>1e-6){
+                            force_terms.push_back(Triplet<T>(s2*(t+d)+j,s2*(t+d)+k,force_balance_contribution2(j,k)));
+                        }
                     }
                 }
                 rhs.push_back(-factor*constraint_violation);

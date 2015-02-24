@@ -27,27 +27,38 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         const CONSTRAINT& constraint=constraints[i];
         int body_index1=constraint.s1;
         int body_index2=constraint.s2;
-        auto rigid_structure1=rigid_data->structures[body_index1];
-        auto rigid_structure2=rigid_data->structures[body_index2];
-        FRAME<TV> frame1=rigid_structure1->frame;
-        FRAME<TV> frame2=rigid_structure2->frame;
+        auto structure1=rigid_data->structures[body_index1];
+        auto structure2=rigid_data->structures[body_index2];
+        FRAME<TV> frame1=structure1->frame;
+        FRAME<TV> frame2=structure2->frame;
         TV direction=data.Minimum_Offset(frame1*constraint.v1,frame2*constraint.v2);
         T distance=direction.norm();
         std::cout<<"Constraint distance: "<<distance<<std::endl;
         TV x1=frame1*constraint.v1;
         TV x2=frame2*constraint.v2;
         T factor=500;
-        CONSTRAINT_VECTOR DC_DA2=factor*RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*rigid_structure2,constraint.v2,x1,x2,direction);
-        CONSTRAINT_VECTOR DC_DA1=factor*RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*rigid_structure1,constraint.v1,x1,x2,direction);
+        CONSTRAINT_VECTOR DC_DA2=factor*RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure2,constraint.v2,x1,x2,direction);
+        CONSTRAINT_VECTOR DC_DA1=factor*RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure1,constraint.v1,x1,x2,direction);
         terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index2,DC_DA2));
         terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index1,-DC_DA1));
         //Matrix<T,d,t+d> force_balance_contribution2=factor*stored_forces(i)*RIGID_STRUCTURE_INDEX_MAP<TV>::Velocity_Map(frame2.orientation*constraint.v2).transpose()*RIGID_STRUCTURE_INDEX_MAP<TV>::DD_DV(*rigid_structure2,constraint.v2,x1,x2,direction);
-        Matrix<T,t+d,t+d> force_balance_contribution2=factor*stored_forces(i)*RIGID_STRUCTURE_INDEX_MAP<TV>::Velocity_Map(frame2.orientation._transformVector(constraint.v2)).transpose()*RIGID_STRUCTURE_INDEX_MAP<TV>::DD_DV(*rigid_structure2,constraint.v2,x1,x2,direction);
-        Matrix<T,t+d,t+d> force_balance_contribution1=-factor*stored_forces(i)*RIGID_STRUCTURE_INDEX_MAP<TV>::Velocity_Map(frame1.orientation._transformVector(constraint.v1)).transpose()*RIGID_STRUCTURE_INDEX_MAP<TV>::DD_DV(*rigid_structure1,constraint.v1,x1,x2,direction);
+        Matrix<T,t+d,t+d> force_balance_contribution2=factor*stored_forces(i)*RIGID_STRUCTURE_INDEX_MAP<TV>::DF_DA(*structure2,constraint.v2,x1,x2,direction);
+        Matrix<T,t+d,t+d> force_balance_contribution1=-factor*stored_forces(i)*RIGID_STRUCTURE_INDEX_MAP<TV>::DF_DA(*structure1,constraint.v1,x1,x2,direction);
+        TV offset1=frame1.orientation*constraint.v1;
+        TV offset2=frame2.orientation*constraint.v2;
+        std::cout<<"Hessian term: "<<std::endl<<RIGID_STRUCTURE_INDEX_MAP<TV>::Hessian(structure1->twist.angular,structure2->twist.angular,offset1,offset2,x1,x2,direction,7,0)<<std::endl;
+        std::cout<<"Hessian term: "<<std::endl<<RIGID_STRUCTURE_INDEX_MAP<TV>::Hessian(structure1->twist.angular,structure2->twist.angular,offset1,offset2,x1,x2,direction,0,7)<<std::endl;
+        std::cout<<"Hessian term: "<<std::endl<<RIGID_STRUCTURE_INDEX_MAP<TV>::Full_Hessian(structure1->twist.angular,structure2->twist.angular,offset1,offset2,x1,x2,direction)<<std::endl;
+        std::cout<<"DRDA REL: "<<force_balance_contribution1<<std::endl;
+        std::cout<<"END DRDA"<<std::endl;
         for(int j=0;j<t+d;j++){
             for(int k=0;k<t+d;k++){
-                force_terms.push_back(Triplet<T>(body_index1*(t+d)+j,body_index1*(t+d)+k,force_balance_contribution1(j,k)));
-                force_terms.push_back(Triplet<T>(body_index2*(t+d)+j,body_index2*(t+d)+k,force_balance_contribution2(j,k)));
+                if(abs(force_balance_contribution1(j,k))>1e-6){
+                    force_terms.push_back(Triplet<T>(body_index1*(t+d)+j,body_index1*(t+d)+k,force_balance_contribution1(j,k)));
+                }
+                if(abs(force_balance_contribution2(j,k))>1e-6){
+                    force_terms.push_back(Triplet<T>(body_index2*(t+d)+j,body_index2*(t+d)+k,force_balance_contribution2(j,k)));
+                }
             }
         }
         //Safe_Normalize(direction);
@@ -104,7 +115,6 @@ Special(DATA<TV>& data,const T dt,const T target_time,SparseMatrix<T>& gradient)
         TV x1=frame1*constraint.v1;
         TV x2=frame2*constraint.v2;
         TV direction=data.Minimum_Offset(x1,x2);
-        //Hessian(structure1->twist.angular,offset1,x1,x2,direction,1);
         terms.push_back(Triplet<Matrix<T,1,t+d>>(i,body_index2,RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure2,constraint.v2,x1,x2,direction)));
         terms.push_back(Triplet<Matrix<T,1,t+d>>(i,body_index1,-RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure1,constraint.v2,x1,x2,direction)));
     }
