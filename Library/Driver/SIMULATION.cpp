@@ -21,7 +21,7 @@ using namespace Mechanics;
 template<class TV> SIMULATION<TV>::
 SIMULATION()
     :data(*new DATA<TV>()),evolution(*new EVOLUTION<TV>()),force(*new FORCE<TV>()),
-    current_frame(0),restart_frame(0),time(0),restart(false),substeps(false),output_directory("."),title("")
+    current_frame(0),restart_frame(0),output_number(0),time(0),restart(false),substeps(false),output_directory("."),title("")
 {
 }
 ///////////////////////////////////////////////////////////////////////
@@ -34,11 +34,12 @@ template<class TV> SIMULATION<TV>::
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void SIMULATION<TV>::
-Write(const int frame)
+Write(const std::string& frame_title)
 {
+    title=frame_title;
     std::ostringstream stringStream;
     mkdir(output_directory.c_str(),0777);
-    stringStream<<output_directory<<"/frame."<<frame;
+    stringStream<<output_directory<<"/frame."<<output_number++;
     std::ofstream output(stringStream.str().c_str(),std::ios::out);
     cereal::BinaryOutputArchive archive(output);
     archive(time,title,data,force);

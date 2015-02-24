@@ -20,6 +20,7 @@ public:
     FORCE<TV>& force;
     int current_frame;
     int restart_frame;
+    int output_number;
     T time;
     T last_time;
     bool restart;
@@ -33,7 +34,7 @@ public:
     void Set_Restart(int restart_frame)
     {this->restart_frame=restart_frame;restart=true;}
 
-    void Write(const int frame);
+    void Write(const std::string& frame_title);
     bool Read(const int frame);
     void Viewer(osg::Group*& root);
 };

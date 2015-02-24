@@ -85,6 +85,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                     }
                 }
                 rhs.push_back(-factor*constraint_violation);
+                std::cout<<"VOL RHS contribution: "<<(DC_DA1.transpose()*remembered.second).transpose()<<std::endl;
                 right_hand_side.template block<t+d,1>(s1*(t+d),0)+=DC_DA1.transpose()*remembered.second;
                 right_hand_side.template block<t+d,1>(s2*(t+d),0)-=DC_DA2.transpose()*remembered.second;
                 constraints.push_back(CONSTRAINT(s1,s2));

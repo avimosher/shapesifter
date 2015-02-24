@@ -72,10 +72,11 @@ Solve()
     solver.compute(matrix);
     //solver.preconditioner().SetDiagonal(conditioner);
     solver.setMaxIterations(solve_iterations);
-    //std::cout<<"Solve RHS: "<<right_hand_side_full.transpose()<<std::endl;
     Matrix<T,Dynamic,1> solution=solver.solve(right_hand_side_full);
     //std::cout<<"Iterations: "<<solver.iterations()<<std::endl;
     std::cout<<"Solution: "<<solution.transpose()<<std::endl;
+    std::cout<<"Solve RHS: "<<right_hand_side_full.transpose()<<std::endl;
+    std::cout<<"A*x: "<<(matrix*solution).transpose()<<std::endl;
     return solution;
 }
 ///////////////////////////////////////////////////////////////////////

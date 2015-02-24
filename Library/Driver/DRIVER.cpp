@@ -12,7 +12,7 @@ Initialize()
         simulation->current_frame=simulation->restart_frame;
         simulation->Read(simulation->restart_frame);
     }
-    else{simulation->Write(simulation->current_frame);}
+    else{simulation->Write("Initial state");}
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void DRIVER<TV>::
@@ -30,8 +30,7 @@ Advance_To_Target_Time(const T target_time)
     bool done=false;
     for(int substep=1;!done;substep++){
         Advance_One_Time_Step(target_time,done);
-        simulation->title="End frame "+std::to_string(simulation->current_frame);
-        simulation->Write(simulation->current_frame);
+        simulation->Write("End frame "+std::to_string(simulation->current_frame));
         simulation->current_frame++;
         std::cout<<simulation->current_frame<<std::endl;
     }

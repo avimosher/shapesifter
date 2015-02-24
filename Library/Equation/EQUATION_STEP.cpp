@@ -19,10 +19,10 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     current_velocities.resize(data.Velocity_DOF(),1);current_velocities.setZero();
     data.Unpack_Velocities(current_velocities);
     data.Pack_Positions(positions);
-    T last_norm=equation->Linearize(data,force,dt,time,true);
     force.Pack_Forces(solve_forces);
     solve_forces.setZero();
     force.Unpack_Forces(solve_forces);
+    T last_norm=equation->Linearize(data,force,dt,time,true);
 
     std::cout<<"First norm: "<<last_norm<<std::endl;
 
@@ -51,6 +51,10 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
             force.Increment_Forces(ratio*solve_forces);
             data.Unpack_Velocities(current_velocities+ratio*solve_velocities);
             data.Step();
+            if(simulation.substeps){
+                simulation.Write("Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(count)+" line search "+std::to_string(i));
+                std::cout<<"Write frame: "<<simulation.current_frame<<std::endl;
+            }
             norm=equation->Linearize(data,force,dt,time,false); // linearize around a point and calculate norm there
             std::cout<<"Norm with ratio "<<ratio<<" is "<<norm<<" ("<<last_norm<<")"<<std::endl;
             T curvature_factor=equation->Sufficient_Descent_Factor(solve_vector);
@@ -67,12 +71,6 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
         last_norm=norm;
 
         count++;
-        if(simulation.substeps){
-            simulation.title="Substep for "+std::to_string(count)+" frame "+std::to_string(simulation.current_frame);
-            simulation.Write(simulation.current_frame);
-            simulation.current_frame++;
-            std::cout<<"Write frame: "<<simulation.current_frame<<std::endl;
-        }
         //count++;if(count>35){exit(0);}
     }
     std::cout<<"Steps: "<<count<<std::endl;

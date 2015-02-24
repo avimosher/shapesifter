@@ -23,7 +23,6 @@ int main(int argc,char **argv)
     typedef Matrix<T,3,1> TV;
     auto simulation=std::make_shared<SIMULATION<TV>>();
 
-    //std::cout<<"Scene file: "<<argv[1]<<std::endl;
     char *restart=Get_Command_Option(argv,argv+argc,"-restart");
     if(restart){simulation->Set_Restart(std::stoi(restart));}
     if(Get_Command_Option(argv,argv+argc,"-substeps")){

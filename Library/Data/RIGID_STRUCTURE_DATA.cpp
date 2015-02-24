@@ -5,6 +5,7 @@
 #include <Utilities/OSG_HELPERS.h>
 #include <osg/Geode>
 #include <osg/Node>
+#include <osg/PolygonMode>
 #include <osg/Shape>
 #include <osg/ShapeDrawable>
 #include <osgWidget/Box>
@@ -115,6 +116,36 @@ Viewer(osg::Node* node)
                 unitSphereDrawable->setColor(osg::Vec4(1.0f,1.0f,1.0f,0.5f));
                 basicShapesGeode->addDrawable(unitSphereDrawable);
             }
+            /*auto program=new osg::Program;
+            auto fragmentShader=new osg::Shader(osg::Shader::FRAGMENT);
+            fragmentShader->setShaderSource(
+                "in vec2 vTexCoord;\n"
+                "void main(void)\n"
+                "{\n"
+                "    float x;x=fract(vTexCoord.x);\n"
+                "    if(x>0.5){gl_FragColor=vec4(1.0,1.0,1.0,1.0);}\n"
+                "    else{gl_FragColor=vec4(0.0,0.0,0.0,0.0);}\n"
+//                "    gl_FragColor=gl_FragCoord;\n"
+//                "    gl_FragColor=color*texture2D(base,gl_TexCoord[0]);\n"
+//                "    gl_FragColor=ColorFilter(gl_FragColor);\n"
+                "}\n"
+            );
+            fragmentShader->setName("fragment");
+            program->addShader(fragmentShader);
+            auto vertexShader=new osg::Shader(osg::Shader::VERTEX);
+            vertexShader->setShaderSource(
+                "in vec2 aTexCoord;\n"
+                "out vec2 vTexCoord;\n"
+                "void main(void)\n"
+                "{\n"
+                "    vTexCoord=aTexCoord;\n"
+                "}\n"
+            );
+            vertexShader->setName("vertex");
+            program->addShader(vertexShader);
+            auto stateSet=basicShapesGeode->getOrCreateStateSet();
+            stateSet->setAttributeAndModes(program,osg::StateAttribute::ON);*/
+            basicShapesGeode->getOrCreateStateSet()->setAttribute(new osg::PolygonMode(osg::PolygonMode::FRONT_AND_BACK,osg::PolygonMode::LINE));
             transform->addChild(basicShapesGeode);
             rigid_group->addChild(transform);
         }
