@@ -21,20 +21,22 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     full_right_hand_side.resize(full_size,1);
 
     std::vector<std::vector<Triplet<T>>> force_terms;
-    full_right_hand_side(0,0).resize(data.Velocity_DOF(),1);
-    full_right_hand_side(0,0).setZero();
-    int size=full_right_hand_side(0,0).rows();
+    full_right_hand_side[0].resize(data.Velocity_DOF(),1);
+    full_right_hand_side[0].setZero();
+    int size=full_right_hand_side[0].rows();
     J.resize(size,size);
     full_matrix(0,0).resize(size,size);
     // TODO: one block matrix per data type too
     force_terms.resize(data.size());
     for(int i=0;i<data.size();i++){
-        data[i]->Inertia(force_terms[i],full_right_hand_side[i]);
+        data[i]->Inertia(dt,force_terms[i],full_right_hand_side[i]);
     }
+    std::cout<<"RHS after inertia: "<<full_right_hand_side[0].transpose()<<std::endl;
     for(int i=0;i<force.size();i++){
         // TODO: force_terms needs to be properly handled when there are multiple data types
-        force[i]->Linearize(data,dt,time,force_terms[0],full_matrix(i+1,0),full_right_hand_side(0,0),full_right_hand_side(i+1,0),stochastic);
+        force[i]->Linearize(data,dt,time,force_terms[0],full_matrix(i+1,0),full_right_hand_side[0],full_right_hand_side[i+1],stochastic);
         full_matrix(0,i+1)=full_matrix(i+1,0).transpose();
+        std::cout<<"RHS after force "<<i<<": "<<full_right_hand_side[0].transpose()<<std::endl;
     }
     // for the sake of sanity, assume that each force adds a constraint block as well as a contribution to the velocity block
     // Each such block will be required to be in terms of elementary T types, but they will remain separate.  This is a good compromise.
@@ -68,7 +70,8 @@ Solve()
 {
     const int solve_iterations=200;
     //MINRES<SparseMatrix<T>,Lower,RowPreconditioner<T>> solver;
-    MINRES<SparseMatrix<T>> solver;
+    //MINRES<SparseMatrix<T>> solver;
+    GMRES<SparseMatrix<T>,IdentityPreconditioner> solver;
     solver.compute(matrix);
     //solver.preconditioner().SetDiagonal(conditioner);
     solver.setMaxIterations(solve_iterations);

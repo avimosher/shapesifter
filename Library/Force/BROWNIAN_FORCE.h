@@ -10,9 +10,11 @@ template<class TV>
 class BROWNIAN_FORCE:public FORCE_TYPE<TV>
 {
     typedef typename TV::Scalar T;
+    typedef typename ROTATION<TV>::SPIN T_SPIN;
 
     Matrix<T,Dynamic,1> stored_right_hand_side;
 public:
+    enum DEFINITIONS{d=TV::RowsAtCompileTime,t=T_SPIN::RowsAtCompileTime};
     T temperature;
     T eta;
 

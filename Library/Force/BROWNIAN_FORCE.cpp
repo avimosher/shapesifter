@@ -29,7 +29,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             T translational_variance=sqrt(2*translational_diffusion_coefficient*dt);
             T random_displacement=random.Gaussian(T(),translational_variance);
             TV random_orientation=random.template Direction<TV>();
-            stored_right_hand_side.template block<TV::SizeAtCompileTime,1>(TV::SizeAtCompileTime*i,0)=linear_drag*random_displacement*random_orientation*one_over_dt;
+            stored_right_hand_side.template block<d,1>((t+d)*i,0)=linear_drag*random_displacement*random_orientation*one_over_dt;
             
             /*T rotational_resistance=8*M_PI*eta*std::pow(radius,3);
             T rotational_diffusion_coefficient=kT/rotational_resistance;

@@ -47,10 +47,11 @@ public:
         dx_da.template block<d,t>(0,d)=-2*Cross_Product_Matrix(offset)*(q*dw_da+w*dq_da);
         //dx_da.template block<d,t>(0,d)=Cross_Product_Matrix(offset).transpose();
 
-        //std::cout<<dx_da<<std::endl;
+        std::cout<<"DX_DA: "<<dx_da<<std::endl;
         
         auto distance=std::max((T)1e-3,(x2-x1).norm());
         auto dd_da=dx_da/distance-direction/cube(distance)*direction.transpose()*dx_da;
+        std::cout<<"DD_DA: "<<dd_da<<std::endl;
         return dd_da;
     }
 

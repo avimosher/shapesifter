@@ -32,7 +32,7 @@ public:
     virtual T Print(){return T();}
     virtual void Viewer(osg::Node* node){};
     virtual std::string Name(){return "DATA_TYPE";}
-    virtual void Inertia(std::vector<Triplet<T>>& force_terms,Matrix<T,Dynamic,1>& rhs){};
+    virtual void Inertia(const T dt,std::vector<Triplet<T>>& force_terms,Matrix<T,Dynamic,1>& rhs){};
 };
 
 }
