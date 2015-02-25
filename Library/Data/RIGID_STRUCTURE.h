@@ -89,8 +89,9 @@ public:
         TV closest_point1=centroid1+(2*weights(0)-1)*major_axis1;
         TV closest_point2=centroid2+(2*weights(1)-1)*major_axis2;
         TV displacement=closest_point2-closest_point1;
-        offset1=closest_point1-centroid1+displacement*collision_radius;
-        offset2=closest_point2-centroid2+displacement*structure->collision_radius;
+        TV displacement_direction=displacement.normalized();
+        offset1=closest_point1-centroid1+displacement_direction*collision_radius;
+        offset2=closest_point2-centroid2+displacement_direction*structure->collision_radius;
         return displacement;
     }
 
