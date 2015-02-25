@@ -10,6 +10,7 @@ template<class TV>
 class RIGID_STRUCTURE_INDEX_MAP
 {
     typedef typename TV::Scalar T;
+    typedef Matrix<T,1,TV::RowsAtCompileTime> TV_T;
     typedef typename ROTATION<TV>::SPIN T_SPIN;
 public:
     enum DEFINITIONS{STATIC_SIZE=TWIST<TV>::STATIC_SIZE,d=TV::RowsAtCompileTime,t=T_SPIN::RowsAtCompileTime};
@@ -36,24 +37,27 @@ public:
         TV current_offset=orientation*object_offset;
         orientation=ROTATION<TV>::From_Rotation_Vector(a).inverse()*orientation;
         TV offset=orientation*object_offset;
-        auto norm_a=a.norm();
-        auto dw_da=-sinc(norm_a/2)/4*a.transpose();
-        auto a_norma=(norm_a>1e-8)?(TV)(a/norm_a):TV::UnitX();
+        T norm_a=a.norm();
+        TV_T dw_da=-sinc(norm_a/2)/4*a.transpose();
+        TV a_norma=(norm_a>1e-8)?(TV)(a/norm_a):TV::UnitX();
         Matrix<T,3,3> dq_da=cos(norm_a/2)/2*a_norma*a_norma.transpose()+sinc(norm_a/2)/2*(Matrix<T,t,t>::Identity()-a_norma*a_norma.transpose());
-        auto w=cos(norm_a/2);
-        auto q=sinc(norm_a/2)*a/2;
+        T w=cos(norm_a/2);
+        TV q=sinc(norm_a/2)*a/2;
         Matrix<T,d,t+d> dx_da; // identity for translation parts, zero for rotation
         dx_da.template block<d,d>(0,0).setIdentity();
         dx_da.template block<d,t>(0,d)=-2*Cross_Product_Matrix(offset)*(q*dw_da+w*dq_da);
         //dx_da.template block<d,t>(0,d)=Cross_Product_Matrix(offset).transpose();
 
-        auto distance=std::max((T)1e-3,(x2-x1).norm());
-        auto dd_da=dx_da/distance-direction/cube(distance)*direction.transpose()*dx_da;
+        T distance=std::max((T)1e-3,(x2-x1).norm());
+        Matrix<T,d,t+d> dd_da=dx_da/distance-direction/cube(distance)*direction.transpose()*dx_da;
 
-        auto d_n=direction.normalized();
+        TV d_n=direction.normalized();
         Matrix<T,d,t+d> dr_da;
         dr_da.template block<d,d>(0,0).setZero();
         dr_da.template block<d,t>(0,d)=-2*Cross_Product_Matrix(offset)*(q*dw_da+w*dq_da);
+        std::cout<<"Object R: "<<object_offset.transpose()<<std::endl;
+        std::cout<<"R: "<<offset.transpose()<<std::endl;
+        std::cout<<"DR_DA: "<<dr_da<<std::endl;
 
         Matrix<T,t+d,t+d> dF_da;
         dF_da.template block<d,t+d>(0,0)=dd_da;
@@ -163,10 +167,7 @@ public:
 
             T d2na_daa=1/n_a-1/sqr(n_a)*dna_da;
             T d2w_daa=-c/4*sqr(dna_da)-s/2*d2na_daa;
-            std::cout<<"n_a: "<<n_a<<std::endl;
-            std::cout<<"D2W_DAA: "<<d2w_daa<<" d2na_daa: "<<d2na_daa<<" dq_da: "<<dq_da.transpose()<<std::endl;
             TV d2q_daa=1/(2*n_a)*c*(2*da_da*dna_da-2*a_norma*sqr(dna_da)+a*d2na_daa)+1/n_a*s*(2*a/sqr(n_a)*sqr(dna_da)-2*da_da/n_a*dna_da-a_norma*d2na_daa-a/4*sqr(dna_da));
-            std::cout<<"D2Q_DAA: "<<d2q_daa.transpose()<<std::endl;
             auto oxstar=Cross_Product_Matrix(offset);
             TV d2x_daa=-2*oxstar*(d2w_daa*q+2*dw_da*dq_da+w*d2q_daa);
             return d2x_daa;
@@ -176,13 +177,13 @@ public:
         TV d2r_da1a2=((i1==i2&&i1>=(t+d+d))?D2X_DAA(a2,offset2,i1-t-d-d):zero)-((i1==i2&&i1<(t+d)&&i1>=d)?D2X_DAA(a1,offset1,i1-d):zero);
         TV d2d_da1a2=d2r_da1a2-dr_da1/cube(n_r)*r_t*dr_da2-r/cube(n_r)*(dr_da1.transpose()*dr_da2+r_t*d2r_da1a2)-dr_da2/cube(n_r)*r_t*dr_da1+3*r/std::pow(n_r,5)*r_t*dr_da2*r_t*dr_da1;
         TV d_n=direction.normalized();
-        std::cout<<"d2r_da1a2: "<<d2r_da1a2.transpose()<<std::endl;
+        /*std::cout<<"d2r_da1a2: "<<d2r_da1a2.transpose()<<std::endl;
         std::cout<<"p1: "<<d2d_da1a2.transpose()*r<<std::endl;
         std::cout<<"p2: "<<dd_da1.transpose()*dr_da2<<std::endl;
         std::cout<<"p3: "<<dd_da2.transpose()*dr_da1<<std::endl;
-        std::cout<<"p4: "<<d_n.transpose()*d2r_da1a2<<std::endl;
+        std::cout<<"p4: "<<d_n.transpose()*d2r_da1a2<<std::endl;*/
         T d2f_da1a2=(d2d_da1a2.transpose()*r+dd_da1.transpose()*dr_da2+dd_da2.transpose()*dr_da1+d_n.transpose()*d2r_da1a2).value();
-        std::cout<<"("<<i1<<","<<i2<<"): "<<d2f_da1a2<<std::endl;
+        //std::cout<<"("<<i1<<","<<i2<<"): "<<d2f_da1a2<<std::endl;
         return d2f_da1a2;
     }
 

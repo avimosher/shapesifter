@@ -81,7 +81,10 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 //Matrix<T,d,t+d> force_balance_contribution2=factor*remembered.second*RIGID_STRUCTURE_INDEX_MAP<TV>::DD_DV(*structure2,object_offset2,x1,x2,direction);
                 //Matrix<T,d,t+d> force_balance_contribution1=-factor*remembered.second*RIGID_STRUCTURE_INDEX_MAP<TV>::DD_DV(*structure1,object_offset1,x1,x2,direction);
                 std::cout<<"DRDA VOL: "<<force_balance_contribution1<<std::endl;
-                std::cout<<"END DRDA"<<std::endl;
+                  std::cout<<"END DRDA"<<std::endl;
+                std::cout<<"F_i: "<<constraint_violation<<std::endl;
+                auto hessian=factor*constraint_violation*RIGID_STRUCTURE_INDEX_MAP<TV>::Full_Hessian(structure1->twist.angular,structure2->twist.angular,offset1,offset2,x1,x2,direction);
+                //std::cout<<"Hessian: "<<std::endl<<hessian<<std::endl;
 
                 for(int j=0;j<t+d;j++){
                     for(int k=0;k<t+d;k++){
@@ -91,6 +94,11 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                         if(abs(force_balance_contribution2(j,k))>1e-6){
                             force_terms.push_back(Triplet<T>(s2*(t+d)+j,s2*(t+d)+k,force_balance_contribution2(j,k)));
                         }
+                        // Hessian terms
+                        hessian_terms.push_back(Triplet<T>(s1*(t+d)+j,s1*(t+d)+k,hessian(j,k)));
+                        hessian_terms.push_back(Triplet<T>(s1*(t+d)+j,s2*(t+d)+k,hessian(j,t+d+k)));
+                        hessian_terms.push_back(Triplet<T>(s2*(t+d)+j,s1*(t+d)+k,hessian(t+d+j,k)));
+                        hessian_terms.push_back(Triplet<T>(s2*(t+d)+j,s2*(t+d)+k,hessian(t+d+j,t+d+k)));
                     }
                 }
                 rhs.push_back(-factor*constraint_violation);

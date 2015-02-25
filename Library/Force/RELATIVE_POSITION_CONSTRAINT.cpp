@@ -46,12 +46,12 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         Matrix<T,t+d,t+d> force_balance_contribution1=-factor*stored_forces(i)*RIGID_STRUCTURE_INDEX_MAP<TV>::DF_DA(*structure1,constraint.v1,x1,x2,direction);
         TV offset1=frame1.orientation*constraint.v1;
         TV offset2=frame2.orientation*constraint.v2;
-        std::cout<<"Hessian term: "<<std::endl<<RIGID_STRUCTURE_INDEX_MAP<TV>::Hessian(structure1->twist.angular,structure2->twist.angular,offset1,offset2,x1,x2,direction,7,0)<<std::endl;
-        std::cout<<"Hessian term: "<<std::endl<<RIGID_STRUCTURE_INDEX_MAP<TV>::Hessian(structure1->twist.angular,structure2->twist.angular,offset1,offset2,x1,x2,direction,0,7)<<std::endl;
-        auto hessian=RIGID_STRUCTURE_INDEX_MAP<TV>::Full_Hessian(structure1->twist.angular,structure2->twist.angular,offset1,offset2,x1,x2,direction);
-        std::cout<<"Hessian term: "<<std::endl<<hessian<<std::endl;
+        constraint_rhs[i]=factor*(constraint.target_distance-distance);
+        std::cout<<"F_i: "<<constraint_rhs[i]<<std::endl;
+        auto hessian=constraint_rhs[i]*RIGID_STRUCTURE_INDEX_MAP<TV>::Full_Hessian(structure1->twist.angular,structure2->twist.angular,offset1,offset2,x1,x2,direction);
+        /*std::cout<<"Hessian term: "<<std::endl<<hessian<<std::endl;
         std::cout<<"DRDA REL: "<<force_balance_contribution1<<std::endl;
-        std::cout<<"END DRDA"<<std::endl;
+        std::cout<<"END DRDA"<<std::endl;*/
         for(int j=0;j<t+d;j++){
             for(int k=0;k<t+d;k++){
                 if(abs(force_balance_contribution1(j,k))>1e-6){
@@ -70,7 +70,6 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         //Safe_Normalize(direction);
         //terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index2,direction.transpose()*index_map.Velocity_Map(*rigid_structure2,constraint.v2)));
         //terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index1,-direction.transpose()*index_map.Velocity_Map(*rigid_structure1,constraint.v1)));
-        constraint_rhs[i]=factor*(constraint.target_distance-distance);
 
         // contribution to force-balance RHS
         std::cout<<"REL RHS contribution: "<<(DC_DA1.transpose()*stored_forces[i]).transpose()<<std::endl;

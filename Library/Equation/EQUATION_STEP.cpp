@@ -33,7 +33,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     QUALITY<T> solve_quality;
     T epsilon=1e-8;
     int step_limit=16;
-    T c1=.5,c2=.9;
+    T c1=.75,c2=.9;
     while(last_norm>epsilon){
         std::cout<<"\n\n\n*****LOOP "<<count<<" *******"<<std::endl;
         auto solve_vector=equation->Solve();
@@ -58,9 +58,9 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
             }
             norm=equation->Linearize(data,force,dt,time,false); // linearize around a point and calculate norm there
             std::cout<<"Norm with ratio "<<ratio<<" is "<<norm<<" ("<<last_norm<<")"<<std::endl;
-            T curvature_factor=equation->Sufficient_Descent_Factor(solve_vector);
-            std::cout<<"Curvature factor: "<<curvature_factor<<std::endl;
-            if(norm<=last_norm+c1*sufficient_descent_factor*ratio && curvature_factor<0 && abs(curvature_factor)<=abs(c2*sufficient_descent_factor)){ //TODO: properly implement "sufficient reduction" criterion
+            //T curvature_factor=equation->Sufficient_Descent_Factor(solve_vector);
+            //std::cout<<"Curvature factor: "<<curvature_factor<<std::endl;
+            if(norm<=last_norm+c1*sufficient_descent_factor*ratio){// && curvature_factor<0 && abs(curvature_factor)<=abs(c2*sufficient_descent_factor)){ //TODO: properly implement "sufficient reduction" criterion
                 break;
             }
             // restore previous state

@@ -48,11 +48,12 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     }
     Merge_Block_Matrices(full_matrix,J);
     Merge_Block_Vectors(full_right_hand_side,right_hand_side);
-    SparseMatrix<T> hessian;hessian.setFromTriplets(hessian_terms.begin(),hessian_terms.end()); // TODO: set up properly
+    SparseMatrix<T> hessian;hessian.resize(J.rows(),J.cols());
+    hessian.setFromTriplets(hessian_terms.begin(),hessian_terms.end()); // TODO: set up properly
+    right_hand_side_full=right_hand_side;
+    matrix=J;
     //right_hand_side_full=J*right_hand_side;
-    //matrix=J.adjoint()*J;
-    right_hand_side_full=J*right_hand_side;
-    matrix=J.adjoint()*J+hessian;
+    //matrix=J.adjoint()*J+hessian;
     Matrix<T,Dynamic,1> rowExtrema(matrix.rows());rowExtrema.setZero();
     for(int k=0;k<matrix.outerSize();k++){
         for(typename SparseMatrix<T>::InnerIterator it(matrix,k);it;++it){
