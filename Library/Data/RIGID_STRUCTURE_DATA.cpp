@@ -79,7 +79,7 @@ Inertia(const T dt,std::vector<Triplet<T>>& force_terms,Matrix<T,Dynamic,1>& rhs
     for(int i=0;i<structures.size();i++){
         DiagonalMatrix<T,s> inertia_matrix=one_over_dt*structures[i]->Inertia_Matrix();
         Flatten_Term(i,i,inertia_matrix,force_terms);
-        std::cout<<"Twist "<<i<<": "<<structures[i]->twist.Pack().transpose()<<std::endl;
+        //std::cout<<"Twist "<<i<<": "<<structures[i]->twist.Pack().transpose()<<std::endl;
         rhs.template block<s,1>(s*i,0)=-(inertia_matrix*structures[i]->twist.Pack());
     }
 }

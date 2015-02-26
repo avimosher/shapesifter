@@ -13,7 +13,7 @@ using namespace Mechanics;
 
 int main(int argc,char **argv)
 {
-    typedef double T;
+    /*typedef double T;
     typedef Matrix<T,3,1> TV;
     auto simulation=std::make_shared<SIMULATION<TV>>();
 
@@ -68,6 +68,6 @@ int main(int argc,char **argv)
     simulation->data.Step();
     relative_position_constraint->Constraint_Satisfaction(simulation->data,1,1,satisfaction);
     std::cout<<"Satisfaction: "<<satisfaction<<std::endl;
-
+    */
     return 0;
 }

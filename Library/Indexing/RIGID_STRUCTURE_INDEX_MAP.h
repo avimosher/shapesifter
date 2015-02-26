@@ -55,9 +55,6 @@ public:
         Matrix<T,d,t+d> dr_da;
         dr_da.template block<d,d>(0,0).setZero();
         dr_da.template block<d,t>(0,d)=-2*Cross_Product_Matrix(offset)*(q*dw_da+w*dq_da);
-        std::cout<<"Object R: "<<object_offset.transpose()<<std::endl;
-        std::cout<<"R: "<<offset.transpose()<<std::endl;
-        std::cout<<"DR_DA: "<<dr_da<<std::endl;
 
         Matrix<T,t+d,t+d> dF_da;
         dF_da.template block<d,t+d>(0,0)=dd_da;

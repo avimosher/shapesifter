@@ -35,14 +35,14 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     int step_limit=16;
     T c1=.75,c2=.9;
     while(last_norm>epsilon){
-        std::cout<<"\n\n\n*****LOOP "<<count<<" *******"<<std::endl;
+        //std::cout<<"\n\n\n*****LOOP "<<count<<" *******"<<std::endl;
         auto solve_vector=equation->Solve();
         //std::cout<<"Solve vector: "<<solve_vector.transpose()<<std::endl;
         solve_velocities=solve_vector.block(0,0,data.Velocity_DOF(),1);
         solve_forces=solve_vector.block(data.Velocity_DOF(),0,solve_vector.rows()-data.Velocity_DOF(),1);
 
         T sufficient_descent_factor=equation->Sufficient_Descent_Factor(solve_vector);
-        std::cout<<"Sufficient descent: "<<sufficient_descent_factor<<std::endl;
+        //std::cout<<"Sufficient descent: "<<sufficient_descent_factor<<std::endl;
         T ratio=1,norm;
         int i=0;
 

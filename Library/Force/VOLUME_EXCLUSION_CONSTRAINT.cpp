@@ -80,7 +80,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 Matrix<T,t+d,t+d> force_balance_contribution1=-factor*remembered.second*RIGID_STRUCTURE_INDEX_MAP<TV>::DF_DA(*structure1,object_offset1,x1,x2,direction);
                 //std::cout<<"DRDA VOL: "<<force_balance_contribution1<<std::endl;
                 //std::cout<<"END DRDA"<<std::endl;
-                std::cout<<"F_i: "<<constraint_violation<<std::endl;
+                //std::cout<<"F_i: "<<constraint_violation<<std::endl;
                 //std::cout<<"Hessian: "<<std::endl<<hessian<<std::endl;
 
                 for(int j=0;j<t+d;j++){
@@ -94,7 +94,6 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                     }
                 }
                 rhs.push_back(-factor*constraint_violation);
-                std::cout<<"VOL RHS contribution: "<<(DC_DA1.transpose()*remembered.second).transpose()<<std::endl;
                 right_hand_side.template block<t+d,1>(s1*(t+d),0)+=DC_DA1.transpose()*remembered.second;
                 right_hand_side.template block<t+d,1>(s2*(t+d),0)-=DC_DA2.transpose()*remembered.second;
                 constraints.push_back(CONSTRAINT(s1,s2));
