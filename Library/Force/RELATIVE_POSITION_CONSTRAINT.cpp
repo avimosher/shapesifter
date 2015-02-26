@@ -41,17 +41,12 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         CONSTRAINT_VECTOR DC_DA1=factor*RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure1,constraint.v1,x1,x2,direction);
         terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index2,DC_DA2));
         terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index1,-DC_DA1));
-        //Matrix<T,d,t+d> force_balance_contribution2=factor*stored_forces(i)*RIGID_STRUCTURE_INDEX_MAP<TV>::Velocity_Map(frame2.orientation*constraint.v2).transpose()*RIGID_STRUCTURE_INDEX_MAP<TV>::DD_DV(*rigid_structure2,constraint.v2,x1,x2,direction);
         Matrix<T,t+d,t+d> force_balance_contribution2=factor*stored_forces(i)*RIGID_STRUCTURE_INDEX_MAP<TV>::DF_DA(*structure2,constraint.v2,x1,x2,direction);
         Matrix<T,t+d,t+d> force_balance_contribution1=-factor*stored_forces(i)*RIGID_STRUCTURE_INDEX_MAP<TV>::DF_DA(*structure1,constraint.v1,x1,x2,direction);
         TV offset1=frame1.orientation*constraint.v1;
         TV offset2=frame2.orientation*constraint.v2;
         constraint_rhs[i]=factor*(constraint.target_distance-distance);
         std::cout<<"F_i: "<<constraint_rhs[i]<<std::endl;
-        auto hessian=constraint_rhs[i]*RIGID_STRUCTURE_INDEX_MAP<TV>::Full_Hessian(structure1->twist.angular,structure2->twist.angular,offset1,offset2,x1,x2,direction);
-        /*std::cout<<"Hessian term: "<<std::endl<<hessian<<std::endl;
-        std::cout<<"DRDA REL: "<<force_balance_contribution1<<std::endl;
-        std::cout<<"END DRDA"<<std::endl;*/
         for(int j=0;j<t+d;j++){
             for(int k=0;k<t+d;k++){
                 if(abs(force_balance_contribution1(j,k))>1e-6){
@@ -60,19 +55,11 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 if(abs(force_balance_contribution2(j,k))>1e-6){
                     force_terms.push_back(Triplet<T>(body_index2*(t+d)+j,body_index2*(t+d)+k,force_balance_contribution2(j,k)));
                 }
-                // Hessian terms
-                hessian_terms.push_back(Triplet<T>(body_index1*(t+d)+j,body_index1*(t+d)+k,hessian(j,k)));
-                hessian_terms.push_back(Triplet<T>(body_index1*(t+d)+j,body_index2*(t+d)+k,hessian(j,t+d+k)));
-                hessian_terms.push_back(Triplet<T>(body_index2*(t+d)+j,body_index1*(t+d)+k,hessian(t+d+j,k)));
-                hessian_terms.push_back(Triplet<T>(body_index2*(t+d)+j,body_index2*(t+d)+k,hessian(t+d+j,t+d+k)));
             }
         }
-        //Safe_Normalize(direction);
-        //terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index2,direction.transpose()*index_map.Velocity_Map(*rigid_structure2,constraint.v2)));
-        //terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index1,-direction.transpose()*index_map.Velocity_Map(*rigid_structure1,constraint.v1)));
 
         // contribution to force-balance RHS
-        std::cout<<"REL RHS contribution: "<<(DC_DA1.transpose()*stored_forces[i]).transpose()<<std::endl;
+        //std::cout<<"REL RHS contribution: "<<(DC_DA1.transpose()*stored_forces[i]).transpose()<<std::endl;
         right_hand_side.template block<t+d,1>(body_index1*(t+d),0)+=DC_DA1.transpose()*stored_forces[i];
         right_hand_side.template block<t+d,1>(body_index2*(t+d),0)-=DC_DA2.transpose()*stored_forces[i];
     }
@@ -80,89 +67,6 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     Flatten_Matrix(terms,constraint_terms);
     stored_forces.resize(constraints.size());
 }
-///////////////////////////////////////////////////////////////////////
-template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::
-Constraint_Satisfaction(DATA<TV>& data,const T dt,const T target_time,Matrix<T,Dynamic,1>& satisfaction)
-{
-    auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.Find("RIGID_STRUCTURE_DATA"));
-    typedef Matrix<T,1,RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE> CONSTRAINT_VECTOR;
-    satisfaction.resize(constraints.size());
-    for(int i=0;i<constraints.size();i++){
-        const CONSTRAINT& constraint=constraints[i];
-        int body_index1=constraint.s1;
-        int body_index2=constraint.s2;
-        auto rigid_structure1=rigid_data->structures[body_index1];
-        auto rigid_structure2=rigid_data->structures[body_index2];
-        FRAME<TV> frame1=rigid_structure1->frame;
-        FRAME<TV> frame2=rigid_structure2->frame;
-        std::cout<<"P1: "<<(frame1*constraint.v1).transpose()<<" P2: "<<(frame2*constraint.v2).transpose()<<std::endl;
-        TV direction=data.Minimum_Offset(frame1*constraint.v1,frame2*constraint.v2);
-        T distance=direction.norm();
-        satisfaction(i)=distance-constraint.target_distance;
-    }
-}
-///////////////////////////////////////////////////////////////////////
-template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::
-Special(DATA<TV>& data,const T dt,const T target_time,SparseMatrix<T>& gradient)
-{
-    auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.Find("RIGID_STRUCTURE_DATA"));
-    typedef Matrix<T,1,RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE> CONSTRAINT_VECTOR;
-    std::vector<Triplet<Matrix<T,1,t+d>>> terms;
-    RIGID_STRUCTURE_INDEX_MAP<TV> index_map;
-    for(int i=0;i<constraints.size();i++){
-        const CONSTRAINT& constraint=constraints[i];
-        int body_index1=constraint.s1;
-        int body_index2=constraint.s2;
-        auto structure1=rigid_data->structures[body_index1];
-        auto structure2=rigid_data->structures[body_index2];
-        FRAME<TV> frame1=structure1->frame;
-        FRAME<TV> frame2=structure2->frame;
-        TV x1=frame1*constraint.v1;
-        TV x2=frame2*constraint.v2;
-        TV direction=data.Minimum_Offset(x1,x2);
-        terms.push_back(Triplet<Matrix<T,1,t+d>>(i,body_index2,RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure2,constraint.v2,x1,x2,direction)));
-        terms.push_back(Triplet<Matrix<T,1,t+d>>(i,body_index1,-RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure1,constraint.v2,x1,x2,direction)));
-    }
-    gradient.resize(constraints.size(),(t+d)*rigid_data->structures.size());
-    Flatten_Matrix(terms,gradient);
-    //std::cout<<constraint_matrix<<std::endl;
-}
-///////////////////////////////////////////////////////////////////////
-#if 0
-template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::
-Hessian(DATA<TV>& data,const T dt,const T target_time,SparseMatrix<T>& gradient)
-{
-    auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.Find("RIGID_STRUCTURE_DATA"));
-    typedef Matrix<T,1,RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE> CONSTRAINT_VECTOR;
-    std::vector<Triplet<Matrix<T,1,t+d>>> terms;
-    RIGID_STRUCTURE_INDEX_MAP<TV> index_map;
-    for(int i=0;i<constraints.size();i++){
-        const CONSTRAINT& constraint=constraints[i];
-        int body_index1=constraint.s1;
-        int body_index2=constraint.s2;
-        auto structure1=rigid_data->structures[body_index1];
-        auto structure2=rigid_data->structures[body_index2];
-        FRAME<TV> frame1=structure1->frame;
-        FRAME<TV> frame2=structure2->frame;
-        TV x1=frame1*constraint.v1;
-        TV x2=frame2*constraint.v2;
-        TV direction=data.Minimum_Offset(x1,x2);
-        frame1.orientation=ROTATION<TV>::From_Rotation_Vector(structure1->twist.angular).inverse()*frame1.orientation;
-        frame2.orientation=ROTATION<TV>::From_Rotation_Vector(structure2->twist.angular).inverse()*frame2.orientation;
-        TV offset1=frame1*constraint.v1;
-        TV offset2=frame2*constraint.v2;
-        hessian_terms.push_back(Triplet<>(body_index1,body_index2,d2f_da1da2*f[i]));
-        // f_i DOES have terms that have a product of force and velocity-dependent terms.  Nothing force-force though
-
-        //Hessian(structure1->twist.angular,offset1,x1,x2,direction,1);
-        terms.push_back(Triplet<Matrix<T,1,t+d>>(i,body_index2,DC_DA(structure2->twist.angular,offset1,x1,x2,direction)));
-        terms.push_back(Triplet<Matrix<T,1,t+d>>(i,body_index1,-DC_DA(structure1->twist.angular,offset2,x1,x2,direction)));
-    }
-    gradient.resize(constraints.size(),(t+d)*rigid_data->structures.size());
-    Flatten_Matrix(terms,gradient);
-    //std::cout<<constraint_matrix<<std::endl;
-}
-#endif
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::
 Viewer(const DATA<TV>& data,osg::Node* node)

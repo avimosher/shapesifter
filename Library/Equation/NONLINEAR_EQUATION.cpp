@@ -33,23 +33,21 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     for(int i=0;i<data.size();i++){
         data[i]->Inertia(dt,force_terms[i],full_right_hand_side[i]);
     }
-    std::cout<<"RHS after inertia: "<<full_right_hand_side[0].transpose()<<std::endl;
+    //std::cout<<"RHS after inertia: "<<full_right_hand_side[0].transpose()<<std::endl;
     for(int i=0;i<force.size();i++){
         // TODO: force_terms needs to be properly handled when there are multiple data types
         force[i]->Linearize(data,dt,time,hessian_terms,force_terms[0],full_matrix(i+1,0),full_right_hand_side[0],full_right_hand_side[i+1],stochastic);
         full_matrix(0,i+1)=full_matrix(i+1,0).transpose();
-        std::cout<<"RHS after force "<<i<<": "<<full_right_hand_side[0].transpose()<<std::endl;
+        //std::cout<<"RHS after force "<<i<<": "<<full_right_hand_side[0].transpose()<<std::endl;
     }
-    // for the sake of sanity, assume that each force adds a constraint block as well as a contribution to the velocity block
-    // Each such block will be required to be in terms of elementary T types, but they will remain separate.  This is a good compromise.
-    // build matrix from force terms and constraint terms.  Not that this is sufficiently general...
     for(int i=0;i<data.size();i++){
         full_matrix(i,i).setFromTriplets(force_terms[i].begin(),force_terms[i].end());
     }
     Merge_Block_Matrices(full_matrix,J);
     Merge_Block_Vectors(full_right_hand_side,right_hand_side);
-    SparseMatrix<T> hessian;hessian.resize(J.rows(),J.cols());
+    /*SparseMatrix<T> hessian;hessian.resize(J.rows(),J.cols());
     hessian.setFromTriplets(hessian_terms.begin(),hessian_terms.end()); // TODO: set up properly
+    */
     right_hand_side_full=right_hand_side;
     matrix=J;
     //right_hand_side_full=J*right_hand_side;
@@ -64,8 +62,8 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     //std::cout<<"Conditioner: "<<conditioner.transpose()<<std::endl;
     //matrix=conditioner.asDiagonal()*matrix*conditioner.asDiagonal();
     //right_hand_side_full=right_hand_side_full;
-    std::cout<<matrix<<std::endl;
-    std::cout<<"RHS: "<<right_hand_side_full.transpose()<<std::endl;
+    //std::cout<<matrix<<std::endl;
+    //std::cout<<"RHS: "<<right_hand_side_full.transpose()<<std::endl;
     return right_hand_side_full.squaredNorm();
 }
 ///////////////////////////////////////////////////////////////////////
@@ -81,9 +79,9 @@ Solve()
     solver.setMaxIterations(solve_iterations);
     Matrix<T,Dynamic,1> solution=solver.solve(right_hand_side_full);
     //std::cout<<"Iterations: "<<solver.iterations()<<std::endl;
-    std::cout<<"Solution: "<<solution.transpose()<<std::endl;
-    std::cout<<"Solve RHS: "<<right_hand_side_full.transpose()<<std::endl;
-    std::cout<<"A*x: "<<(matrix*solution).transpose()<<std::endl;
+    //std::cout<<"Solution: "<<solution.transpose()<<std::endl;
+    //std::cout<<"Solve RHS: "<<right_hand_side_full.transpose()<<std::endl;
+    //std::cout<<"A*x: "<<(matrix*solution).transpose()<<std::endl;
     return solution;
 }
 ///////////////////////////////////////////////////////////////////////
