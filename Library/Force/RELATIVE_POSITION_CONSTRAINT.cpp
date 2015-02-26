@@ -47,7 +47,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         TV offset2=frame2.orientation*constraint.v2;
         constraint_rhs[i]=factor*(constraint.target_distance-distance);
         //std::cout<<"F_i: "<<constraint_rhs[i]<<std::endl;
-        for(int j=0;j<t+d;j++){
+        /*for(int j=0;j<t+d;j++){
             for(int k=0;k<t+d;k++){
                 if(abs(force_balance_contribution1(j,k))>1e-6){
                     force_terms.push_back(Triplet<T>(body_index1*(t+d)+j,body_index1*(t+d)+k,force_balance_contribution1(j,k)));
@@ -56,7 +56,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                     force_terms.push_back(Triplet<T>(body_index2*(t+d)+j,body_index2*(t+d)+k,force_balance_contribution2(j,k)));
                 }
             }
-        }
+            }*/
 
         // contribution to force-balance RHS
         //std::cout<<"REL RHS contribution: "<<(DC_DA1.transpose()*stored_forces[i]).transpose()<<std::endl;

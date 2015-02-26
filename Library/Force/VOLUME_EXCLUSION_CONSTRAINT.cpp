@@ -83,7 +83,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 //std::cout<<"F_i: "<<constraint_violation<<std::endl;
                 //std::cout<<"Hessian: "<<std::endl<<hessian<<std::endl;
 
-                for(int j=0;j<t+d;j++){
+                /*for(int j=0;j<t+d;j++){
                     for(int k=0;k<t+d;k++){
                         if(abs(force_balance_contribution1(j,k))>1e-6){
                             force_terms.push_back(Triplet<T>(s1*(t+d)+j,s1*(t+d)+k,force_balance_contribution1(j,k)));
@@ -92,7 +92,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                             force_terms.push_back(Triplet<T>(s2*(t+d)+j,s2*(t+d)+k,force_balance_contribution2(j,k)));
                         }
                     }
-                }
+                    }*/
                 rhs.push_back(-factor*constraint_violation);
                 right_hand_side.template block<t+d,1>(s1*(t+d),0)+=DC_DA1.transpose()*remembered.second;
                 right_hand_side.template block<t+d,1>(s2*(t+d),0)-=DC_DA2.transpose()*remembered.second;
