@@ -5,6 +5,7 @@
 #include <Equation/NONLINEAR_EQUATION.h>
 #include <Evolution/QUALITY.h>
 #include <Force/FORCE.h>
+#include <Force/STORED_FORCE.h>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void EQUATION_STEP<TV>::
@@ -13,7 +14,8 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     Matrix<T,Dynamic,1> positions;
     Matrix<T,Dynamic,1> current_velocities;
     Matrix<T,Dynamic,1> current_forces;
-    Matrix<T,Dynamic,1> solve_forces,solve_velocities; // TODO: make these blocks?
+    Matrix<T,Dynamic,1> solve_velocities; // TODO: make these blocks?
+    STORED_FORCE<T> solve_forces;
     DATA<TV>& data=simulation.data;
     FORCE<TV>& force=simulation.force;
     current_velocities.resize(data.Velocity_DOF(),1);current_velocities.setZero();
@@ -39,7 +41,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
         auto solve_vector=equation->Solve();
         //std::cout<<"Solve vector: "<<solve_vector.transpose()<<std::endl;
         solve_velocities=solve_vector.block(0,0,data.Velocity_DOF(),1);
-        solve_forces=solve_vector.block(data.Velocity_DOF(),0,solve_vector.rows()-data.Velocity_DOF(),1);
+        solve_forces.Set(solve_vector.block(data.Velocity_DOF(),0,solve_vector.rows()-data.Velocity_DOF(),1));
 
         T sufficient_descent_factor=equation->Sufficient_Descent_Factor(solve_vector);
         //std::cout<<"Sufficient descent: "<<sufficient_descent_factor<<std::endl;
@@ -49,7 +51,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
         for(;i<step_limit;i++){
             // update state
             data.Unpack_Positions(positions); 
-            force.Increment_Forces(ratio*solve_forces);
+            force.Increment_Forces(solve_forces,ratio);
             data.Unpack_Velocities(current_velocities+ratio*solve_velocities);
             data.Step();
             if(simulation.substeps){
@@ -64,12 +66,13 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
                 break;
             }
             // restore previous state
-            force.Increment_Forces(-ratio*solve_forces);
+            force.Increment_Forces(solve_forces,-ratio);
             ratio/=2;
         }
         if(i==step_limit){break;}
         current_velocities+=ratio*solve_velocities;
         last_norm=norm;
+        force.Pack_Forces(solve_forces); // this resizes the forces correctly
 
         count++;
         //count++;if(count>35){exit(0);}

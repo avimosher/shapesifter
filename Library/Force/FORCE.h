@@ -11,7 +11,7 @@
 namespace Mechanics{
 template<class TV> class DATA;
 template<class TV> class FORCE_TYPE;
-
+template<class T> class STORED_FORCE;
 
 template<class TV>
 class FORCE:public std::vector<std::shared_ptr<FORCE_TYPE<TV>>>
@@ -35,9 +35,9 @@ public:
 
     T Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T target_time);
     int Force_DOF() const;
-    void Pack_Forces(Matrix<T,Dynamic,1>& forces) const;
-    void Unpack_Forces(const Matrix<T,Dynamic,1>& forces);
-    void Increment_Forces(const Matrix<T,Dynamic,1>& forces);
+    void Pack_Forces(STORED_FORCE<T>& stored_force) const;
+    void Unpack_Forces(const STORED_FORCE<T>& stored_force);
+    void Increment_Forces(const STORED_FORCE<T>& stored_force,T ratio);
     void Viewer(const DATA<TV>& data,osg::Group*& root);
 };
 }

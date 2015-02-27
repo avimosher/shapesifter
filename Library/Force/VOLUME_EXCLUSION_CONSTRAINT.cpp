@@ -15,29 +15,47 @@
 #include <osg/Geode>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
-template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
-Unpack_Forces(const Matrix<T,Dynamic,1>& forces)
+template<class TV> std::shared_ptr<FORCE_REFERENCE<typename TV::Scalar>> VOLUME_EXCLUSION_CONSTRAINT<TV>::
+Create_Stored_Force() const
 {
-    stored_forces=forces;
-    for(int i=0;i<constraints.size();i++){
-        force_memory[constraints[i]]=std::pair<int,T>(call_count,forces[i]);
+    return std::static_pointer_cast<FORCE_REFERENCE<T>>(std::make_shared<STORED_VOLUME_EXCLUSION_CONSTRAINT<T>>());
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
+Pack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information)
+{
+    auto information=std::static_pointer_cast<STORED_VOLUME_EXCLUSION_CONSTRAINT<T>>(force_information);
+    information->constraints=constraints;
+    for(int i=0;i<information->constraints.size();i++){
+        std::pair<int,T>(call_count,information->value[i])=force_memory[information->constraints[i]];
     }
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
-Increment_Forces(const Matrix<T,Dynamic,1>& forces)
+Unpack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information)
 {
-    stored_forces.resize(forces.size());
-    for(int i=0;i<constraints.size();i++){
-        if(force_memory.count(constraints[i])){// this could be compressed if I could be sure that the force would be initialized properly
-            auto& memory=force_memory[constraints[i]];
+    //stored_forces=value;
+    auto information=std::static_pointer_cast<const STORED_VOLUME_EXCLUSION_CONSTRAINT<T>>(force_information);
+    for(int i=0;i<information->constraints.size();i++){
+        force_memory[information->constraints[i]]=std::pair<int,T>(call_count,information->value[i]);
+    }
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
+Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,T ratio)
+{
+    //stored_forces.resize(forces.size());
+    auto information=std::static_pointer_cast<STORED_VOLUME_EXCLUSION_CONSTRAINT<T>>(force_information);
+    for(int i=0;i<information->constraints.size();i++){
+        if(force_memory.count(information->constraints[i])){// this could be compressed if I could be sure that the force would be initialized properly
+            auto& memory=force_memory[information->constraints[i]];
             memory.first=call_count;
-            memory.second+=forces[i];
+            memory.second+=ratio*information->value[i];
             stored_forces[i]=memory.second;
         }
         else{
-            force_memory[constraints[i]]=std::pair<int,T>(call_count,forces[i]);
-            stored_forces[i]=forces[i];
+            force_memory[information->constraints[i]]=std::pair<int,T>(call_count,ratio*information->value[i]);
+            //stored_forces[i]=forces[i];
         }
     }
 }
@@ -155,7 +173,6 @@ GENERIC_CEREAL_REGISTRATION(VOLUME_EXCLUSION_CONSTRAINT)
 GENERIC_TYPE_DEFINITION(VOLUME_EXCLUSION_CONSTRAINT)
 DEFINE_AND_REGISTER_PARSER(VOLUME_EXCLUSION_CONSTRAINT,void)
 {
-    auto volume_exclusion_constraint=std::make_shared<VOLUME_EXCLUSION_CONSTRAINT<TV>>();
-    simulation.force.push_back(volume_exclusion_constraint);
+    auto volume_exclusion_constraint=simulation.force.template Find_Or_Create<VOLUME_EXCLUSION_CONSTRAINT<TV>>();
     return 0;
 }

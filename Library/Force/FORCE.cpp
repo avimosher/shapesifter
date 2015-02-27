@@ -1,5 +1,6 @@
 #include <Force/FORCE.h>
 #include <Force/FORCE_TYPE.h>
+#include <Force/STORED_FORCE.h>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> int FORCE<TV>::
@@ -11,38 +12,37 @@ Force_DOF() const
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void FORCE<TV>::
-Pack_Forces(Matrix<T,Dynamic,1>& forces) const
+Pack_Forces(STORED_FORCE<T>& stored_force) const
 {
-    forces.resize(Force_DOF(),1);
-    int current_position=0;
-    for(auto force_type : (*this)){
-        int force_size=force_type->Force_DOF();
-        Block<Matrix<T,Dynamic,1>> block=forces.block(current_position,0,force_size,1);
-        force_type->Pack_Forces(block);
-        current_position+=force_size;
+    if(stored_force.Size()!=(*this).size()){
+        stored_force.Resize((*this).size());
+        for(int i=0;i<(*this).size();i++){
+            stored_force[i]=(*this)[i]->Create_Stored_Force();
+        }
+    }
+    stored_force.Resize((*this).size());
+    for(int i=0;i<this->size();i++){
+        auto force_type=(*this)[i];
+        force_type->Pack_Forces(stored_force[i]);
     }
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void FORCE<TV>::
-Unpack_Forces(const Matrix<T,Dynamic,1>& forces)
+Unpack_Forces(const STORED_FORCE<T>& stored_force)
 {
-    int current_position=0;
-    for(auto force_type : (*this)){
-        int force_size=force_type->Force_DOF();
-        force_type->Unpack_Forces(forces.block(current_position,0,force_size,1));
-        current_position+=force_size;
+    for(int i=0;i<this->size();i++){
+        auto force_type=(*this)[i];
+        force_type->Unpack_Forces(stored_force[i]);
     }
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void FORCE<TV>::
-Increment_Forces(const Matrix<T,Dynamic,1>& forces)
+Increment_Forces(const STORED_FORCE<T>& stored_force,T ratio)
 {
-    int current_position=0;
-    for(auto force_type : (*this)){
-        int force_size=force_type->Force_DOF();
-        force_type->Increment_Forces(forces.block(current_position,0,force_size,1));
-        current_position+=force_size;
-    }
+    for(int i=0;i<this->size();i++){
+        auto force_type=(*this)[i];
+        force_type->Increment_Forces(stored_force[i],ratio);
+     }
 }
 /////////////////////////////////////////////////////////////////////// 
 template<class TV> void FORCE<TV>::
