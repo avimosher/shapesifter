@@ -89,7 +89,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 TV object_offset1=structure1->frame.orientation.inverse()*offset1;
                 TV object_offset2=structure1->frame.orientation.inverse()*offset2;
                 std::cout<<"Constraint between "<<s1<<" and "<<s2<<std::endl;
-                T factor=500;
+                T factor=1300;//500;
                 CONSTRAINT_VECTOR DC_DA2=factor*RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure2,object_offset2,x1,x2,direction);
                 CONSTRAINT_VECTOR DC_DA1=factor*RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure1,object_offset1,x1,x2,direction);
                 terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s2,DC_DA2));

@@ -36,7 +36,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         std::cout<<"Constraint distance: "<<distance<<std::endl;
         TV x1=frame1*constraint.v1;
         TV x2=frame2*constraint.v2;
-        T factor=500;
+        T factor=1300;//500;
         CONSTRAINT_VECTOR DC_DA2=factor*RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure2,constraint.v2,x1,x2,direction);
         CONSTRAINT_VECTOR DC_DA1=factor*RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure1,constraint.v1,x1,x2,direction);
         terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index2,DC_DA2));

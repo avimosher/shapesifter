@@ -35,7 +35,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     QUALITY<T> solve_quality;
     T epsilon=1e-8;
     int step_limit=16;
-    T c1=.75,c2=.9;
+    T c1=.5,c2=.9;
     while(last_norm>epsilon){
         //std::cout<<"\n\n\n*****LOOP "<<count<<" *******"<<std::endl;
         auto solve_vector=equation->Solve();
@@ -69,7 +69,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
             force.Increment_Forces(solve_forces,-ratio);
             ratio/=2;
         }
-        if(i==step_limit){break;}
+        if(i==step_limit){std::cout<<"STALLED"<<std::endl;break;}
         current_velocities+=ratio*solve_velocities;
         last_norm=norm;
         force.Pack_Forces(solve_forces); // this resizes the forces correctly

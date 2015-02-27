@@ -62,8 +62,8 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     //std::cout<<"Conditioner: "<<conditioner.transpose()<<std::endl;
     //matrix=conditioner.asDiagonal()*matrix*conditioner.asDiagonal();
     //right_hand_side_full=right_hand_side_full;
-    //std::cout<<matrix<<std::endl;
-    //std::cout<<"RHS: "<<right_hand_side_full.transpose()<<std::endl;
+    std::cout<<matrix<<std::endl;
+    std::cout<<"RHS: "<<right_hand_side_full.transpose()<<std::endl;
     return right_hand_side_full.squaredNorm();
 }
 ///////////////////////////////////////////////////////////////////////
@@ -79,9 +79,9 @@ Solve()
     solver.setMaxIterations(solve_iterations);
     Matrix<T,Dynamic,1> solution=solver.solve(right_hand_side_full);
     //std::cout<<"Iterations: "<<solver.iterations()<<std::endl;
-    //std::cout<<"Solution: "<<solution.transpose()<<std::endl;
-    //std::cout<<"Solve RHS: "<<right_hand_side_full.transpose()<<std::endl;
-    //std::cout<<"A*x: "<<(matrix*solution).transpose()<<std::endl;
+    std::cout<<"Solution: "<<solution.transpose()<<std::endl;
+    std::cout<<"Solve RHS: "<<right_hand_side_full.transpose()<<std::endl;
+    std::cout<<"A*x: "<<(matrix*solution).transpose()<<std::endl;
     return solution;
 }
 ///////////////////////////////////////////////////////////////////////
