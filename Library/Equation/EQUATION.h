@@ -20,6 +20,7 @@ public:
     virtual T Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool stochastic)=0;
     virtual Matrix<T,Dynamic,1> Solve()=0;
     virtual T Sufficient_Descent_Factor(const Matrix<T,Dynamic,1>& direction)=0;
+    virtual Matrix<T,Dynamic,1> Gradient()=0;
 };
 }
 #endif

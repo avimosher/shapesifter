@@ -102,6 +102,7 @@ int main(int argc,char **argv)
     viewer.addEventHandler(keyboardEventHandler);
     viewer.setSceneData(animation->root);
     viewer.setCameraManipulator(new osgGA::TrackballManipulator);
+    viewer.setUpViewInWindow(0,0,640,480);
     viewer.realize(); //creates windows, starts threads
     viewer.run();
     return 0;

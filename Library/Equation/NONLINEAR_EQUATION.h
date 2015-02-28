@@ -38,6 +38,7 @@ public:
     T Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool stochastic);
     Matrix<T,Dynamic,1> Solve();
     T Sufficient_Descent_Factor(const Matrix<T,Dynamic,1>& direction);
+    Matrix<T,Dynamic,1> Gradient();
     DEFINE_TYPE_NAME("NONLINEAR_EQUATION")
 };
 }

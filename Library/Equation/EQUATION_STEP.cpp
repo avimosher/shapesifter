@@ -36,19 +36,21 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     T epsilon=1e-8;
     int step_limit=16;
     T c1=.5,c2=.9;
+    T last_ratio=.5;
     while(last_norm>epsilon){
         //std::cout<<"\n\n\n*****LOOP "<<count<<" *******"<<std::endl;
         auto solve_vector=equation->Solve();
+        //auto solve_vector=real_solve_vector.norm()*equation->Gradient().normalized();
         //std::cout<<"Solve vector: "<<solve_vector.transpose()<<std::endl;
         solve_velocities=solve_vector.block(0,0,data.Velocity_DOF(),1);
         solve_forces.Set(solve_vector.block(data.Velocity_DOF(),0,solve_vector.rows()-data.Velocity_DOF(),1));
 
         T sufficient_descent_factor=equation->Sufficient_Descent_Factor(solve_vector);
         //std::cout<<"Sufficient descent: "<<sufficient_descent_factor<<std::endl;
-        T ratio=1,norm;
+        T ratio=2*last_ratio,norm;
         int i=0;
 
-        for(;i<step_limit;i++){
+        for(;i<step_limit&&ratio>epsilon;i++){
             // update state
             data.Unpack_Positions(positions); 
             force.Increment_Forces(solve_forces,ratio);
@@ -69,7 +71,8 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
             force.Increment_Forces(solve_forces,-ratio);
             ratio/=2;
         }
-        if(i==step_limit){std::cout<<"STALLED"<<std::endl;break;}
+        if(i==step_limit || ratio<=epsilon){std::cout<<"STALLED"<<std::endl;break;}
+        last_ratio=ratio;
         current_velocities+=ratio*solve_velocities;
         last_norm=norm;
         force.Pack_Forces(solve_forces); // this resizes the forces correctly

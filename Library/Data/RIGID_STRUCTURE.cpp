@@ -16,7 +16,7 @@ Initialize_Inertia(const T eta)
     }
     else{
         T p=collision_extent/collision_radius+1;
-        T E=sqrt(abs(p*p-1))/p;
+        T E=sqrt(fabs(p*p-1))/p;
         T S=2*atanh(E)/E;
         
         // Perrin friction factors

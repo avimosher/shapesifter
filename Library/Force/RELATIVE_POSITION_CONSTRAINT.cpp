@@ -36,24 +36,28 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         std::cout<<"Constraint distance: "<<distance<<std::endl;
         TV x1=frame1*constraint.v1;
         TV x2=frame2*constraint.v2;
-        T factor=1300;//500;
+        T factor=10000;//500;
         CONSTRAINT_VECTOR DC_DA2=factor*RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure2,constraint.v2,x1,x2,direction);
         CONSTRAINT_VECTOR DC_DA1=factor*RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure1,constraint.v1,x1,x2,direction);
         terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index2,DC_DA2));
         terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index1,-DC_DA1));
         Matrix<T,t+d,t+d> force_balance_contribution2=factor*stored_forces(i)*RIGID_STRUCTURE_INDEX_MAP<TV>::DF_DA(*structure2,constraint.v2,x1,x2,direction);
         Matrix<T,t+d,t+d> force_balance_contribution1=-factor*stored_forces(i)*RIGID_STRUCTURE_INDEX_MAP<TV>::DF_DA(*structure1,constraint.v1,x1,x2,direction);
+        //std::cout<<"REL force balance contribution for "<<body_index1<<": "<<force_balance_contribution1<<std::endl;
+        //std::cout<<"REL force balance contribution for "<<body_index2<<": "<<force_balance_contribution2<<std::endl;
         TV offset1=frame1.orientation*constraint.v1;
         TV offset2=frame2.orientation*constraint.v2;
         constraint_rhs[i]=factor*(constraint.target_distance-distance);
         //std::cout<<"F_i: "<<constraint_rhs[i]<<std::endl;
         /*for(int j=0;j<t+d;j++){
             for(int k=0;k<t+d;k++){
-                if(abs(force_balance_contribution1(j,k))>1e-6){
+                if(fabs(force_balance_contribution1(j,k))>1e-6){
                     force_terms.push_back(Triplet<T>(body_index1*(t+d)+j,body_index1*(t+d)+k,force_balance_contribution1(j,k)));
+                    //std::cout<<"REL body "<<body_index1<<" ("<<j<<","<<k<<"): "<<force_balance_contribution1(j,k)<<std::endl;
                 }
-                if(abs(force_balance_contribution2(j,k))>1e-6){
+                if(fabs(force_balance_contribution2(j,k))>1e-6){
                     force_terms.push_back(Triplet<T>(body_index2*(t+d)+j,body_index2*(t+d)+k,force_balance_contribution2(j,k)));
+                    //std::cout<<"REL body "<<body_index2<<" ("<<j<<","<<k<<"): "<<force_balance_contribution2(j,k)<<std::endl;
                 }
             }
             }*/
