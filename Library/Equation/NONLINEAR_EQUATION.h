@@ -27,18 +27,19 @@ public:
     SparseMatrix<T> matrix;
     Matrix<SparseMatrix<T>,Dynamic,Dynamic> full_matrix;
     Matrix<T,Dynamic,1> right_hand_side;
-    Matrix<T,Dynamic,1> right_hand_side_full;
-    SparseMatrix<T> J;
+    SparseMatrix<T> jacobian;
     Matrix<Matrix<T,Dynamic,1>,Dynamic,1> full_right_hand_side;
     Matrix<T,Dynamic,1> conditioner;
 
     NONLINEAR_EQUATION(){};
     ~NONLINEAR_EQUATION(){};
 
-    T Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool stochastic);
+    void Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool stochastic);
     Matrix<T,Dynamic,1> Solve();
     T Sufficient_Descent_Factor(const Matrix<T,Dynamic,1>& direction);
+    T Evaluate();
     Matrix<T,Dynamic,1> Gradient();
+    SparseMatrix<T> Hessian();
     DEFINE_TYPE_NAME("NONLINEAR_EQUATION")
 };
 }

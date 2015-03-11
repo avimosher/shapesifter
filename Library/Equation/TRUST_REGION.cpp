@@ -1,5 +1,10 @@
+#include <Equation/EQUATION.h>
+#include <Equation/TRUST_REGION.h>
+#include <Utilities/EIGEN_HELPERS.h>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
+template<class TV> TRUST_REGION<TV>::
+TRUST_REGION()
 {
     Get_FDF(xk,f,gk);
     f*=function_scale_factor;
@@ -14,7 +19,8 @@ using namespace Mechanics;
     wz.resize(nvars);
 }
 ///////////////////////////////////////////////////////////////////////
-Run
+template<class TV> void TRUST_REGION<TV>::
+Step(SIMULATION<TV>& simulation,const T dt,const T time)
 {
     // based on trustOptim implementation
     int iteration=0;
@@ -23,7 +29,7 @@ Run
     do{
         iteration++;
         status=Update_One_Step();
-        if(nrm_gk/sqrt(double(nvars))<=prec){
+        if(norm_gk/sqrt(T(nvars))<=prec){
             status=SUCCESS;
         }
         if(iteration>=max_iterations){
@@ -45,29 +51,30 @@ Run
     }while(status==CONTINUE);
 }
 ///////////////////////////////////////////////////////////////////////
+template<class TV> void TRUST_REGION<TV>::
 Update_Preconditioner()
 {
-    bool success=FALSE;
-    double alpha,beta,bmin;
+    bool success=false;
+    T alpha,beta,bmin;
 
-    Vector T(nvars);
+    Vector TT(nvars);
     SparseMatrix<T> BB(nvars,nvars);
     BB=Bk.template selfadjointView<Lower>();
     
-    for(int j=0;i<BB.outerSize();j++){
-        T(j)=sqrt(BB.innerVector(j).dot(BB.innerVector(j)));
+    for(int j=0;j<BB.outerSize();j++){
+        TT(j)=sqrt(BB.innerVector(j).dot(BB.innerVector(j)));
     }
 
     for(int j=0;j<BB.outerSize();j++){
         for(typename SparseMatrix<T>::InnerIterator it(BB,j);it;++it){
-            BB.coeffRef(it.row(),j)*=1/sqrt(T(it.row())*T(j));
+            BB.coeffRef(it.row(),j)*=1/sqrt(TT(it.row())*TT(j));
         }
     }
 
     beta=sqrt(BB.cwiseAbs2().sum());
     bmin=BB.coeff(0,0);
     for(int j=0;j<nvars;j++){
-        bmin=std::min(bmin,BBcoeff(j,j));
+        bmin=std::min(bmin,BB.coeff(j,j));
     }
     
     if(bmin>0){alpha=0;}
@@ -78,24 +85,26 @@ Update_Preconditioner()
         ii++;
         PrecondLLt.factorize(BB);
         if(PrecondLLt.info()==Eigen::Success){
-            success=TRUE;
+            success=true;
         }
         else{
             alpha=std::max(2*alpha,beta/2)-alpha;
-            for(int j=0;j<nvars;++){
+            for(int j=0;j<nvars;j++){
                 BB.coeffRef(j,j)+=alpha;
             }
         }
     }while(!success);
 }
 ///////////////////////////////////////////////////////////////////////
+template<class TV> void TRUST_REGION<TV>::
 Update_Hessian()
 {
     // call to NONLINEAR_EQUATION
-    equation->Get_Hessian();
+    Bk=equation->Hessian();
     Bk*=function_scale_factor;
 }
 ///////////////////////////////////////////////////////////////////////
+template<class TV> void TRUST_REGION<TV>::
 Update_One_Step()
 {
     auto step_status=UNKNOWN;
@@ -126,7 +135,7 @@ Update_One_Step()
                 xk+=sk;
                 gk=try_g;
                 norm_gk=gk.norm();
-                if(ap>expand_threshold_ap && norm_sk_scaled>=expand_threshold_rad*rad){
+                if(ap>expand_threshold_ap && norm_sk_scaled>=expand_threshold_rad*radius){
                     step_status=EXPAND;
                 }
                 else{step_status=MOVED;}
@@ -142,21 +151,22 @@ Update_One_Step()
         case CONTRACT:
         case FAILEDCG:
         case ENEGMOVE:
-            rad*=contract_factor;
+            radius*=contract_factor;
             break;
         case EXPAND:
-            rad*=expand_factor;
+            radius*=expand_factor;
             break;
     };
     return step_status;
 }
 ///////////////////////////////////////////////////////////////////////
+template<class TV> void TRUST_REGION<TV>::
 Solve_Trust_CG()
 {
     MatrixBase<T>& pk=const_cast<MatrixBase<T>&>(pk_);
-    double norm_rj,dot_ry,dot_ry_old,norm_zj,aj,bj,tau,dBd,norm_gk;
+    T norm_rj,dot_ry,dot_ry_old,norm_zj,aj,bj,tau,dBd,norm_gk;
     int j;
-    double crit;
+    T crit;
     
     zj.setZero();
     rj=-gk;
@@ -186,7 +196,7 @@ Solve_Trust_CG()
         Upz(PrecondLLt,zj,wd);
         norm_zj=wd.norm();
 
-        if(norm_zj>=rad){
+        if(norm_zj>=radius){
             // find tau>=0 s.t. p intersects trust region
             tau=Find_Tau(zj_old,dj);
             pk=zj_old+tau*dj;
@@ -226,56 +236,53 @@ Solve_Trust_CG()
     return;
 }
 ///////////////////////////////////////////////////////////////////////
-Finite(T x)
+template<class TV> typename TV::Scalar TRUST_REGION<TV>::
+Get_Norm_Sk(const Preconditioner& X)
 {
-    return (std::abs(x)<=__DBL_MAX__) && (x==x);
-}
-///////////////////////////////////////////////////////////////////////
-Get_Norm_Sk(const SimplicialLLT<T>& X)
-{
-    double res=(X.matrixU()*(X.permutationPinv()*sk).eval()).norm();
+    T res=(X.matrixU()*(X.permutationPinv()*sk).eval()).norm();
     return res;
 }
 ///////////////////////////////////////////////////////////////////////
-Get_F()
+template<class TV> void TRUST_REGION<TV>::
+Get_F(const Vector& x,T& f)
 {
-    // TODO: CALL MODEL
-    return equation->Evaluate();
+    equation->Linearize_Around(x);
+    f=equation->Evaluate();
 }
 ///////////////////////////////////////////////////////////////////////
-Gradient()
+template<class TV> void TRUST_REGION<TV>::
+Gradient(const Vector& x,Vector& g)
 {
-    // TODO: CALL MODEL
-    return equation->Gradient();
+    equation->Linearize_Around(x);
+    g=equation->Gradient();
 }
 ///////////////////////////////////////////////////////////////////////
-UPz(const SimplicialLLT<T>& X,const Vector& v,Vector& out)
+template<class TV> void TRUST_REGION<TV>::
+UPz(const Preconditioner& X,const Vector& v,Vector& out)
 {
     out=X.permutationP()*v;
     out=X.matrixU().template triangularView<Upper>()*out;
 }
 ///////////////////////////////////////////////////////////////////////
+template<class TV> typename TV::Scalar TRUST_REGION<TV>::
 Find_Tau(const Vector& z,const Vector& d)
 {
     UPz(PrecondLLt,d,wd);
-    UPz(PrecondLLtz,wz);
+    UPz(PrecondLLt,wz);
     
-    double d2=wd.squaredNorm();
-    double z2=z.squaredNorm();
-    double zd=wd.dot(wz);
+    T d2=wd.squaredNorm();
+    T z2=z.squaredNorm();
+    T zd=wd.dot(wz);
     
-    double root=zd*zd-d2*(z2-rad*rad);
-    double tau=(sqrt(root)-zd)/d2;
+    T root=zd*zd-d2*(z2-radius*radius);
+    T tau=(sqrt(root)-zd)/d2;
     return tau;
 }
 ///////////////////////////////////////////////////////////////////////
+template<class TV> void TRUST_REGION<TV>::
 Get_FDF()
 {
     // TODO: CALL MODEL
 }
 ///////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////
+GENERIC_TYPE_DEFINITION(TRUST_REGION)
