@@ -6,7 +6,7 @@ template<class T> inline T cube(T x){return x*x*x;}
 template<class T>
 inline T sinc(const T x) // sin(x)/x
 {if(abs(x)<1e-8) return 1;return sin(x)/x;}
-inline T finite(const T x)
+template<class T> inline T finite(const T x)
 {return (std::abs(x)<=__DBL_MAX__) && (x==x);}
 
 

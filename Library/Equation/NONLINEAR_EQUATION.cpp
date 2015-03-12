@@ -26,7 +26,7 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     full_right_hand_side[0].resize(data.Velocity_DOF(),1);
     full_right_hand_side[0].setZero();
     int size=full_right_hand_side[0].rows();
-    J.resize(size,size);
+    jacobian.resize(size,size);
     full_matrix(0,0).resize(size,size);
     // TODO: one block matrix per data type too
     force_terms.resize(data.size());
@@ -102,7 +102,7 @@ Gradient()
 template<class TV> SparseMatrix<typename TV::Scalar> NONLINEAR_EQUATION<TV>::
 Hessian()
 {
-    return J.adjoint()*J;
+    return jacobian.adjoint()*jacobian;
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(NONLINEAR_EQUATION)

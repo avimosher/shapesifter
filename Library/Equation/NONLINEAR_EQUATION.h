@@ -36,6 +36,7 @@ public:
 
     void Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool stochastic);
     Matrix<T,Dynamic,1> Solve();
+    Matrix<T,Dynamic,1> Solve_Trust_Region();
     T Sufficient_Descent_Factor(const Matrix<T,Dynamic,1>& direction);
     T Evaluate();
     Matrix<T,Dynamic,1> Gradient();

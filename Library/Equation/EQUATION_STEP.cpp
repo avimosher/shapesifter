@@ -24,7 +24,8 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     force.Pack_Forces(solve_forces);
     solve_forces.setZero();
     force.Unpack_Forces(solve_forces);
-    T last_norm=equation->Linearize(data,force,dt,time,true);
+    equation->Linearize(data,force,dt,time,true);
+    T last_norm=equation->Evaluate();
 
     std::cout<<"First norm: "<<last_norm<<std::endl;
 
@@ -60,7 +61,8 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
                 simulation.Write("Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(count)+" line search "+std::to_string(i));
                 std::cout<<"Write frame: "<<simulation.current_frame<<std::endl;
             }
-            norm=equation->Linearize(data,force,dt,time,false); // linearize around a point and calculate norm there
+            equation->Linearize(data,force,dt,time,false); // linearize around a point and calculate norm there
+            norm=equation->Evaluate();
             std::cout<<"Norm with ratio "<<ratio<<" is "<<norm<<" ("<<last_norm<<")"<<std::endl;
             //T curvature_factor=equation->Sufficient_Descent_Factor(solve_vector);
             //std::cout<<"Curvature factor: "<<curvature_factor<<std::endl;

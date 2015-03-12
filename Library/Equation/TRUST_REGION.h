@@ -55,15 +55,14 @@ public:
     void Step(SIMULATION<TV>& simulation,const T dt,const T time);
     void Update_Preconditioner();
     void Update_Hessian();
-    void Update_One_Step();
-    void Solve_Trust_CG();
-    bool Finite(T x);
+    STATUS Update_One_Step();
+    void Solve_Trust_CG(Vector& pk);
     T Get_Norm_Sk(const Preconditioner& X);
     void Get_F(const Vector& x,T& f);
     void Gradient(const Vector& x,Vector& g);
     void UPz(const Preconditioner& X,const Vector& v,Vector& out);
     T Find_Tau(const Vector& z,const Vector& d);
-    void Get_FDF();
+    void Get_FDF(const Vector& x,T& f,Vector& g);
 };
 }
 #endif

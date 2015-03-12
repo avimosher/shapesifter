@@ -1,6 +1,7 @@
 #include <Equation/EQUATION.h>
 #include <Equation/TRUST_REGION.h>
 #include <Utilities/EIGEN_HELPERS.h>
+#include <Utilities/MATH.h>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> TRUST_REGION<TV>::
@@ -104,17 +105,17 @@ Update_Hessian()
     Bk*=function_scale_factor;
 }
 ///////////////////////////////////////////////////////////////////////
-template<class TV> void TRUST_REGION<TV>::
+template<class TV> typename TRUST_REGION<TV>::STATUS TRUST_REGION<TV>::
 Update_One_Step()
 {
     auto step_status=UNKNOWN;
     Solve_Trust_CG(sk);
     norm_sk_scaled=Get_Norm_Sk(PrecondLLt);
-    if(!Finite(norm_sk_scaled)){step_status=FAILEDCG;}
+    if(!finite(norm_sk_scaled)){step_status=FAILEDCG;}
     else{
         try_x=xk+sk;
         Get_F(try_x,try_f);
-        if(Finite(try_f)){
+        if(finite(try_f)){
             try_f*=function_scale_factor;
             ared=f-try_f;
             gs=gk.dot(sk);
@@ -128,7 +129,7 @@ Update_One_Step()
     if(step_status!=FAILEDCG && step_status!=ENEGMOVE){
         if(ap>contract_threshold){
             Gradient(try_x,try_g);
-            if(Finite(try_g.norm())){
+            if(finite(try_g.norm())){
                 try_g*=function_scale_factor;
                 yk=try_g-gk;
                 f=try_f;
@@ -161,9 +162,8 @@ Update_One_Step()
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
-Solve_Trust_CG()
+Solve_Trust_CG(Vector& pk)
 {
-    MatrixBase<T>& pk=const_cast<MatrixBase<T>&>(pk_);
     T norm_rj,dot_ry,dot_ry_old,norm_zj,aj,bj,tau,dBd,norm_gk;
     int j;
     T crit;
@@ -193,7 +193,7 @@ Solve_Trust_CG()
         zj_old=zj;
         zj.noalias()+=aj*dj;
 
-        Upz(PrecondLLt,zj,wd);
+        UPz(PrecondLLt,zj,wd);
         norm_zj=wd.norm();
 
         if(norm_zj>=radius){
@@ -268,7 +268,7 @@ template<class TV> typename TV::Scalar TRUST_REGION<TV>::
 Find_Tau(const Vector& z,const Vector& d)
 {
     UPz(PrecondLLt,d,wd);
-    UPz(PrecondLLt,wz);
+    UPz(PrecondLLt,z,wz);
     
     T d2=wd.squaredNorm();
     T z2=z.squaredNorm();
@@ -280,7 +280,7 @@ Find_Tau(const Vector& z,const Vector& d)
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
-Get_FDF()
+Get_FDF(const Vector& x,T& f,Vector& g)
 {
     // TODO: CALL MODEL
 }
