@@ -106,8 +106,8 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
 
     iteration=0;
     max_iterations=100;
-    radius=1e-3;
-    min_radius=1e-5;
+    radius=1e-5;
+    min_radius=1e-9;
     preconditioner_refresh_frequency=20;
 
     Linearize(simulation,dt,time);
@@ -154,7 +154,7 @@ Update_Preconditioner()
     SparseMatrix<T> BB(nvars,nvars);
     BB=Bk.template selfadjointView<Lower>();
     
-    for(int j=0;j<BB.outerSize();j++){
+    /*for(int j=0;j<BB.outerSize();j++){
         TT(j)=sqrt(BB.innerVector(j).dot(BB.innerVector(j)));
     }
 
@@ -171,7 +171,7 @@ Update_Preconditioner()
     }
     
     if(bmin>0){alpha=0;}
-    else{alpha=beta/2;}
+    else{alpha=beta/2;}*/
 
     int ii=0;
     do{
@@ -180,13 +180,19 @@ Update_Preconditioner()
         if(PrecondLLt.info()==Eigen::Success){
             success=true;
         }
-        else{
+        /*else{
             alpha=std::max(2*alpha,beta/2)-alpha;
             for(int j=0;j<nvars;j++){
                 BB.coeffRef(j,j)+=alpha;
             }
-        }
+            }*/
     }while(!success);
+    SparseMatrix<T> L=PrecondLLt.matrixL();
+    SparseMatrix<T> Lt=PrecondLLt.matrixU();
+    std::cout<<"LLt"<<std::endl;
+    std::cout<<L*Lt<<std::endl;
+    std::cout<<"BB"<<std::endl;
+    std::cout<<BB<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::

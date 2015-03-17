@@ -1,0 +1,38 @@
+{
+    "output_directory": "relative_position_trust",
+    "root": [
+        {"type": "DATA",
+         "eta": 3.5},
+        {"type": "RIGID_STRUCTURE_DATA"},
+        {"type": "RIGID_STRUCTURE",
+         "name": "left",
+         "position": [0, 2, 1],
+         "radius": 1
+        },
+        {"type": "RIGID_STRUCTURE",
+         "name": "right",
+         "position": [5, 1, 1],
+         "radius": 1
+        },
+        {"type": "RIGID_STRUCTURE",
+         "name": "third",
+         "position": [10, 2, 1],
+         "radius": 1
+        },
+        {"type": "RELATIVE_POSITION_CONSTRAINT",
+         "constraints": [
+             {"structure1": "left",
+              "offset1": [0, 0, 0],
+              "structure2": "right",
+              "offset2": [0, 0, 0],
+              "distance": 10},
+             {"structure2": "right",
+              "offset1": [0, 0, 0],
+              "structure1": "third",
+              "offset2": [0, 0, 0],
+              "distance": 10}
+         ]
+        },
+        {"type": "TRUST_REGION"}
+    ]
+}

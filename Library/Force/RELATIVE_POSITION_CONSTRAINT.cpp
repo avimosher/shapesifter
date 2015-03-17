@@ -46,8 +46,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         Matrix<T,t+d,t+d> force_balance_contribution1=factor*stored_forces(i)*RIGID_STRUCTURE_INDEX_MAP<TV>::DF_DA(*structure1,constraint.v1,x1,x2,direction); // the two negatives
                                                                                                                                                                // actually cancel out.  No
                                                                                                                                                                // net negative sign
-        std::cout<<"REL force balance contribution for "<<body_index1<<": "<<force_balance_contribution1<<std::endl;
-        std::cout<<"REL force balance contribution for "<<body_index2<<": "<<force_balance_contribution2<<std::endl;
+        //std::cout<<"REL force balance contribution for "<<body_index1<<": "<<force_balance_contribution1<<std::endl;
+        //std::cout<<"REL force balance contribution for "<<body_index2<<": "<<force_balance_contribution2<<std::endl;
         TV offset1=frame1.orientation*constraint.v1;
         TV offset2=frame2.orientation*constraint.v2;
         constraint_rhs[i]=factor*(constraint.target_distance-distance);
@@ -66,7 +66,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             }
 
         // contribution to force-balance RHS
-        std::cout<<"REL RHS contribution: "<<(DC_DA1.transpose()*stored_forces[i]).transpose()<<std::endl;
+        //std::cout<<"REL RHS contribution: "<<(DC_DA1.transpose()*stored_forces[i]).transpose()<<std::endl;
         right_hand_side.template block<t+d,1>(body_index1*(t+d),0)+=DC_DA1.transpose()*stored_forces[i];
         right_hand_side.template block<t+d,1>(body_index2*(t+d),0)-=DC_DA2.transpose()*stored_forces[i];
     }
