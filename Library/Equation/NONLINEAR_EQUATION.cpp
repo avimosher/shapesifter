@@ -96,13 +96,19 @@ Evaluate()
 template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>::
 Gradient()
 {
-    return -matrix*right_hand_side;
+    return -jacobian*right_hand_side;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> SparseMatrix<typename TV::Scalar> NONLINEAR_EQUATION<TV>::
 Hessian()
 {
     return jacobian.adjoint()*jacobian;
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> int NONLINEAR_EQUATION<TV>::
+System_Size()
+{
+    return right_hand_side.size();
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(NONLINEAR_EQUATION)

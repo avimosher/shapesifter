@@ -19,8 +19,8 @@ public:
     Preconditioner PrecondLLt;
     Vector xk;
     Vector gk;
-    Vector sk;
     Vector yk;
+    Vector sk;
     Vector try_x;
     Vector try_g;
     Vector zj;
@@ -53,16 +53,19 @@ public:
     ~TRUST_REGION(){}
 
     void Step(SIMULATION<TV>& simulation,const T dt,const T time);
+    void Resize_Vectors();
+    void Linearize(SIMULATION<TV>& simulation,const T dt,const T time);
     void Update_Preconditioner();
     void Update_Hessian();
     STATUS Update_One_Step();
     void Solve_Trust_CG(Vector& pk);
     T Get_Norm_Sk(const Preconditioner& X);
     void Get_F(const Vector& x,T& f);
-    void Gradient(const Vector& x,Vector& g);
+    void Get_Gradient(const Vector& x,Vector& g);
     void UPz(const Preconditioner& X,const Vector& v,Vector& out);
     T Find_Tau(const Vector& z,const Vector& d);
     void Get_FDF(const Vector& x,T& f,Vector& g);
+    DEFINE_TYPE_NAME("TRUST_REGION")
 };
 }
 #endif

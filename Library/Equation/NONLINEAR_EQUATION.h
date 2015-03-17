@@ -41,6 +41,7 @@ public:
     T Evaluate();
     Matrix<T,Dynamic,1> Gradient();
     SparseMatrix<T> Hessian();
+    int System_Size();
     DEFINE_TYPE_NAME("NONLINEAR_EQUATION")
 };
 }

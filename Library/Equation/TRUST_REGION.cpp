@@ -1,5 +1,10 @@
+#include <Data/DATA.h>
 #include <Equation/EQUATION.h>
+#include <Equation/NONLINEAR_EQUATION.h>
 #include <Equation/TRUST_REGION.h>
+#include <Force/FORCE.h>
+#include <Force/STORED_FORCE.h>
+#include <Parsing/PARSER_REGISTRY.h>
 #include <Utilities/EIGEN_HELPERS.h>
 #include <Utilities/MATH.h>
 using namespace Mechanics;
@@ -7,17 +12,55 @@ using namespace Mechanics;
 template<class TV> TRUST_REGION<TV>::
 TRUST_REGION()
 {
-    Get_FDF(xk,f,gk);
+    function_scale_factor=1;
     f*=function_scale_factor;
     gk*=function_scale_factor;
     norm_gk=gk.norm();
+    prec=1e-8;
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void TRUST_REGION<TV>::
+Resize_Vectors()
+{
+    nvars=equation->System_Size();
+    xk.setZero(nvars);
+    gk.resize(nvars);
+    sk.resize(nvars);
+    yk.resize(nvars);
+    try_x.resize(nvars);
+    try_g.resize(nvars);
+
     zj.setZero(nvars);
     rj.setZero(nvars);
     dj.setZero(nvars);
     zj_old.setZero(nvars);
     yj.setZero(nvars);
     wd.resize(nvars);
-    wz.resize(nvars);
+    wz.resize(nvars);    
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void TRUST_REGION<TV>::
+Linearize(SIMULATION<TV>& simulation,const T dt,const T time)
+{
+    DATA<TV>& data=simulation.data;
+    FORCE<TV>& force=simulation.force;
+    Matrix<T,Dynamic,1> positions;
+
+    // zero velocities
+    Matrix<T,Dynamic,1> current_velocities;
+    current_velocities.resize(data.Velocity_DOF(),1);current_velocities.setZero();
+    data.Unpack_Velocities(current_velocities);
+
+    // zero forces
+    STORED_FORCE<T> solve_forces;
+    force.Pack_Forces(solve_forces);
+    solve_forces.setZero();
+    force.Unpack_Forces(solve_forces);
+
+    // store positions
+    data.Pack_Positions(positions);
+
+    equation->Linearize(data,force,dt,time,true);
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
@@ -26,7 +69,22 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     // based on trustOptim implementation
     int iteration=0;
     auto status=CONTINUE;
-    
+
+    iteration=0;
+    max_iterations=100;
+    radius=1e-3;
+    min_radius=1e-5;
+    preconditioner_refresh_frequency=20;
+
+    Linearize(simulation,dt,time);
+    Get_F(xk,f);
+    Get_Gradient(xk,gk);
+    Resize_Vectors();
+    norm_gk=gk.norm();
+    Update_Hessian();
+    PrecondLLt.analyzePattern(Bk);
+    Update_Preconditioner();
+
     do{
         iteration++;
         status=Update_One_Step();
@@ -128,7 +186,7 @@ Update_One_Step()
     }
     if(step_status!=FAILEDCG && step_status!=ENEGMOVE){
         if(ap>contract_threshold){
-            Gradient(try_x,try_g);
+            Get_Gradient(try_x,try_g);
             if(finite(try_g.norm())){
                 try_g*=function_scale_factor;
                 yk=try_g-gk;
@@ -251,7 +309,7 @@ Get_F(const Vector& x,T& f)
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
-Gradient(const Vector& x,Vector& g)
+Get_Gradient(const Vector& x,Vector& g)
 {
     equation->Linearize_Around(x);
     g=equation->Gradient();
@@ -286,3 +344,10 @@ Get_FDF(const Vector& x,T& f,Vector& g)
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(TRUST_REGION)
+DEFINE_AND_REGISTER_PARSER(TRUST_REGION,void)
+{
+    auto step=std::make_shared<TRUST_REGION<TV>>();
+    step->equation=new NONLINEAR_EQUATION<TV>();
+    simulation.evolution.push_back(step);
+    return 0;
+}

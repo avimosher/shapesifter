@@ -24,7 +24,7 @@ public:
     virtual T Evaluate()=0;
     virtual Matrix<T,Dynamic,1> Gradient()=0;
     virtual SparseMatrix<T> Hessian()=0;
-
+    virtual int System_Size()=0;
 };
 }
 #endif
