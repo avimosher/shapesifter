@@ -2,6 +2,7 @@
 #define __TRUST_REGION__
 
 #include <Evolution/EVOLUTION_STEP.h>
+#include <Force/STORED_FORCE.h>
 
 namespace Mechanics{
     template<class TV> class EQUATION;
@@ -49,12 +50,21 @@ public:
     int nvars;
     std::string CG_stop_reason;
 
+    STORED_FORCE<T> solve_forces;
+    Vector current_velocities;
+    Vector positions;
+    SIMULATION<TV>* stored_simulation;
+    T dt;
+    T time;
+
     TRUST_REGION();
     ~TRUST_REGION(){}
 
     void Step(SIMULATION<TV>& simulation,const T dt,const T time);
     void Resize_Vectors();
     void Linearize(SIMULATION<TV>& simulation,const T dt,const T time);
+    void Linearize_Around();
+    void Increment_X();;
     void Update_Preconditioner();
     void Update_Hessian();
     STATUS Update_One_Step();

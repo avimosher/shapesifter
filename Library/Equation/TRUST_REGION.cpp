@@ -3,7 +3,6 @@
 #include <Equation/NONLINEAR_EQUATION.h>
 #include <Equation/TRUST_REGION.h>
 #include <Force/FORCE.h>
-#include <Force/STORED_FORCE.h>
 #include <Parsing/PARSER_REGISTRY.h>
 #include <Utilities/EIGEN_HELPERS.h>
 #include <Utilities/MATH.h>
@@ -17,6 +16,12 @@ TRUST_REGION()
     gk*=function_scale_factor;
     norm_gk=gk.norm();
     prec=1e-8;
+    contract_factor=.5;
+    expand_factor=3;
+    contract_threshold=.25;
+    expand_threshold_ap=.8;
+    expand_threshold_rad=.8;
+    trust_iterations=200;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
@@ -44,15 +49,12 @@ Linearize(SIMULATION<TV>& simulation,const T dt,const T time)
 {
     DATA<TV>& data=simulation.data;
     FORCE<TV>& force=simulation.force;
-    Matrix<T,Dynamic,1> positions;
 
     // zero velocities
-    Matrix<T,Dynamic,1> current_velocities;
     current_velocities.resize(data.Velocity_DOF(),1);current_velocities.setZero();
     data.Unpack_Velocities(current_velocities);
 
     // zero forces
-    STORED_FORCE<T> solve_forces;
     force.Pack_Forces(solve_forces);
     solve_forces.setZero();
     force.Unpack_Forces(solve_forces);
@@ -64,11 +66,43 @@ Linearize(SIMULATION<TV>& simulation,const T dt,const T time)
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
+Linearize_Around()
+{
+    DATA<TV>& data=stored_simulation->data;
+    FORCE<TV>& force=stored_simulation->force;
+    // sk is solve_vector
+    Vector solve_velocities=sk.block(0,0,data.Velocity_DOF(),1);
+    solve_forces.Set(sk.block(data.Velocity_DOF(),0,sk.rows()-data.Velocity_DOF(),1));
+    data.Unpack_Positions(positions);
+    force.Increment_Forces(solve_forces,1);
+    data.Unpack_Velocities(current_velocities+solve_velocities);
+    data.Step();
+    equation->Linearize(data,force,dt,time,false);
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void TRUST_REGION<TV>::
+Increment_X()
+{
+    DATA<TV>& data=stored_simulation->data;
+    FORCE<TV>& force=stored_simulation->force;
+    // sk is solve_vector
+    Vector solve_velocities=sk.block(0,0,data.Velocity_DOF(),1);
+    STORED_FORCE<T> solve_forces;
+    solve_forces.Set(sk.block(data.Velocity_DOF(),0,sk.rows()-data.Velocity_DOF(),1));
+    force.Increment_Forces(solve_forces,1);
+    current_velocities+=solve_velocities;
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void TRUST_REGION<TV>::
 Step(SIMULATION<TV>& simulation,const T dt,const T time)
 {
     // based on trustOptim implementation
     int iteration=0;
     auto status=CONTINUE;
+
+    stored_simulation=&simulation;
+    this->dt=dt;
+    this->time=time;
 
     iteration=0;
     max_iterations=100;
@@ -171,7 +205,8 @@ Update_One_Step()
     norm_sk_scaled=Get_Norm_Sk(PrecondLLt);
     if(!finite(norm_sk_scaled)){step_status=FAILEDCG;}
     else{
-        try_x=xk+sk;
+        //try_x=xk+sk;
+        Linearize_Around();
         Get_F(try_x,try_f);
         if(finite(try_f)){
             try_f*=function_scale_factor;
@@ -191,7 +226,8 @@ Update_One_Step()
                 try_g*=function_scale_factor;
                 yk=try_g-gk;
                 f=try_f;
-                xk+=sk;
+                Increment_X();
+                //xk+=sk;
                 gk=try_g;
                 norm_gk=gk.norm();
                 if(ap>expand_threshold_ap && norm_sk_scaled>=expand_threshold_rad*radius){
