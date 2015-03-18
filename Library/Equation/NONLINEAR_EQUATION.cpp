@@ -90,7 +90,7 @@ Sufficient_Descent_Factor(const Matrix<T,Dynamic,1>& direction)
 template<class TV> typename TV::Scalar NONLINEAR_EQUATION<TV>::
 Evaluate()
 {
-    return right_hand_side.norm();
+    return right_hand_side.squaredNorm()/2;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>::

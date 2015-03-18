@@ -106,7 +106,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
 
     iteration=0;
     max_iterations=100;
-    radius=1e-5;
+    radius=1;
     min_radius=1e-9;
     preconditioner_refresh_frequency=20;
 
@@ -370,12 +370,19 @@ Find_Tau(const Vector& z,const Vector& d)
     UPz(PrecondLLt,d,wd);
     UPz(PrecondLLt,z,wz);
     
+    /*
     T d2=wd.squaredNorm();
     T z2=z.squaredNorm();
     T zd=wd.dot(wz);
     
     T root=zd*zd-d2*(z2-radius*radius);
     T tau=(sqrt(root)-zd)/d2;
+    */
+
+    T pCd=z.dot(wd);
+    T dCd=d.dot(wd);
+    T pCp=z.dot(wz);
+    T tau=(-2*pCd+sqrt(pCd*pCd-4*dCd*(pCp-radius*radius)))/(2*dCd);
     return tau;
 }
 ///////////////////////////////////////////////////////////////////////
