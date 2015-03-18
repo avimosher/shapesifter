@@ -43,6 +43,8 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     }
     Merge_Block_Matrices(full_matrix,jacobian);
     Merge_Block_Vectors(full_right_hand_side,right_hand_side);
+    //std::cout<<"RHS: "<<right_hand_side.transpose()<<std::endl;
+    //std::cout<<"Jacobian: "<<std::endl<<jacobian<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>::

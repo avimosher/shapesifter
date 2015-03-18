@@ -13,6 +13,7 @@ class TRUST_REGION:public EVOLUTION_STEP<TV>
     typedef typename TV::Scalar T;
     typedef Matrix<T,Dynamic,1> Vector;
     typedef SimplicialLLT<SparseMatrix<T>> Preconditioner;
+    //typedef SparseLU<SparseMatrix<T>> Preconditioner;
 public:
     enum STATUS{UNKNOWN,CONTINUE,SUCCESS,EMAXITER,ETOLG,MOVED,EXPAND,CONTRACT,FAILEDCG,ENEGMOVE};
     EQUATION<TV>* equation;

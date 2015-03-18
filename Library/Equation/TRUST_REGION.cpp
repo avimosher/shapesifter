@@ -18,7 +18,7 @@ TRUST_REGION()
     prec=1e-8;
     contract_factor=.5;
     expand_factor=3;
-    contract_threshold=.25;
+    contract_threshold=.2;
     expand_threshold_ap=.8;
     expand_threshold_rad=.8;
     trust_iterations=200;
@@ -78,6 +78,7 @@ Linearize_Around()
     data.Unpack_Velocities(current_velocities+solve_velocities);
     data.Step();
     equation->Linearize(data,force,dt,time,false);
+    force.Increment_Forces(solve_forces,-1);
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
@@ -87,7 +88,6 @@ Increment_X()
     FORCE<TV>& force=stored_simulation->force;
     // sk is solve_vector
     Vector solve_velocities=sk.block(0,0,data.Velocity_DOF(),1);
-    STORED_FORCE<T> solve_forces;
     solve_forces.Set(sk.block(data.Velocity_DOF(),0,sk.rows()-data.Velocity_DOF(),1));
     force.Increment_Forces(solve_forces,1);
     current_velocities+=solve_velocities;
@@ -108,7 +108,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     max_iterations=100;
     radius=1;
     min_radius=1e-9;
-    preconditioner_refresh_frequency=20;
+    preconditioner_refresh_frequency=1;
 
     Linearize(simulation,dt,time);
     Get_F(xk,f);
@@ -118,7 +118,6 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     Update_Hessian();
     PrecondLLt.analyzePattern(Bk);
     Update_Preconditioner();
-
     do{
         iteration++;
         status=Update_One_Step();
@@ -139,6 +138,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
                 Update_Preconditioner();
             }
             status=CONTINUE;
+            simulation.Write("Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration));
         }
         if(status==CONTRACT){status=CONTINUE;}
     }while(status==CONTINUE);
@@ -172,7 +172,6 @@ Update_Preconditioner()
     
     if(bmin>0){alpha=0;}
     else{alpha=beta/2;}*/
-
     int ii=0;
     do{
         ii++;
@@ -187,12 +186,16 @@ Update_Preconditioner()
             }
             }*/
     }while(!success);
-    SparseMatrix<T> L=PrecondLLt.matrixL();
-    SparseMatrix<T> Lt=PrecondLLt.matrixU();
+
+    //PrecondLLt.analyzePattern(BB);
+    //PrecondLLt.factorize(BB);
+
+    /*Matrix<T,Dynamic,Dynamic> L(PrecondLLt.matrixL());
+    Matrix<T,Dynamic,Dynamic> Lt(PrecondLLt.matrixU());
     std::cout<<"LLt"<<std::endl;
-    std::cout<<L*Lt<<std::endl;
+    std::cout<<PrecondLLt.permutationPinv()*L*Lt*PrecondLLt.permutationP()<<std::endl;
     std::cout<<"BB"<<std::endl;
-    std::cout<<BB<<std::endl;
+    std::cout<<BB<<std::endl;*/
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
@@ -222,6 +225,7 @@ Update_One_Step()
             pred=-(gs+sBs/2);
             if(pred<0){step_status=ENEGMOVE;}
             ap=ared/pred;
+            std::cout<<"AP: "<<ap<<" ared: "<<ared<<" pred: "<<pred<<std::endl;
         }
         else{step_status=FAILEDCG;}
     }
@@ -252,6 +256,7 @@ Update_One_Step()
         case CONTRACT:
         case FAILEDCG:
         case ENEGMOVE:
+            step_status=CONTRACT;
             radius*=contract_factor;
             break;
         case EXPAND:
@@ -346,27 +351,46 @@ Get_Norm_Sk(const Preconditioner& X)
 template<class TV> void TRUST_REGION<TV>::
 Get_F(const Vector& x,T& f)
 {
-    equation->Linearize_Around(x);
+    //equation->Linearize_Around(x);
     f=equation->Evaluate();
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
 Get_Gradient(const Vector& x,Vector& g)
 {
-    equation->Linearize_Around(x);
+    //equation->Linearize_Around(x);
     g=equation->Gradient();
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
 UPz(const Preconditioner& X,const Vector& v,Vector& out)
 {
+    //out=X.permutationP()*v;
+    //out=X.matrixU().template triangularView<Upper>()*out;
+    // it looks like X.matrixU() is L...
     out=X.permutationP()*v;
-    out=X.matrixU().template triangularView<Upper>()*out;
+    out=X.matrixU()*out;
+    out=X.matrixL()*out;
+    out=X.permutationPinv()*out;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> typename TV::Scalar TRUST_REGION<TV>::
 Find_Tau(const Vector& z,const Vector& d)
 {
+    if(d[0]>.7974&&d[0]<.7975){
+        SparseMatrix<T> L=PrecondLLt.matrixL();
+        SparseMatrix<T> Lt=PrecondLLt.matrixU();
+        std::cout<<"LLt"<<std::endl;
+        std::cout<<L*Lt<<std::endl;
+        std::cout<<"Lt"<<std::endl;
+        std::cout<<Lt.template triangularView<Upper>()<<std::endl;
+        std::cout<<"m_matrix"<<std::endl;
+        //std::cout<<PrecondLLt.rawMatrix()<<std::endl;
+        SparseMatrix<T> BB(nvars,nvars);
+        BB=Bk.template selfadjointView<Lower>();
+        std::cout<<"BB"<<std::endl;
+        std::cout<<BB<<std::endl;
+    }
     UPz(PrecondLLt,d,wd);
     UPz(PrecondLLt,z,wz);
     
