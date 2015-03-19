@@ -217,6 +217,7 @@ Update_One_Step()
         //try_x=xk+sk;
         Linearize_Around();
         Get_F(try_x,try_f);
+        std::cout<<"Old f: "<<f<<" try f: "<<try_f<<std::endl;
         if(finite(try_f)){
             try_f*=function_scale_factor;
             ared=f-try_f;

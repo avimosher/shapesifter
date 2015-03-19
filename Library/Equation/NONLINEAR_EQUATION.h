@@ -25,9 +25,11 @@ class NONLINEAR_EQUATION : public EQUATION<TV>
     typedef typename TV::Scalar T;
 public:
     SparseMatrix<T> matrix;
+    Matrix<SparseMatrix<T>,Dynamic,Dynamic> inverse_inertia_matrix;
     Matrix<SparseMatrix<T>,Dynamic,Dynamic> full_matrix;
     Matrix<T,Dynamic,1> right_hand_side;
     SparseMatrix<T> jacobian;
+    SparseMatrix<T> inverse_inertia;
     Matrix<Matrix<T,Dynamic,1>,Dynamic,1> full_right_hand_side;
     Matrix<T,Dynamic,1> conditioner;
 
