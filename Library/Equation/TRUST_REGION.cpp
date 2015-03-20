@@ -121,6 +121,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     do{
         iteration++;
         status=Update_One_Step();
+        std::cout<<"norm_gk: "<<norm_gk<<" norm_gk/sqrt(nvars): "<<norm_gk/sqrt(T(nvars))<<std::endl;
         if(norm_gk/sqrt(T(nvars))<=prec){
             status=SUCCESS;
         }
@@ -142,6 +143,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
         }
         if(status==CONTRACT){status=CONTINUE;}
     }while(status==CONTINUE);
+    std::cout<<"SOLVE STEPS: "<<iteration<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
@@ -226,7 +228,7 @@ Update_One_Step()
             pred=-(gs+sBs/2);
             if(pred<0){step_status=ENEGMOVE;}
             ap=ared/pred;
-            std::cout<<"AP: "<<ap<<" ared: "<<ared<<" pred: "<<pred<<std::endl;
+            std::cout<<"AP: "<<ap<<" ared: "<<ared<<" pred: "<<pred<<" radius: "<<radius<<std::endl;
         }
         else{step_status=FAILEDCG;}
     }
@@ -339,6 +341,7 @@ Solve_Trust_CG(Vector& pk)
     }
 
     CG_stop_reason=reason.str();
+    std::cout<<"CG reason: "<<CG_stop_reason<<" iterations: "<<num_CG_iterations<<std::endl;
     return;
 }
 ///////////////////////////////////////////////////////////////////////
