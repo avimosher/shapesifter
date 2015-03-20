@@ -22,6 +22,7 @@ TRUST_REGION()
     expand_threshold_ap=.8;
     expand_threshold_rad=.8;
     trust_iterations=200;
+    tol=1e-8;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::

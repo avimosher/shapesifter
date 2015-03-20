@@ -33,7 +33,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         FRAME<TV> frame2=structure2->frame;
         TV direction=data.Minimum_Offset(frame1*constraint.v1,frame2*constraint.v2);
         T distance=direction.norm();
-        std::cout<<"Constraint distance: "<<distance<<std::endl;
+        //std::cout<<"Constraint distance: "<<distance<<std::endl;
         TV x1=frame1*constraint.v1;
         TV x2=frame2*constraint.v2;
         T factor=1;//500;
@@ -41,7 +41,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         CONSTRAINT_VECTOR DC_DA1=factor*RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure1,constraint.v1,x1,x2,direction);
         terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index2,DC_DA2));
         terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index1,-DC_DA1));
-        std::cout<<"Direction: "<<direction<<" Stored force: "<<stored_forces(i)<<std::endl;
+        //std::cout<<"Direction: "<<direction.transpose()<<" Stored force: "<<stored_forces(i)<<std::endl;
         Matrix<T,t+d,t+d> force_balance_contribution2=factor*stored_forces(i)*RIGID_STRUCTURE_INDEX_MAP<TV>::DF_DA(*structure2,constraint.v2,x1,x2,direction);
         Matrix<T,t+d,t+d> force_balance_contribution1=factor*stored_forces(i)*RIGID_STRUCTURE_INDEX_MAP<TV>::DF_DA(*structure1,constraint.v1,x1,x2,direction); // the two negatives
                                                                                                                                                                // actually cancel out.  No
