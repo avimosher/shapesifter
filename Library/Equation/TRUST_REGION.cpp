@@ -18,7 +18,9 @@ TRUST_REGION()
     prec=1e-8;
     contract_factor=.25;
     expand_factor=2.5;
-    contract_threshold=.2;
+    //contract_factor=.5;
+    //expand_factor=3;
+    contract_threshold=.25;
     expand_threshold_ap=.8;
     expand_threshold_rad=.8;
     trust_iterations=200;
@@ -155,7 +157,8 @@ Update_Preconditioner()
 
     Vector TT(nvars);
     SparseMatrix<T> BB(nvars,nvars);
-    BB=Bk.template selfadjointView<Lower>();
+    //BB=Bk.template selfadjointView<Lower>();
+    BB.setIdentity();
     
     /*for(int j=0;j<BB.outerSize();j++){
         TT(j)=sqrt(BB.innerVector(j).dot(BB.innerVector(j)));
@@ -175,6 +178,7 @@ Update_Preconditioner()
     
     if(bmin>0){alpha=0;}
     else{alpha=beta/2;}*/
+#if 0
     int ii=0;
     do{
         ii++;
@@ -189,9 +193,9 @@ Update_Preconditioner()
             }
             }*/
     }while(!success);
-
-    //PrecondLLt.analyzePattern(BB);
-    //PrecondLLt.factorize(BB);
+#endif
+    PrecondLLt.analyzePattern(BB);
+    PrecondLLt.factorize(BB);
 
     /*Matrix<T,Dynamic,Dynamic> L(PrecondLLt.matrixL());
     Matrix<T,Dynamic,Dynamic> Lt(PrecondLLt.matrixU());
@@ -253,6 +257,7 @@ Update_One_Step()
         }
         else if(ap<0){
             step_status=NEGRATIO;
+            std::cout<<"Negratio"<<std::endl;
         }
         else{
             step_status=CONTRACT;
@@ -265,7 +270,8 @@ Update_One_Step()
             T gamma_bad=(1-contract_threshold)*gksk/((1-contract_threshold)*(f+gksk+contract_threshold*(f-pred)-try_f));
             radius=std::min(contract_factor*norm_sk_scaled,std::max((T)0.0625,gamma_bad)*radius);
             break;
-        }
+            step_status=CONTRACT;
+            }
         case CONTRACT:
         case FAILEDCG:
         case ENEGMOVE:
