@@ -15,7 +15,7 @@ class TRUST_REGION:public EVOLUTION_STEP<TV>
     typedef SimplicialLLT<SparseMatrix<T>> Preconditioner;
     //typedef SparseLU<SparseMatrix<T>> Preconditioner;
 public:
-    enum STATUS{UNKNOWN,CONTINUE,SUCCESS,EMAXITER,ETOLG,MOVED,EXPAND,CONTRACT,FAILEDCG,ENEGMOVE};
+    enum STATUS{UNKNOWN,CONTINUE,SUCCESS,EMAXITER,ETOLG,MOVED,EXPAND,CONTRACT,FAILEDCG,ENEGMOVE,NEGRATIO};
     EQUATION<TV>* equation;
     SparseMatrix<T> Bk;
     Preconditioner PrecondLLt;

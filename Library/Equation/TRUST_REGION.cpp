@@ -16,8 +16,8 @@ TRUST_REGION()
     gk*=function_scale_factor;
     norm_gk=gk.norm();
     prec=1e-8;
-    contract_factor=.5;
-    expand_factor=3;
+    contract_factor=.25;
+    expand_factor=2.5;
     contract_threshold=.2;
     expand_threshold_ap=.8;
     expand_threshold_rad=.8;
@@ -140,7 +140,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
                 Update_Preconditioner();
             }
             status=CONTINUE;
-            simulation.Write("Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration));
+            //simulation.Write("Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration));
         }
         if(status==CONTRACT){status=CONTINUE;}
     }while(status==CONTINUE);
@@ -251,20 +251,31 @@ Update_One_Step()
             }
             else{step_status=FAILEDCG;}
         }
+        else if(ap<0){
+            step_status=NEGRATIO;
+        }
         else{
             step_status=CONTRACT;
         }
     }
 
     switch(step_status){
+        case NEGRATIO:{
+            T gksk=gk.dot(sk);
+            T gamma_bad=(1-contract_threshold)*gksk/((1-contract_threshold)*(f+gksk+contract_threshold*(f-pred)-try_f));
+            radius=std::min(contract_factor*norm_sk_scaled,std::max((T)0.0625,gamma_bad)*radius);
+            break;
+        }
         case CONTRACT:
         case FAILEDCG:
         case ENEGMOVE:
             step_status=CONTRACT;
-            radius*=contract_factor;
+            radius=norm_sk_scaled*contract_factor;
+            //radius*=contract_factor;
             break;
         case EXPAND:
-            radius*=expand_factor;
+            radius=std::max(expand_factor*norm_sk_scaled,radius);
+            //radius*=expand_factor;
             break;
     };
     return step_status;
