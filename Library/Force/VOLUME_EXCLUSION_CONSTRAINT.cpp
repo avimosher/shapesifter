@@ -26,8 +26,11 @@ Pack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information)
 {
     auto information=std::static_pointer_cast<STORED_VOLUME_EXCLUSION_CONSTRAINT<T>>(force_information);
     information->constraints=constraints;
+    information->value.resize(constraints.size());
     for(int i=0;i<information->constraints.size();i++){
-        std::pair<int,T>(call_count,information->value[i])=force_memory[information->constraints[i]];
+        std::pair<int,T> memory=force_memory[information->constraints[i]];
+        information->value[i]=memory.second;
+        //std::pair<int,T>(call_count,information->value[i])=
     }
 }
 ///////////////////////////////////////////////////////////////////////
@@ -51,7 +54,7 @@ Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,T ratio)
             auto& memory=force_memory[information->constraints[i]];
             memory.first=call_count;
             memory.second+=ratio*information->value[i];
-            stored_forces[i]=memory.second;
+            //stored_forces[i]=memory.second;
         }
         else{
             force_memory[information->constraints[i]]=std::pair<int,T>(call_count,ratio*information->value[i]);
@@ -83,14 +86,14 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             //std::cout<<"s1 com: "<<rigid_structure1->frame.position.transpose()<<" s2 com: "<<rigid_structure2->frame.position.transpose()<<" r1:
             //"<<rigid_structure1->collision_radius<<" r2: "<<rigid_structure2->collision_radius<<std::endl;
             //std::cout<<"Constraint violation: "<<constraint_violation<<" remembered call count: "<<remembered.first<<" call count: "<<call_count<<" remembered force: "<<remembered.second<<std::endl;
-            std::cout<<"Constraint violation: "<<constraint_violation<<std::endl;
+            std::cout<<"Constraint violation: "<<constraint_violation<<" remembered force: "<<remembered.second<<" call count: "<<call_count<<" remembered call count: "<<remembered.first<<std::endl;
             if(constraint_violation<distance_condition || (remembered.first==call_count && remembered.second>0)){
                 TV x1=structure1->frame.position+offset1;
                 TV x2=structure2->frame.position+offset2;
                 TV object_offset1=structure1->frame.orientation.inverse()*offset1;
                 TV object_offset2=structure1->frame.orientation.inverse()*offset2;
                 std::cout<<"Constraint between "<<s1<<" and "<<s2<<std::endl;
-                T factor=100;//500;
+                T factor=1;//500;
                 CONSTRAINT_VECTOR DC_DA2=factor*RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure2,object_offset2,x1,x2,direction);
                 CONSTRAINT_VECTOR DC_DA1=factor*RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure1,object_offset1,x1,x2,direction);
                 terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s2,DC_DA2));
@@ -104,7 +107,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 //std::cout<<"F_i: "<<constraint_violation<<std::endl;
                 //std::cout<<"Hessian: "<<std::endl<<hessian<<std::endl;
 
-                /*for(int j=0;j<t+d;j++){
+                for(int j=0;j<t+d;j++){
                     for(int k=0;k<t+d;k++){
                         if(fabs(force_balance_contribution1(j,k))>1e-6){
                             force_terms.push_back(Triplet<T>(s1*(t+d)+j,s1*(t+d)+k,force_balance_contribution1(j,k)));
@@ -113,7 +116,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                             force_terms.push_back(Triplet<T>(s2*(t+d)+j,s2*(t+d)+k,force_balance_contribution2(j,k)));
                         }
                     }
-                    }*/
+                }
                 rhs.push_back(-factor*constraint_violation);
                 right_hand_side.template block<t+d,1>(s1*(t+d),0)+=DC_DA1.transpose()*remembered.second;
                 right_hand_side.template block<t+d,1>(s2*(t+d),0)-=DC_DA2.transpose()*remembered.second;

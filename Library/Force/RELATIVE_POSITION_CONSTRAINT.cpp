@@ -52,7 +52,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         TV offset2=frame2.orientation*constraint.v2;
         constraint_rhs[i]=factor*(constraint.target_distance-distance);
         //std::cout<<"F_i: "<<constraint_rhs[i]<<std::endl;
-#if 0
+#if 1
         for(int j=0;j<t+d;j++){
             for(int k=0;k<t+d;k++){
                 if(fabs(force_balance_contribution1(j,k))>1e-6){

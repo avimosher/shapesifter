@@ -141,8 +141,8 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
                 Update_Preconditioner();
             }
             status=CONTINUE;
-            //simulation.Write("Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration));
         }
+        simulation.Write("Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration));
         if(status==CONTRACT){status=CONTINUE;}
     }while(status==CONTINUE);
     std::cout<<"SOLVE STEPS: "<<iteration<<std::endl;
@@ -269,8 +269,8 @@ Update_One_Step()
             T gksk=gk.dot(sk);
             T gamma_bad=(1-contract_threshold)*gksk/((1-contract_threshold)*(f+gksk+contract_threshold*(f-pred)-try_f));
             radius=std::min(contract_factor*norm_sk_scaled,std::max((T)0.0625,gamma_bad)*radius);
-            break;
             step_status=CONTRACT;
+            break;
             }
         case CONTRACT:
         case FAILEDCG:
