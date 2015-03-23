@@ -18,8 +18,6 @@ TRUST_REGION()
     prec=1e-8;
     contract_factor=.25;
     expand_factor=2.5;
-    //contract_factor=.5;
-    //expand_factor=3;
     contract_threshold=.25;
     expand_threshold_ap=.8;
     expand_threshold_rad=.8;
@@ -75,6 +73,7 @@ Linearize_Around()
     FORCE<TV>& force=stored_simulation->force;
     // sk is solve_vector
     Vector solve_velocities=sk.block(0,0,data.Velocity_DOF(),1);
+    force.Pack_Forces(solve_forces);
     solve_forces.Set(sk.block(data.Velocity_DOF(),0,sk.rows()-data.Velocity_DOF(),1));
     data.Unpack_Positions(positions);
     force.Increment_Forces(solve_forces,1);
@@ -155,6 +154,7 @@ Update_Preconditioner()
     bool success=false;
     T alpha,beta,bmin;
 
+    nvars=Bk.rows();
     Vector TT(nvars);
     SparseMatrix<T> BB(nvars,nvars);
     //BB=Bk.template selfadjointView<Lower>();
@@ -242,7 +242,7 @@ Update_One_Step()
             Get_Gradient(try_x,try_g);
             if(finite(try_g.norm())){
                 try_g*=function_scale_factor;
-                yk=try_g-gk;
+                //yk=try_g-gk;
                 f=try_f;
                 Increment_X();
                 //xk+=sk;
@@ -294,6 +294,7 @@ Solve_Trust_CG(Vector& pk)
     int j;
     T crit;
     
+    zj.resize(Bk.rows());
     zj.setZero();
     rj=-gk;
     UPz(PrecondLLt,rj,wd);

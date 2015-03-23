@@ -83,6 +83,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             //std::cout<<"s1 com: "<<rigid_structure1->frame.position.transpose()<<" s2 com: "<<rigid_structure2->frame.position.transpose()<<" r1:
             //"<<rigid_structure1->collision_radius<<" r2: "<<rigid_structure2->collision_radius<<std::endl;
             //std::cout<<"Constraint violation: "<<constraint_violation<<" remembered call count: "<<remembered.first<<" call count: "<<call_count<<" remembered force: "<<remembered.second<<std::endl;
+            std::cout<<"Constraint violation: "<<constraint_violation<<std::endl;
             if(constraint_violation<distance_condition || (remembered.first==call_count && remembered.second>0)){
                 TV x1=structure1->frame.position+offset1;
                 TV x2=structure2->frame.position+offset2;
