@@ -142,7 +142,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
             }
             status=CONTINUE;
         }
-        simulation.Write("Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration));
+        //simulation.Write("Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration));
         if(status==CONTRACT){status=CONTINUE;}
     }while(status==CONTINUE);
     std::cout<<"SOLVE STEPS: "<<iteration<<std::endl;

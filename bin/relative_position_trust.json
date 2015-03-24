@@ -19,6 +19,8 @@
          "position": [6.5, 2, 1],
          "radius": 1
         },
+        {"type": "BROWNIAN_FORCE",
+         "temperature": 300},
         {"type": "VOLUME_EXCLUSION_CONSTRAINT"},
         {"type": "RELATIVE_POSITION_CONSTRAINT",
          "constraints": [
@@ -27,9 +29,9 @@
               "structure2": "right",
               "offset2": [-1, 0, 0],
               "distance": 0.5},
-             {"structure2": "right",
+             {"structure1": "right",
               "offset1": [1, 0, 0],
-              "structure1": "third",
+              "structure2": "third",
               "offset2": [0, -1, 0],
               "distance": 0.5}
          ]

@@ -33,7 +33,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         FRAME<TV> frame2=structure2->frame;
         TV direction=data.Minimum_Offset(frame1*constraint.v1,frame2*constraint.v2);
         T distance=direction.norm();
-        //std::cout<<"Constraint distance: "<<distance<<std::endl;
+        std::cout<<"Constraint distance: "<<distance<<std::endl;
         TV x1=frame1*constraint.v1;
         TV x2=frame2*constraint.v2;
         T factor=1;//500;
@@ -51,7 +51,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         TV offset1=frame1.orientation*constraint.v1;
         TV offset2=frame2.orientation*constraint.v2;
         constraint_rhs[i]=factor*(constraint.target_distance-distance);
-        //std::cout<<"F_i: "<<constraint_rhs[i]<<std::endl;
+        std::cout<<"F_i: "<<constraint_rhs[i]<<std::endl;
 #if 1
         for(int j=0;j<t+d;j++){
             for(int k=0;k<t+d;k++){
