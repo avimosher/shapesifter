@@ -7,11 +7,12 @@
 #include <Parsing/PARSER_REGISTRY.h>
 #include <Utilities/EIGEN_HELPERS.h>
 #include <Utilities/HASHING.h>
+#include <Utilities/LOG.h>
 #include <Utilities/OSG_HELPERS.h>
 #include <Utilities/RANDOM.h>
 #include <iostream>
-#include <osg/Geometry>
 #include <math.h>
+#include <osg/Geometry>
 #include <osg/Geode>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
@@ -45,19 +46,20 @@ Unpack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information)
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
-Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,T ratio)
+Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,int increment)
 {
     //stored_forces.resize(forces.size());
+    call_count+=increment;
     auto information=std::static_pointer_cast<STORED_VOLUME_EXCLUSION_CONSTRAINT<T>>(force_information);
     for(int i=0;i<information->constraints.size();i++){
         if(force_memory.count(information->constraints[i])){// this could be compressed if I could be sure that the force would be initialized properly
             auto& memory=force_memory[information->constraints[i]];
             memory.first=call_count;
-            memory.second+=ratio*information->value[i];
+            memory.second+=increment*information->value[i];
             //stored_forces[i]=memory.second;
         }
         else{
-            force_memory[information->constraints[i]]=std::pair<int,T>(call_count,ratio*information->value[i]);
+            force_memory[information->constraints[i]]=std::pair<int,T>(call_count,increment*information->value[i]);
             //stored_forces[i]=forces[i];
         }
     }
@@ -72,6 +74,11 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     std::vector<T> rhs;
     RIGID_STRUCTURE_INDEX_MAP<TV> index_map;
     constraints.clear();
+    if(stochastic){
+        for(auto memory : force_memory){
+            memory.second.second=(T)0;
+        }
+    }
     for(int s1=0;s1<rigid_data->structures.size();s1++){
         for(int s2=s1+1;s2<rigid_data->structures.size();s2++){
             auto structure1=rigid_data->structures[s1];
@@ -82,30 +89,25 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             T constraint_violation=distance-structure1->collision_radius-structure2->collision_radius;
             T distance_condition=-.001;
             std::pair<int,T> remembered=force_memory[CONSTRAINT(s1,s2)];
-            //std::cout<<s1<<" "<<rigid_structure1->name<<" "<<s2<<" "<<rigid_structure2->name<<": constraint violation "<<constraint_violation<<std::endl;
-            //std::cout<<"s1 com: "<<rigid_structure1->frame.position.transpose()<<" s2 com: "<<rigid_structure2->frame.position.transpose()<<" r1:
+            //LOG::cout<<s1<<" "<<rigid_structure1->name<<" "<<s2<<" "<<rigid_structure2->name<<": constraint violation "<<constraint_violation<<std::endl;
+            //LOG::cout<<"s1 com: "<<rigid_structure1->frame.position.transpose()<<" s2 com: "<<rigid_structure2->frame.position.transpose()<<" r1:
             //"<<rigid_structure1->collision_radius<<" r2: "<<rigid_structure2->collision_radius<<std::endl;
-            //std::cout<<"Constraint violation: "<<constraint_violation<<" remembered call count: "<<remembered.first<<" call count: "<<call_count<<" remembered force: "<<remembered.second<<std::endl;
-            std::cout<<"Constraint violation: "<<constraint_violation<<" remembered force: "<<remembered.second<<" call count: "<<call_count<<" remembered call count: "<<remembered.first<<std::endl;
+            //LOG::cout<<"Constraint violation: "<<constraint_violation<<" remembered call count: "<<remembered.first<<" call count: "<<call_count<<" remembered force: "<<remembered.second<<std::endl;
+            LOG::cout<<"Constraint violation: "<<constraint_violation<<" remembered force: "<<remembered.second<<" call count: "<<call_count<<" remembered call count: "<<remembered.first<<std::endl;
             if(constraint_violation<distance_condition || (remembered.first==call_count && remembered.second>0)){
                 TV x1=structure1->frame.position+offset1;
                 TV x2=structure2->frame.position+offset2;
                 TV object_offset1=structure1->frame.orientation.inverse()*offset1;
                 TV object_offset2=structure1->frame.orientation.inverse()*offset2;
-                std::cout<<"Constraint between "<<s1<<" and "<<s2<<std::endl;
+                LOG::cout<<"Constraint between "<<s1<<" and "<<s2<<std::endl;
                 T factor=1;//500;
                 CONSTRAINT_VECTOR DC_DA2=factor*RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure2,object_offset2,x1,x2,direction);
                 CONSTRAINT_VECTOR DC_DA1=factor*RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure1,object_offset1,x1,x2,direction);
                 terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s2,DC_DA2));
                 terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s1,-DC_DA1));
+#if 1
                 Matrix<T,t+d,t+d> force_balance_contribution2=factor*remembered.second*RIGID_STRUCTURE_INDEX_MAP<TV>::DF_DA(*structure2,object_offset2,x1,x2,direction);
                 Matrix<T,t+d,t+d> force_balance_contribution1=factor*remembered.second*RIGID_STRUCTURE_INDEX_MAP<TV>::DF_DA(*structure1,object_offset1,x1,x2,direction);
-                //std::cout<<"REL force balance contribution for "<<s1<<": "<<force_balance_contribution1<<std::endl;
-                //std::cout<<"REL force balance contribution for "<<s2<<": "<<force_balance_contribution2<<std::endl;
-                //std::cout<<"DRDA VOL: "<<force_balance_contribution1<<std::endl;
-                //std::cout<<"END DRDA"<<std::endl;
-                //std::cout<<"F_i: "<<constraint_violation<<std::endl;
-                //std::cout<<"Hessian: "<<std::endl<<hessian<<std::endl;
 
                 for(int j=0;j<t+d;j++){
                     for(int k=0;k<t+d;k++){
@@ -117,6 +119,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                         }
                     }
                 }
+#endif
                 rhs.push_back(-factor*constraint_violation);
                 right_hand_side.template block<t+d,1>(s1*(t+d),0)+=DC_DA1.transpose()*remembered.second;
                 right_hand_side.template block<t+d,1>(s2*(t+d),0)-=DC_DA2.transpose()*remembered.second;
@@ -124,6 +127,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             }
         }
     }
+    //std::cout<<"Volume exclusion "<<constraints.size()<<" constraints"<<std::endl;
     stored_forces.resize(constraints.size(),1);
     for(int i=0;i<constraints.size();i++){
         stored_forces(i,0)=force_memory[constraints[i]].second;
@@ -132,7 +136,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     constraint_rhs.resize(rhs.size(),1);
     for(int i=0;i<rhs.size();i++){constraint_rhs(i,0)=rhs[i];}
     Flatten_Matrix(terms,constraint_terms);
-    call_count++;
+    //call_count++;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
@@ -143,14 +147,14 @@ Viewer(const DATA<TV>& data,osg::Node* node)
     auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.Find("RIGID_STRUCTURE_DATA"));
     osg::Group* volume_exclusion_group=new osg::Group();
     volume_exclusion_group->setName(Static_Name());
-    std::cout<<"Volume exclusion constraints: "<<constraints.size()<<std::endl;
+    LOG::cout<<"Volume exclusion constraints: "<<constraints.size()<<std::endl;
     for(int i=0;i<constraints.size();i++){
         auto lineGeometry=new osg::Geometry();
         auto vertices=new osg::Vec3Array(2);
         const CONSTRAINT& constraint=constraints[i];
         int body_index1=constraint.first;
         int body_index2=constraint.second;
-        std::cout<<"Between "<<body_index1<<" and "<<body_index2<<std::endl;
+        LOG::cout<<"Between "<<body_index1<<" and "<<body_index2<<std::endl;
         auto rigid_structure1=rigid_data->structures[body_index1];
         auto rigid_structure2=rigid_data->structures[body_index2];
         auto firstAttachment=rigid_structure1->frame.position;

@@ -6,12 +6,13 @@
 #include <Indexing/RIGID_STRUCTURE_INDEX_MAP.h>
 #include <Parsing/PARSER_REGISTRY.h>
 #include <Utilities/EIGEN_HELPERS.h>
+#include <Utilities/LOG.h>
 #include <Utilities/MATH.h>
 #include <Utilities/OSG_HELPERS.h>
 #include <Utilities/RANDOM.h>
 #include <iostream>
-#include <osg/Geometry>
 #include <math.h>
+#include <osg/Geometry>
 #include <osg/Geode>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
@@ -33,7 +34,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         FRAME<TV> frame2=structure2->frame;
         TV direction=data.Minimum_Offset(frame1*constraint.v1,frame2*constraint.v2);
         T distance=direction.norm();
-        std::cout<<"Constraint distance: "<<distance<<std::endl;
+        LOG::cout<<"Constraint distance: "<<distance<<std::endl;
         TV x1=frame1*constraint.v1;
         TV x2=frame2*constraint.v2;
         T factor=1;//500;
@@ -41,33 +42,33 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         CONSTRAINT_VECTOR DC_DA1=factor*RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure1,constraint.v1,x1,x2,direction);
         terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index2,DC_DA2));
         terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index1,-DC_DA1));
-        //std::cout<<"Direction: "<<direction.transpose()<<" Stored force: "<<stored_forces(i)<<std::endl;
+        //LOG::cout<<"Direction: "<<direction.transpose()<<" Stored force: "<<stored_forces(i)<<std::endl;
         Matrix<T,t+d,t+d> force_balance_contribution2=factor*stored_forces(i)*RIGID_STRUCTURE_INDEX_MAP<TV>::DF_DA(*structure2,constraint.v2,x1,x2,direction);
         Matrix<T,t+d,t+d> force_balance_contribution1=factor*stored_forces(i)*RIGID_STRUCTURE_INDEX_MAP<TV>::DF_DA(*structure1,constraint.v1,x1,x2,direction); // the two negatives
                                                                                                                                                                // actually cancel out.  No
                                                                                                                                                                // net negative sign
-        //std::cout<<"REL force balance contribution for "<<body_index1<<": "<<force_balance_contribution1<<std::endl;
-        //std::cout<<"REL force balance contribution for "<<body_index2<<": "<<force_balance_contribution2<<std::endl;
+        //LOG::cout<<"REL force balance contribution for "<<body_index1<<": "<<force_balance_contribution1<<std::endl;
+        //LOG::cout<<"REL force balance contribution for "<<body_index2<<": "<<force_balance_contribution2<<std::endl;
         TV offset1=frame1.orientation*constraint.v1;
         TV offset2=frame2.orientation*constraint.v2;
         constraint_rhs[i]=factor*(constraint.target_distance-distance);
-        std::cout<<"F_i: "<<constraint_rhs[i]<<std::endl;
+        LOG::cout<<"F_i: "<<constraint_rhs[i]<<std::endl;
 #if 1
         for(int j=0;j<t+d;j++){
             for(int k=0;k<t+d;k++){
                 if(fabs(force_balance_contribution1(j,k))>1e-6){
                     force_terms.push_back(Triplet<T>(body_index1*(t+d)+j,body_index1*(t+d)+k,force_balance_contribution1(j,k)));
-                    //std::cout<<"REL body "<<body_index1<<" ("<<j<<","<<k<<"): "<<force_balance_contribution1(j,k)<<std::endl;
+                    //LOG::cout<<"REL body "<<body_index1<<" ("<<j<<","<<k<<"): "<<force_balance_contribution1(j,k)<<std::endl;
                 }
                 if(fabs(force_balance_contribution2(j,k))>1e-6){
                     force_terms.push_back(Triplet<T>(body_index2*(t+d)+j,body_index2*(t+d)+k,force_balance_contribution2(j,k)));
-                    //std::cout<<"REL body "<<body_index2<<" ("<<j<<","<<k<<"): "<<force_balance_contribution2(j,k)<<std::endl;
+                    //LOG::cout<<"REL body "<<body_index2<<" ("<<j<<","<<k<<"): "<<force_balance_contribution2(j,k)<<std::endl;
                 }
             }
             }
 #endif
         // contribution to force-balance RHS
-        //std::cout<<"REL RHS contribution: "<<(DC_DA1.transpose()*stored_forces[i]).transpose()<<std::endl;
+        //LOG::cout<<"REL RHS contribution: "<<(DC_DA1.transpose()*stored_forces[i]).transpose()<<std::endl;
         right_hand_side.template block<t+d,1>(body_index1*(t+d),0)+=DC_DA1.transpose()*stored_forces[i];
         right_hand_side.template block<t+d,1>(body_index2*(t+d),0)-=DC_DA2.transpose()*stored_forces[i];
     }

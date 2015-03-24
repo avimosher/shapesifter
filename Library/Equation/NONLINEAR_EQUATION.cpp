@@ -8,6 +8,7 @@
 #include <Force/FORCE_TYPE.h>
 #include <Parsing/PARSER_REGISTRY.h>
 #include <Utilities/EIGEN_HELPERS.h>
+#include <Utilities/LOG.h>
 #include <iostream>
 #include <vector>
 #include <Eigen/IterativeSolvers>
@@ -65,18 +66,18 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     // scale the jacobian and rhs according to scaling factor on f.  Can't vary with x.  Make it 1/inertia diagonal for force balance, 1 for constraints
     
     Merge_Block_Matrices(full_matrix,jacobian);
-    //std::cout<<"Pre-Jacobian"<<std::endl<<jacobian<<std::endl;
+    //LOG::cout<<"Pre-Jacobian"<<std::endl<<jacobian<<std::endl;
     inverse_inertia.resize(running_index,running_index);
     inverse_inertia.setFromTriplets(inverse_inertia_terms.begin(),inverse_inertia_terms.end());
     //Merge_Block_Matrices(inverse_inertia_matrix,inverse_inertia);
     Merge_Block_Vectors(full_right_hand_side,right_hand_side);
     jacobian=inverse_inertia*jacobian;
     //Matrix<T,Dynamic,1> temporary_rhs(inverse_inertia*
-    //std::cout<<"inverse inertia: "<<inverse_inertia<<std::endl;
-    std::cout<<"RHS before inertia: "<<right_hand_side.transpose()<<std::endl;
+    //LOG::cout<<"inverse inertia: "<<inverse_inertia<<std::endl;
+    LOG::cout<<"RHS before inertia: "<<right_hand_side.transpose()<<std::endl;
     right_hand_side=inverse_inertia*right_hand_side;
-    std::cout<<"RHS: "<<right_hand_side.transpose()<<std::endl;
-    //std::cout<<"Jacobian: "<<std::endl<<jacobian<<std::endl;
+    LOG::cout<<"RHS: "<<right_hand_side.transpose()<<std::endl;
+    //LOG::cout<<"Jacobian: "<<std::endl<<jacobian<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>::
@@ -90,10 +91,10 @@ Solve()
     //solver.preconditioner().SetDiagonal(conditioner);
     solver.setMaxIterations(solve_iterations);
     Matrix<T,Dynamic,1> solution=solver.solve(right_hand_side);
-    std::cout<<"Iterations: "<<solver.iterations()<<std::endl;
-    std::cout<<"Solution: "<<solution.transpose()<<std::endl;
-    std::cout<<"Solve RHS: "<<right_hand_side.transpose()<<std::endl;
-    //std::cout<<"A*x: "<<(matrix*solution).transpose()<<std::endl;
+    LOG::cout<<"Iterations: "<<solver.iterations()<<std::endl;
+    LOG::cout<<"Solution: "<<solution.transpose()<<std::endl;
+    LOG::cout<<"Solve RHS: "<<right_hand_side.transpose()<<std::endl;
+    //LOG::cout<<"A*x: "<<(matrix*solution).transpose()<<std::endl;
     return solution;
 }
 ///////////////////////////////////////////////////////////////////////
@@ -108,10 +109,10 @@ Solve_Trust_Region()
     //solver.preconditioner().SetDiagonal(conditioner);
     solver.setMaxIterations(solve_iterations);
     Matrix<T,Dynamic,1> solution=solver.solve(right_hand_side);
-    std::cout<<"Iterations: "<<solver.iterations()<<std::endl;
-    std::cout<<"Solution: "<<solution.transpose()<<std::endl;
-    std::cout<<"Solve RHS: "<<right_hand_side.transpose()<<std::endl;
-    //std::cout<<"A*x: "<<(matrix*solution).transpose()<<std::endl;
+    LOG::cout<<"Iterations: "<<solver.iterations()<<std::endl;
+    LOG::cout<<"Solution: "<<solution.transpose()<<std::endl;
+    LOG::cout<<"Solve RHS: "<<right_hand_side.transpose()<<std::endl;
+    //LOG::cout<<"A*x: "<<(matrix*solution).transpose()<<std::endl;
     return solution;
 }
 ///////////////////////////////////////////////////////////////////////

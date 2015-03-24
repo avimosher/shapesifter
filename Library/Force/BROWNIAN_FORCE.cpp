@@ -4,6 +4,7 @@
 #include <Force/BROWNIAN_FORCE.h>
 #include <Force/FORCE.h>
 #include <Parsing/PARSER_REGISTRY.h>
+#include <Utilities/LOG.h>
 #include <Utilities/RANDOM.h>
 #include <iostream>
 #include <math.h>
@@ -16,7 +17,6 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     T one_over_dt=1/dt;
     T k_B=1.38e-2; // pN nm/K
     T kT=k_B*temperature; // pN nm
-    RANDOM<T> random;
     if(stochastic){
         T one_over_dt=1/dt;
         stored_right_hand_side.resize(right_hand_side.rows(),1);
@@ -27,18 +27,18 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             T linear_drag=6*M_PI*eta*radius;
             T translational_diffusion_coefficient=kT/linear_drag;
             T translational_variance=sqrt(2*translational_diffusion_coefficient*dt);
-            T random_displacement=random.Gaussian(T(),translational_variance);
-            TV random_orientation=random.template Direction<TV>();
+            T random_displacement=data.random.Gaussian(T(),translational_variance);
+            TV random_orientation=data.random.template Direction<TV>();
             stored_right_hand_side.template block<d,1>((t+d)*i,0)=linear_drag*random_displacement*random_orientation*one_over_dt;
             
-            /*T rotational_resistance=8*M_PI*eta*std::pow(radius,3);
+            T rotational_resistance=8*M_PI*eta*std::pow(radius,3);
             T rotational_diffusion_coefficient=kT/rotational_resistance;
-            T_SPIN random_spin_orientation=random.template Direction<T_SPIN>();
+            T_SPIN random_spin_orientation=data.random.template Direction<T_SPIN>();
             T rotational_variance=sqrt(2*rotational_diffusion_coefficient*dt);
-            T random_angle=random.Gaussian(T(),rotational_variance);
-            stored_right_hand_side.template block<T_SPIN::SizeAtCompileTime,1>(TWIST<TV>::STATIC_SIZE*i+TV::SizeAtCompileTime,0)=random_spin_orientation*rotational_resistance*random_angle*one_over_dt;*/
+            T random_angle=data.random.Gaussian(T(),rotational_variance);
+            stored_right_hand_side.template block<T_SPIN::SizeAtCompileTime,1>(TWIST<TV>::STATIC_SIZE*i+TV::SizeAtCompileTime,0)=random_spin_orientation*rotational_resistance*random_angle*one_over_dt;
         }
-        std::cout<<stored_right_hand_side.transpose()<<std::endl;
+        LOG::cout<<stored_right_hand_side.transpose()<<std::endl;
     }
     right_hand_side+=stored_right_hand_side;
 }

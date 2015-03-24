@@ -5,6 +5,7 @@
 #include <Force/FORCE.h>
 #include <Parsing/PARSER_REGISTRY.h>
 #include <Utilities/EIGEN_HELPERS.h>
+#include <Utilities/LOG.h>
 #include <Utilities/MATH.h>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
@@ -15,7 +16,7 @@ TRUST_REGION()
     f*=function_scale_factor;
     gk*=function_scale_factor;
     norm_gk=gk.norm();
-    prec=1e-8;
+    prec=1e-6;
     contract_factor=.25;
     expand_factor=2.5;
     contract_threshold=.25;
@@ -64,6 +65,7 @@ Linearize(SIMULATION<TV>& simulation,const T dt,const T time)
     data.Pack_Positions(positions);
 
     equation->Linearize(data,force,dt,time,true);
+    force.Pack_Forces(solve_forces);
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
@@ -73,7 +75,6 @@ Linearize_Around()
     FORCE<TV>& force=stored_simulation->force;
     // sk is solve_vector
     Vector solve_velocities=sk.block(0,0,data.Velocity_DOF(),1);
-    force.Pack_Forces(solve_forces);
     solve_forces.Set(sk.block(data.Velocity_DOF(),0,sk.rows()-data.Velocity_DOF(),1));
     data.Unpack_Positions(positions);
     force.Increment_Forces(solve_forces,1);
@@ -92,6 +93,7 @@ Increment_X()
     Vector solve_velocities=sk.block(0,0,data.Velocity_DOF(),1);
     solve_forces.Set(sk.block(data.Velocity_DOF(),0,sk.rows()-data.Velocity_DOF(),1));
     force.Increment_Forces(solve_forces,1);
+    force.Pack_Forces(solve_forces);
     current_velocities+=solve_velocities;
 }
 ///////////////////////////////////////////////////////////////////////
@@ -123,7 +125,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     do{
         iteration++;
         status=Update_One_Step();
-        std::cout<<"norm_gk: "<<norm_gk<<" norm_gk/sqrt(nvars): "<<norm_gk/sqrt(T(nvars))<<std::endl;
+        LOG::cout<<"norm_gk: "<<norm_gk<<" norm_gk/sqrt(nvars): "<<norm_gk/sqrt(T(nvars))<<std::endl;
         if(norm_gk/sqrt(T(nvars))<=prec){
             status=SUCCESS;
         }
@@ -145,7 +147,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
         //simulation.Write("Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration));
         if(status==CONTRACT){status=CONTINUE;}
     }while(status==CONTINUE);
-    std::cout<<"SOLVE STEPS: "<<iteration<<std::endl;
+    LOG::cout<<"SOLVE STEPS: "<<iteration<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
@@ -199,10 +201,10 @@ Update_Preconditioner()
 
     /*Matrix<T,Dynamic,Dynamic> L(PrecondLLt.matrixL());
     Matrix<T,Dynamic,Dynamic> Lt(PrecondLLt.matrixU());
-    std::cout<<"LLt"<<std::endl;
-    std::cout<<PrecondLLt.permutationPinv()*L*Lt*PrecondLLt.permutationP()<<std::endl;
-    std::cout<<"BB"<<std::endl;
-    std::cout<<BB<<std::endl;*/
+    LOG::cout<<"LLt"<<std::endl;
+    LOG::cout<<PrecondLLt.permutationPinv()*L*Lt*PrecondLLt.permutationP()<<std::endl;
+    LOG::cout<<"BB"<<std::endl;
+    LOG::cout<<BB<<std::endl;*/
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
@@ -224,7 +226,7 @@ Update_One_Step()
         //try_x=xk+sk;
         Linearize_Around();
         Get_F(try_x,try_f);
-        std::cout<<"Old f: "<<f<<" try f: "<<try_f<<std::endl;
+        LOG::cout<<"Old f: "<<f<<" try f: "<<try_f<<std::endl;
         if(finite(try_f)){
             try_f*=function_scale_factor;
             ared=f-try_f;
@@ -233,7 +235,7 @@ Update_One_Step()
             pred=-(gs+sBs/2);
             if(pred<0){step_status=ENEGMOVE;}
             ap=ared/pred;
-            std::cout<<"AP: "<<ap<<" ared: "<<ared<<" pred: "<<pred<<" radius: "<<radius<<std::endl;
+            LOG::cout<<"AP: "<<ap<<" ared: "<<ared<<" pred: "<<pred<<" radius: "<<radius<<std::endl;
         }
         else{step_status=FAILEDCG;}
     }
@@ -257,7 +259,7 @@ Update_One_Step()
         }
         else if(ap<0){
             step_status=NEGRATIO;
-            std::cout<<"Negratio"<<std::endl;
+            LOG::cout<<"Negratio"<<std::endl;
         }
         else{
             step_status=CONTRACT;
@@ -360,7 +362,7 @@ Solve_Trust_CG(Vector& pk)
     }
 
     CG_stop_reason=reason.str();
-    std::cout<<"CG reason: "<<CG_stop_reason<<" iterations: "<<num_CG_iterations<<std::endl;
+    LOG::cout<<"CG reason: "<<CG_stop_reason<<" iterations: "<<num_CG_iterations<<std::endl;
     return;
 }
 ///////////////////////////////////////////////////////////////////////
@@ -400,20 +402,6 @@ UPz(const Preconditioner& X,const Vector& v,Vector& out)
 template<class TV> typename TV::Scalar TRUST_REGION<TV>::
 Find_Tau(const Vector& z,const Vector& d)
 {
-    if(d[0]>.7974&&d[0]<.7975){
-        SparseMatrix<T> L=PrecondLLt.matrixL();
-        SparseMatrix<T> Lt=PrecondLLt.matrixU();
-        std::cout<<"LLt"<<std::endl;
-        std::cout<<L*Lt<<std::endl;
-        std::cout<<"Lt"<<std::endl;
-        std::cout<<Lt.template triangularView<Upper>()<<std::endl;
-        std::cout<<"m_matrix"<<std::endl;
-        //std::cout<<PrecondLLt.rawMatrix()<<std::endl;
-        SparseMatrix<T> BB(nvars,nvars);
-        BB=Bk.template selfadjointView<Lower>();
-        std::cout<<"BB"<<std::endl;
-        std::cout<<BB<<std::endl;
-    }
     UPz(PrecondLLt,d,wd);
     UPz(PrecondLLt,z,wz);
     

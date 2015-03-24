@@ -5,6 +5,7 @@
 #include <Force/FORCE.h>
 #include <Force/FORCE_TYPE.h>
 #include <Utilities/OSG_HELPERS.h>
+#include <Utilities/RANDOM.h>
 #include <fstream>
 #include <cereal/archives/binary.hpp>
 #include <cereal/types/string.hpp>
@@ -42,7 +43,7 @@ Write(const std::string& frame_title)
     stringStream<<output_directory<<"/frame."<<output_number++;
     std::ofstream output(stringStream.str().c_str(),std::ios::out);
     cereal::BinaryOutputArchive archive(output);
-    archive(time,title,data,force);
+    archive(time,title,data,data.random,force);
 }
 /////////////////////////////////////////////////////////////////////// 
 template<class TV> bool SIMULATION<TV>::
@@ -53,7 +54,7 @@ Read(const int frame)
     std::ifstream input(stringStream.str().c_str(),std::ios::in);
     if(!input.is_open()){return false;}
     cereal::BinaryInputArchive archive(input);
-    archive(time,title,data,force);
+    archive(time,title,data,data.random,force);
     return true;
 }
 /////////////////////////////////////////////////////////////////////// 

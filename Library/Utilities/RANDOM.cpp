@@ -3,14 +3,14 @@
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class T> std::random_device& RANDOM<T>::
-Random_Device()
+Random_Device() const
 {
     static std::random_device device;
     return device;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class T> std::mt19937& RANDOM<T>::
-Generator()
+Generator() const
 {
     static std::mt19937 generator(Random_Device()());
     return generator;

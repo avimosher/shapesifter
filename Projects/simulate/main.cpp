@@ -1,6 +1,7 @@
 #include <Driver/DRIVER.h>
 #include <Driver/SIMULATION.h>
 #include <Parsing/PARSE_SCENE.h>
+#include <Utilities/LOG.h>
 #include <algorithm>
 #include <cerrno>
 #include <fstream>
@@ -27,6 +28,9 @@ int main(int argc,char **argv)
     if(restart){simulation->Set_Restart(std::stoi(restart));}
     if(Get_Command_Option(argv,argv+argc,"-substeps")){
         simulation->substeps=true;
+    }
+    if(Get_Command_Option(argv,argv+argc,"-log")){
+        LOG::Output(true);
     }
     std::ifstream config(Get_Command_Option(argv,argv+argc,"-scene"),std::ifstream::in);
     if(!PARSE_SCENE<TV>::Parse_Scene(config,*simulation)){return 1;}

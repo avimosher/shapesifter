@@ -20,7 +20,7 @@ Pack_Forces(STORED_FORCE<T>& stored_force) const
             stored_force[i]=(*this)[i]->Create_Stored_Force();
         }
     }
-    stored_force.Resize((*this).size());
+    //stored_force.Resize((*this).size());
     for(int i=0;i<this->size();i++){
         auto force_type=(*this)[i];
         force_type->Pack_Forces(stored_force[i]);

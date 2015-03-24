@@ -9,6 +9,7 @@
 #include <unordered_map>
 
 namespace Mechanics{
+template<class T> class RANDOM;
 
 template<class TV>
 class DATA:public std::vector<std::shared_ptr<DATA_TYPE<TV>>>
@@ -17,9 +18,10 @@ class DATA:public std::vector<std::shared_ptr<DATA_TYPE<TV>>>
 
 public:
     std::unordered_map<std::string,T> globals;
+    RANDOM<T>& random;
 
-    DATA(){}
-    ~DATA(){}
+    DATA();
+    ~DATA();
 
     TV Wrap(const TV& unwrapped) const{
         return unwrapped; // TODO: wrap to domain boundaries
@@ -35,6 +37,7 @@ public:
     }
 
     int Velocity_DOF() const;
+    int Position_DOF() const;
     void Pack_Velocities(Matrix<T,Dynamic,1>& velocities);
     void Unpack_Velocities(const Matrix<T,Dynamic,1>& velocities);
     void Pack_Positions(Matrix<T,Dynamic,1>& positions);
