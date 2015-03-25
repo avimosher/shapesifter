@@ -34,7 +34,9 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         FRAME<TV> frame2=structure2->frame;
         TV direction=data.Minimum_Offset(frame1*constraint.v1,frame2*constraint.v2);
         T distance=direction.norm();
-        LOG::cout<<"Constraint distance: "<<distance<<std::endl;
+        LOG::cout<<"S1 position: "<<frame1.position.transpose()<<" constraint point: "<<(frame1*constraint.v1).transpose()<<std::endl;
+        LOG::cout<<"S2 position: "<<frame2.position.transpose()<<" constraint point: "<<(frame2*constraint.v2).transpose()<<std::endl;
+        LOG::cout<<"Constraint distance: "<<distance<<" between "<<structure1->name<<" and "<<structure2->name<<std::endl;
         TV x1=frame1*constraint.v1;
         TV x2=frame2*constraint.v2;
         T factor=1;//500;

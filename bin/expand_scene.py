@@ -25,7 +25,7 @@ def rigid_structure(node):
 def flexible_linker(node):
     links=node['links']
     subnodes=[]
-    position=[x+y+z for x,y,z in zip(structure_nodes[node['structure1']]['position'],node['offset1'],[0,1.6,0])]
+    position=[x+y+z for x,y,z in zip(structure_nodes[node['structure1']]['position'],node['offset1'],[0,0,0])]
     constraints=[]
     distance=math.sqrt(sum([i**2 for i in node['link_offset']]))
     for i in range(0,links):
