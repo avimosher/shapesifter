@@ -16,7 +16,6 @@ class BROWNIAN_FORCE:public FORCE_TYPE<TV>
 public:
     enum DEFINITIONS{d=TV::RowsAtCompileTime,t=T_SPIN::RowsAtCompileTime};
     T temperature;
-    T eta;
 
     BROWNIAN_FORCE(){}
     ~BROWNIAN_FORCE(){}

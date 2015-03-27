@@ -17,7 +17,6 @@ class FRAME
     typedef typename ROTATION<TV>::ORIENTATION T_ORIENTATION;
 public:
     enum DEFINITIONS{STATIC_SIZE=TV::SizeAtCompileTime+ROTATION<TV>::SizeAtCompileTime};
-    //enum DEFINITIONS{STATIC_SIZE=TV::SizeAtCompileTime};
     TV position;
     ROTATION<TV> orientation;
 
@@ -29,7 +28,6 @@ public:
     TV operator*(const TV& vector) const
     {
         return orientation._transformVector(vector)+position;
-        //return vector+position;
     }
 
     const Eigen::Matrix<T,STATIC_SIZE,1> Pack()
@@ -49,7 +47,6 @@ public:
     template<class Archive>
     void serialize(Archive& archive) {
         archive(position,orientation);
-        //archive(position);
     }
 
 };

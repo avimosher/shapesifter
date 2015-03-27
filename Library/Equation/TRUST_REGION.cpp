@@ -122,6 +122,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     Update_Hessian();
     PrecondLLt.analyzePattern(Bk);
     Update_Preconditioner();
+    static int failed_radius=0;
     do{
         iteration++;
         status=Update_One_Step();
@@ -134,6 +135,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
         }
         if(radius<=min_radius){ // trust region collapse
             status=ETOLG;
+            failed_radius++;
         }
 
         // update Hessian
@@ -144,10 +146,12 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
             }
             status=CONTINUE;
         }
-        //simulation.Write("Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration));
+        std::string frame_name="Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration);
+        std::cout<<"WRITING FRAME "<<frame_name<<std::endl;
+        simulation.Write(frame_name);
         if(status==CONTRACT){status=CONTINUE;}
     }while(status==CONTINUE);
-    LOG::cout<<"SOLVE STEPS: "<<iteration<<std::endl;
+    LOG::cout<<"SOLVE STEPS: "<<iteration<<" Failed due to radius: "<<failed_radius<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
@@ -235,7 +239,7 @@ Update_One_Step()
             pred=-(gs+sBs/2);
             if(pred<0){step_status=ENEGMOVE;}
             ap=ared/pred;
-            LOG::cout<<"AP: "<<ap<<" ared: "<<ared<<" pred: "<<pred<<" radius: "<<radius<<std::endl;
+            LOG::cout<<"AP: "<<ap<<" ared: "<<ared<<" pred: "<<pred<<" radius: "<<radius<<" gs: "<<gs<<" sBs: "<<sBs<<std::endl;
         }
         else{step_status=FAILEDCG;}
     }
@@ -250,6 +254,7 @@ Update_One_Step()
                 //xk+=sk;
                 gk=try_g;
                 norm_gk=gk.norm();
+                //tol=std::min(0.5,sqrt(norm_gk))*norm_gk;
                 if(ap>expand_threshold_ap && norm_sk_scaled>=expand_threshold_rad*radius){
                     step_status=EXPAND;
                 }

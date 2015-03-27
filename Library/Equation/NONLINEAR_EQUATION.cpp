@@ -33,12 +33,9 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     full_matrix(0,0).resize(size,size);
     // TODO: one block matrix per data type too
     force_terms.resize(data.size());
-    //inverse_inertia_terms.resize(data.size());
     for(int i=0;i<data.size();i++){
         data[i]->Inertia(dt,force_terms[i],full_right_hand_side[i]);
-        //inverse_inertia_terms[i].resize(force_terms[i].size());
         int data_size=data[i]->Velocity_DOF();
-        //inverse_inertia_matrix(i,i).resize(data_size,data_size);
         for(int j=0;j<force_terms[i].size();j++){
             inverse_inertia_terms.push_back(Triplet<T>(force_terms[i][j].row(),force_terms[i][j].col(),1/fabs(force_terms[i][j].value())));
         }
@@ -49,34 +46,25 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
         force[i]->Linearize(data,dt,time,hessian_terms,force_terms[0],full_matrix(i+1,0),full_right_hand_side[0],full_right_hand_side[i+1],stochastic);
         full_matrix(0,i+1)=full_matrix(i+1,0).transpose();
         int force_size=full_right_hand_side[i+data.size()].size();
-        //inverse_inertia_matrix(data.size()+i,data.size()+i).resize(force_size,force_size);
-        //inverse_inertia_matrix(0,data.size()+i).resize(data[0]->Velocity_DOF(),force_size);
-        //inverse_inertia_matrix(data.size()+i,0).resize(force_size,data[0]->Velocity_DOF());
         for(int j=0;j<force_size;j++){
             inverse_inertia_terms.push_back(Triplet<T>(running_index+j,running_index+j,1));
         }
         running_index+=force_size;
-        //inverse_inertia_matrix(data.size()+i,data.size()+i).setIdentity();
     }
     for(int i=0;i<data.size();i++){
         full_matrix(i,i).setFromTriplets(force_terms[i].begin(),force_terms[i].end());
-        //inverse_inertia_matrix(i,i).setFromTriplets(inverse_inertia_terms[i].begin(),inverse_inertia_terms[i].end());
     }
 
     // scale the jacobian and rhs according to scaling factor on f.  Can't vary with x.  Make it 1/inertia diagonal for force balance, 1 for constraints
     
     Merge_Block_Matrices(full_matrix,jacobian);
-    //LOG::cout<<"Pre-Jacobian"<<std::endl<<jacobian<<std::endl;
     inverse_inertia.resize(running_index,running_index);
     inverse_inertia.setFromTriplets(inverse_inertia_terms.begin(),inverse_inertia_terms.end());
-    //Merge_Block_Matrices(inverse_inertia_matrix,inverse_inertia);
     Merge_Block_Vectors(full_right_hand_side,right_hand_side);
     jacobian=inverse_inertia*jacobian;
-    //Matrix<T,Dynamic,1> temporary_rhs(inverse_inertia*
-    //LOG::cout<<"inverse inertia: "<<inverse_inertia<<std::endl;
-    LOG::cout<<"RHS before inertia: "<<right_hand_side.transpose()<<std::endl;
+    //LOG::cout<<"RHS before inertia: "<<right_hand_side.transpose()<<std::endl;
     right_hand_side=inverse_inertia*right_hand_side;
-    LOG::cout<<"RHS: "<<right_hand_side.transpose()<<std::endl;
+    //LOG::cout<<"RHS: "<<right_hand_side.transpose()<<std::endl;
     //LOG::cout<<"Jacobian: "<<std::endl<<jacobian<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
