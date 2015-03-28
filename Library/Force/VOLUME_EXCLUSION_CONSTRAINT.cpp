@@ -84,17 +84,19 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             TV direction=structure1->Displacement(data,structure2,offset1,offset2);
             T distance=direction.norm();
             T constraint_violation=distance-structure1->collision_radius-structure2->collision_radius;
-            T distance_condition=-.001;
+            T slack_distance=-.005;
+            T distance_condition=0;//-.001;
             std::pair<int,T>& remembered=force_memory[CONSTRAINT(s1,s2)];
+            LOG::cout<<"Constraint between "<<s1<<" and "<<s2<<" remembered force "<<remembered.second<<" count "<<remembered.first<<" "<<call_count<<" violation "<<constraint_violation<<" direction "<<direction.transpose()<<std::endl;
             //LOG::cout<<"Constraint violation: "<<constraint_violation<<" remembered force: "<<remembered.second<<" call count: "<<call_count<<" remembered call count: "<<remembered.first<<std::endl;
             //if((remembered.first==call_count && remembered.second>0) || (constraint_violation<distance_condition && !(remembered.first==call_count && remembered.second<0))){
-            if(constraint_violation<distance_condition || (remembered.first==call_count && remembered.second>0)){
+            if(constraint_violation<distance_condition && !(remembered.first==call_count && remembered.second<0)){// || (remembered.first==call_count && remembered.second>0)){
                 TV x1=structure1->frame.position+offset1;
                 TV x2=structure2->frame.position+offset2;
                 TV object_offset1=structure1->frame.orientation.inverse()*offset1;
                 TV object_offset2=structure2->frame.orientation.inverse()*offset2;
-                //LOG::cout<<"Offset1: "<<offset1<<" offset2: "<<offset2<<std::endl;
-                LOG::cout<<"Constraint between "<<s1<<" and "<<s2<<" remembered force "<<remembered.second<<" count "<<remembered.first<<" "<<call_count<<" violation "<<constraint_violation<<" direction "<<direction.transpose()<<std::endl;
+                LOG::cout<<"CONSTRAINT IS ON"<<std::endl;
+                LOG::cout<<"Offset1: "<<offset1<<" offset2: "<<offset2<<" x2-x2: "<<(x2-x1).transpose()<<std::endl;
                 if(remembered.first!=call_count){
                     remembered.second=0;
                 }
@@ -119,7 +121,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                     }
                 }
 #endif
-                rhs.push_back(-constraint_violation);
+                rhs.push_back(-constraint_violation+slack_distance);
                 right_hand_side.template block<t+d,1>(s1*(t+d),0)+=DC_DA1.transpose()*remembered.second;
                 right_hand_side.template block<t+d,1>(s2*(t+d),0)-=DC_DA2.transpose()*remembered.second;
                 constraints.push_back(CONSTRAINT(s1,s2));
