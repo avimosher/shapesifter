@@ -47,12 +47,14 @@ template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
 Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,int increment)
 {
     call_count+=increment;
+    LOG::cout<<"Count after increment: "<<call_count<<std::endl;
     auto information=std::static_pointer_cast<STORED_VOLUME_EXCLUSION_CONSTRAINT<T>>(force_information);
     for(int i=0;i<information->constraints.size();i++){
         if(force_memory.count(information->constraints[i])){// this could be compressed if I could be sure that the force would be initialized properly
             auto& memory=force_memory[information->constraints[i]];
             memory.first=call_count;
             memory.second+=increment*information->value[i];
+            LOG::cout<<i<<" after increment: "<<memory.second<<std::endl;
         }
         else{
             force_memory[information->constraints[i]]=std::pair<int,T>(call_count,increment*information->value[i]);
@@ -83,19 +85,26 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             T distance=direction.norm();
             T constraint_violation=distance-structure1->collision_radius-structure2->collision_radius;
             T distance_condition=-.001;
-            std::pair<int,T> remembered=force_memory[CONSTRAINT(s1,s2)];
+            std::pair<int,T>& remembered=force_memory[CONSTRAINT(s1,s2)];
             //LOG::cout<<"Constraint violation: "<<constraint_violation<<" remembered force: "<<remembered.second<<" call count: "<<call_count<<" remembered call count: "<<remembered.first<<std::endl;
+            //if((remembered.first==call_count && remembered.second>0) || (constraint_violation<distance_condition && !(remembered.first==call_count && remembered.second<0))){
             if(constraint_violation<distance_condition || (remembered.first==call_count && remembered.second>0)){
                 TV x1=structure1->frame.position+offset1;
                 TV x2=structure2->frame.position+offset2;
                 TV object_offset1=structure1->frame.orientation.inverse()*offset1;
-                TV object_offset2=structure1->frame.orientation.inverse()*offset2;
-                LOG::cout<<"Constraint between "<<s1<<" and "<<s2<<std::endl;
+                TV object_offset2=structure2->frame.orientation.inverse()*offset2;
+                //LOG::cout<<"Offset1: "<<offset1<<" offset2: "<<offset2<<std::endl;
+                LOG::cout<<"Constraint between "<<s1<<" and "<<s2<<" remembered force "<<remembered.second<<" count "<<remembered.first<<" "<<call_count<<" violation "<<constraint_violation<<" direction "<<direction.transpose()<<std::endl;
+                if(remembered.first!=call_count){
+                    remembered.second=0;
+                }
                 CONSTRAINT_VECTOR DC_DA2=RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure2,object_offset2,x1,x2,direction);
                 CONSTRAINT_VECTOR DC_DA1=RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure1,object_offset1,x1,x2,direction);
+                //LOG::cout<<"DC_DA1: "<<DC_DA1<<std::endl;
+                //LOG::cout<<"DC_DA2: "<<DC_DA2<<std::endl;
                 terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s2,DC_DA2));
                 terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s1,-DC_DA1));
-#if 1
+#if 0
                 Matrix<T,t+d,t+d> force_balance_contribution2=remembered.second*RIGID_STRUCTURE_INDEX_MAP<TV>::DF_DA(*structure2,object_offset2,x1,x2,direction);
                 Matrix<T,t+d,t+d> force_balance_contribution1=remembered.second*RIGID_STRUCTURE_INDEX_MAP<TV>::DF_DA(*structure1,object_offset1,x1,x2,direction);
 

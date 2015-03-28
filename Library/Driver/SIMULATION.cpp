@@ -116,7 +116,7 @@ Viewer(osg::Group*& root)
         text_one->setCharacterSize(25);
         text_one->setText(title);
         text_one->setAxisAlignment(osgText::Text::SCREEN);
-        text_one->setPosition(osg::Vec3(360,165,-1.5));
+        text_one->setPosition(osg::Vec3(50,165,-1.5));
         text_one->setColor(osg::Vec4(199,77,15,1));}
 
     auto hud_modelview_matrix=(osg::MatrixTransform*)hud_projection_matrix->getChild(0);

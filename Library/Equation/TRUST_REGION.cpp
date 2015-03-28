@@ -23,6 +23,7 @@ TRUST_REGION()
     expand_threshold_ap=.8;
     expand_threshold_rad=.8;
     trust_iterations=200;
+    //trust_iterations=1;
     tol=1e-8;
 }
 ///////////////////////////////////////////////////////////////////////
@@ -87,6 +88,7 @@ Linearize_Around()
 template<class TV> void TRUST_REGION<TV>::
 Increment_X()
 {
+    LOG::cout<<"INCREMENTING"<<std::endl;
     DATA<TV>& data=stored_simulation->data;
     FORCE<TV>& force=stored_simulation->force;
     // sk is solve_vector
@@ -124,6 +126,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     Update_Preconditioner();
     static int failed_radius=0;
     do{
+        LOG::cout<<"\n\nBEGIN STEP"<<std::endl;
         iteration++;
         status=Update_One_Step();
         LOG::cout<<"norm_gk: "<<norm_gk<<" norm_gk/sqrt(nvars): "<<norm_gk/sqrt(T(nvars))<<std::endl;
@@ -146,7 +149,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
             }
             status=CONTINUE;
         }
-        std::string frame_name="Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration);
+        std::string frame_name="Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration)+" radius "+std::to_string(radius)+" real "+std::to_string(int(status==CONTINUE))+ " f "+std::to_string(f);
         std::cout<<"WRITING FRAME "<<frame_name<<std::endl;
         simulation.Write(frame_name);
         if(status==CONTRACT){status=CONTINUE;}
@@ -217,6 +220,7 @@ Update_Hessian()
     // call to NONLINEAR_EQUATION
     Bk=equation->Hessian();
     Bk*=function_scale_factor;
+    //LOG::cout<<"HESSIAN"<<std::endl<<Bk<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> typename TRUST_REGION<TV>::STATUS TRUST_REGION<TV>::
@@ -240,6 +244,8 @@ Update_One_Step()
             if(pred<0){step_status=ENEGMOVE;}
             ap=ared/pred;
             LOG::cout<<"AP: "<<ap<<" ared: "<<ared<<" pred: "<<pred<<" radius: "<<radius<<" gs: "<<gs<<" sBs: "<<sBs<<std::endl;
+            LOG::cout<<"Gk: "<<gk.transpose()<<std::endl;
+            LOG::cout<<"Sk./Gk: "<<sk.cwiseQuotient(gk).transpose()<<std::endl;
         }
         else{step_status=FAILEDCG;}
     }

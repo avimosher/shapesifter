@@ -64,8 +64,8 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     jacobian=inverse_inertia*jacobian;
     //LOG::cout<<"RHS before inertia: "<<right_hand_side.transpose()<<std::endl;
     right_hand_side=inverse_inertia*right_hand_side;
-    //LOG::cout<<"RHS: "<<right_hand_side.transpose()<<std::endl;
-    //LOG::cout<<"Jacobian: "<<std::endl<<jacobian<<std::endl;
+    LOG::cout<<"RHS: "<<right_hand_side.transpose()<<std::endl;
+    LOG::cout<<"Jacobian: "<<std::endl<<jacobian<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>::
@@ -120,6 +120,7 @@ template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>:
 Gradient()
 {
     return -jacobian.adjoint()*right_hand_side;
+  //return -right_hand_side;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> SparseMatrix<typename TV::Scalar> NONLINEAR_EQUATION<TV>::
