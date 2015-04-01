@@ -60,6 +60,10 @@ Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,int incre
             force_memory[information->constraints[i]]=std::pair<int,T>(call_count,increment*information->value[i]);
         }
     }
+    for(int i=0;i<constant_forces.size();i++){
+        auto& memory=force_memory[constant_forces[i]];
+        memory.first=call_count;
+    }
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
@@ -71,6 +75,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     std::vector<T> rhs;
     RIGID_STRUCTURE_INDEX_MAP<TV> index_map;
     constraints.clear();
+    constant_forces.clear();
     if(stochastic){
         for(auto memory : force_memory){
             memory.second.second=(T)0;
@@ -85,53 +90,71 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             T distance=direction.norm();
             T constraint_violation=distance-structure1->collision_radius-structure2->collision_radius;
             T slack_distance=-.005;
-            T distance_condition=0;//-.001;
+            T distance_condition=-.001;
             std::pair<int,T>& remembered=force_memory[CONSTRAINT(s1,s2)];
             LOG::cout<<"Constraint between "<<s1<<" and "<<s2<<" remembered force "<<remembered.second<<" count "<<remembered.first<<" "<<call_count<<" violation "<<constraint_violation<<" direction "<<direction.transpose()<<std::endl;
             //LOG::cout<<"Constraint violation: "<<constraint_violation<<" remembered force: "<<remembered.second<<" call count: "<<call_count<<" remembered call count: "<<remembered.first<<std::endl;
             //if((remembered.first==call_count && remembered.second>0) || (constraint_violation<distance_condition && !(remembered.first==call_count && remembered.second<0))){
-            if(constraint_violation<distance_condition && !(remembered.first==call_count && remembered.second<0)){// || (remembered.first==call_count && remembered.second>0)){
+            //if(constraint_violation<distance_condition && !(remembered.first==call_count && remembered.second<0)){// || (remembered.first==call_count && remembered.second>0)){
+            // weird idea: if we're exerting positive force and we're not violating the constraint, leave the force on, don't create the constraint, reduce the force slowly?
+            //if(constraint_violation<distance_condition){// || (remembered.first==call_count && remembered.second>0)){
+            if(constraint_violation<0){
                 TV x1=structure1->frame.position+offset1;
                 TV x2=structure2->frame.position+offset2;
                 TV object_offset1=structure1->frame.orientation.inverse()*offset1;
                 TV object_offset2=structure2->frame.orientation.inverse()*offset2;
-                LOG::cout<<"CONSTRAINT IS ON"<<std::endl;
                 LOG::cout<<"Offset1: "<<offset1<<" offset2: "<<offset2<<" x2-x2: "<<(x2-x1).transpose()<<std::endl;
                 if(remembered.first!=call_count){
                     remembered.second=0;
                 }
                 CONSTRAINT_VECTOR DC_DA2=RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure2,object_offset2,x1,x2,direction);
                 CONSTRAINT_VECTOR DC_DA1=RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure1,object_offset1,x1,x2,direction);
-                //LOG::cout<<"DC_DA1: "<<DC_DA1<<std::endl;
-                //LOG::cout<<"DC_DA2: "<<DC_DA2<<std::endl;
-                terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s2,DC_DA2));
-                terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s1,-DC_DA1));
+                T right_hand_side_force;
+                if(constraint_violation<distance_condition){
+                    LOG::cout<<"CONSTRAINT IS ON"<<std::endl;
+                    right_hand_side_force=remembered.second;
+                    terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s2,DC_DA2));
+                    terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s1,-DC_DA1));
+                    rhs.push_back(-constraint_violation+slack_distance);
 #if 0
-                Matrix<T,t+d,t+d> force_balance_contribution2=remembered.second*RIGID_STRUCTURE_INDEX_MAP<TV>::DF_DA(*structure2,object_offset2,x1,x2,direction);
-                Matrix<T,t+d,t+d> force_balance_contribution1=remembered.second*RIGID_STRUCTURE_INDEX_MAP<TV>::DF_DA(*structure1,object_offset1,x1,x2,direction);
-
-                for(int j=0;j<t+d;j++){
-                    for(int k=0;k<t+d;k++){
-                        if(fabs(force_balance_contribution1(j,k))>1e-6){
-                            force_terms.push_back(Triplet<T>(s1*(t+d)+j,s1*(t+d)+k,force_balance_contribution1(j,k)));
-                        }
-                        if(fabs(force_balance_contribution2(j,k))>1e-6){
-                            force_terms.push_back(Triplet<T>(s2*(t+d)+j,s2*(t+d)+k,force_balance_contribution2(j,k)));
+                    Matrix<T,t+d,t+d> force_balance_contribution2=remembered.second*RIGID_STRUCTURE_INDEX_MAP<TV>::DF_DA(*structure2,object_offset2,x1,x2,direction);
+                    Matrix<T,t+d,t+d> force_balance_contribution1=remembered.second*RIGID_STRUCTURE_INDEX_MAP<TV>::DF_DA(*structure1,object_offset1,x1,x2,direction);
+                
+                    for(int j=0;j<t+d;j++){
+                        for(int k=0;k<t+d;k++){
+                            if(fabs(force_balance_contribution1(j,k))>1e-6){
+                                force_terms.push_back(Triplet<T>(s1*(t+d)+j,s1*(t+d)+k,force_balance_contribution1(j,k)));
+                            }
+                            if(fabs(force_balance_contribution2(j,k))>1e-6){
+                                force_terms.push_back(Triplet<T>(s2*(t+d)+j,s2*(t+d)+k,force_balance_contribution2(j,k)));
+                            }
                         }
                     }
-                }
 #endif
-                rhs.push_back(-constraint_violation+slack_distance);
-                right_hand_side.template block<t+d,1>(s1*(t+d),0)+=DC_DA1.transpose()*remembered.second;
-                right_hand_side.template block<t+d,1>(s2*(t+d),0)-=DC_DA2.transpose()*remembered.second;
-                constraints.push_back(CONSTRAINT(s1,s2));
+                    constraints.push_back(CONSTRAINT(s1,s2));
+                }
+                else if(remembered.first==call_count && remembered.second>0){ // exponential falloff
+                    T exponent=1-1/(1-sqr(constraint_violation/distance_condition-1));
+                    right_hand_side_force=remembered.second*std::exp(exponent);
+                    LOG::cout<<"SOFT CONSTRAINT IS ON"<<std::endl;
+                    LOG::cout<<"EXP: "<<exponent<<" RHS contribution: "<<right_hand_side_force<<std::endl;
+                    constant_forces.push_back(CONSTRAINT(s1,s2));
+
+                    T constant_part=cube(exponent)*std::exp(exponent)*(-2)*(constraint_violation/distance_condition-1);
+                    Add_Matrix_Term(force_terms,s1,s1,constant_part*RIGID_STRUCTURE_INDEX_MAP<TV>::DX_DA());
+                    Add_Matrix_Term(force_terms,s1,s2,constant_part*RIGID_STRUCTURE_INDEX_MAP<TV>::DX_DA());
+                    Add_Matrix_Term(force_terms,s2,s1,constant_part*RIGID_STRUCTURE_INDEX_MAP<TV>::DX_DA());
+                    Add_Matrix_Term(force_terms,s2,s2,constant_part*RIGID_STRUCTURE_INDEX_MAP<TV>::DX_DA());
+                }
+                right_hand_side.template block<t+d,1>(s1*(t+d),0)+=DC_DA1.transpose()*right_hand_side_force;
+                right_hand_side.template block<t+d,1>(s2*(t+d),0)-=DC_DA2.transpose()*right_hand_side_force;
             }
         }
     }
-    stored_forces.resize(constraints.size(),1);
+    /*stored_forces.resize(constraints.size(),1);
     for(int i=0;i<constraints.size();i++){
         stored_forces(i,0)=force_memory[constraints[i]].second;
-    }
+        }*/
     constraint_terms.resize(constraints.size(),RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE*rigid_data->structures.size());
     constraint_rhs.resize(rhs.size(),1);
     for(int i=0;i<rhs.size();i++){constraint_rhs(i,0)=rhs[i];}

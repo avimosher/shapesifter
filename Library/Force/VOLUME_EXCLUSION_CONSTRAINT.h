@@ -35,6 +35,7 @@ public:
     enum DEFINITIONS{d=TV::RowsAtCompileTime,t=T_SPIN::RowsAtCompileTime};
     using FORCE_TYPE<TV>::stored_forces;
     std::vector<CONSTRAINT> constraints;
+    std::vector<CONSTRAINT> constant_forces;
     int call_count;
     std::unordered_map<CONSTRAINT,std::pair<int,T>> force_memory;
 
@@ -48,6 +49,7 @@ public:
     {//archive(constraints,force_memory,call_count);}
         archive(constraints,call_count);}
 
+    int Force_DOF(){return constraints.size();}
     std::shared_ptr<FORCE_REFERENCE<T>> Create_Stored_Force() const;
     void Pack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information);
     void Unpack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information);

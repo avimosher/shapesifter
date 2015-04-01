@@ -31,6 +31,10 @@ public:
         return unknown_map;
     }
 
+    static Matrix<T,t+d,t+d> DXN_DA(){
+        
+    }
+
     static Matrix<T,t+d,t+d> DF_DA(const RIGID_STRUCTURE<TV>& structure,const TV& object_offset,const TV& x1,const TV& x2,const TV& direction){
         T_SPIN a=structure.twist.angular;
         ROTATION<TV> orientation=structure.frame.orientation;
