@@ -31,11 +31,31 @@ public:
         return unknown_map;
     }
 
-    static Matrix<T,t+d,t+d> DXN_DA(){
-        
+    static Matrix<T,1,t+d> dXN_dA(const RIGID_STRUCTURE<TV>& structure,const TV& object_offset,const TV& x1,const TV& x2){
+        // loosely, (x2-x1)^T/|x2-x1|*(dx2/dx-dx1/dx)
+        // should be t+d columns, one row
+        static const T eps=1e-8;
+        T_SPIN a=structure.twist.angular;
+        ROTATION<TV> orientation=structure.frame.orientation;
+        TV current_offset=orientation*object_offset;
+        orientation=ROTATION<TV>::From_Rotation_Vector(a).inverse()*orientation;
+        TV offset=orientation*object_offset;
+        T norm_a=a.norm();
+        TV_T dw_da=-sinc(norm_a/2)/4*a.transpose();
+        TV a_norma=(norm_a>eps)?(TV)(a/norm_a):TV::UnitX();
+        Matrix<T,3,3> dq_da=cos(norm_a/2)/2*a_norma*a_norma.transpose()+sinc(norm_a/2)/2*(Matrix<T,t,t>::Identity()-a_norma*a_norma.transpose());
+        T w=cos(norm_a/2);
+        TV q=sinc(norm_a/2)*a/2;
+        Matrix<T,d,t+d> dx_da; // identity for translation parts, zero for rotation
+        dx_da.template block<d,d>(0,0).setIdentity();
+        dx_da.template block<d,t>(0,d)=-2*Cross_Product_Matrix(offset)*(q*dw_da+w*dq_da);
+        TV delta=x2-x1;
+        T delta_norm=delta.norm();
+        TV delta_over_norm=(delta_norm>eps?(TV)(delta/delta_norm):TV::UnitX());
+        return delta_over_norm.transpose()*dx_da;
     }
 
-    static Matrix<T,t+d,t+d> DF_DA(const RIGID_STRUCTURE<TV>& structure,const TV& object_offset,const TV& x1,const TV& x2,const TV& direction){
+    static Matrix<T,t+d,t+d> dF_dA(const RIGID_STRUCTURE<TV>& structure,const TV& object_offset,const TV& x1,const TV& x2,const TV& direction){
         T_SPIN a=structure.twist.angular;
         ROTATION<TV> orientation=structure.frame.orientation;
         TV current_offset=orientation*object_offset;
@@ -66,7 +86,7 @@ public:
         return dF_da;
     }
 
-    static Matrix<T,d,t+d> DD_DV(const RIGID_STRUCTURE<TV>& structure,const TV& object_offset,const TV& x1,const TV& x2,const TV& direction){
+    static Matrix<T,d,t+d> dD_dV(const RIGID_STRUCTURE<TV>& structure,const TV& object_offset,const TV& x1,const TV& x2,const TV& direction){
         T_SPIN a=structure.twist.angular;
         ROTATION<TV> orientation=structure.frame.orientation;
         orientation=ROTATION<TV>::From_Rotation_Vector(a).inverse()*orientation;
@@ -91,7 +111,7 @@ public:
         return dd_da;
     }
 
-    static Matrix<T,1,t+d> DC_DA(const RIGID_STRUCTURE<TV>& structure,const TV& object_offset,const TV& x1,const TV& x2,const TV& direction){
+    static Matrix<T,1,t+d> dC_dA(const RIGID_STRUCTURE<TV>& structure,const TV& object_offset,const TV& x1,const TV& x2,const TV& direction){
         T_SPIN a=structure.twist.angular;
         ROTATION<TV> orientation=structure.frame.orientation;
         orientation=ROTATION<TV>::From_Rotation_Vector(a).inverse()*orientation;

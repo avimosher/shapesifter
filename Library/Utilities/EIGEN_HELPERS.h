@@ -57,6 +57,16 @@ void Flatten_Term(int row,int col,const Eigen::DiagonalMatrix<T,dim>& term,std::
 }
 
 template<class T,int rows,int cols>
+void Flatten_Matrix_Term(int row,int col,const Eigen::Matrix<T,rows,cols>& term,std::vector<Eigen::Triplet<T>>& flat_terms)
+{
+    for(int i=0;i<rows;i++){
+        for(int j=0;j<cols;j++){
+            flat_terms.push_back(Eigen::Triplet<T>(row*rows+i,col*cols+j,term(i,j)));
+        }
+    }
+}
+
+template<class T,int rows,int cols>
 void Flatten_Matrix(const std::vector<Eigen::Triplet<Eigen::Matrix<T,rows,cols>>>& block_terms,Eigen::SparseMatrix<T>& flat_matrix)
 {
     std::vector<Eigen::Triplet<T>> terms;
@@ -84,7 +94,6 @@ void Flatten_Matrices(const std::vector<Eigen::Triplet<Eigen::Matrix<T,rows1,col
                 terms.push_back(Eigen::Triplet<T>(row_base+block_term.row()*rows2+i,block_term.col()*cols+j,block_term.value()(i,j)));}}}
     flat_matrix.setFromTriplets(terms.begin(),terms.end());
 }
-
 
 template<class T>
 void Merge_Block_Matrices(const Eigen::Matrix<Eigen::SparseMatrix<T>,Eigen::Dynamic,Eigen::Dynamic>& block_matrix,Eigen::SparseMatrix<T>& matrix)

@@ -103,22 +103,22 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 TV x2=structure2->frame.position+offset2;
                 TV object_offset1=structure1->frame.orientation.inverse()*offset1;
                 TV object_offset2=structure2->frame.orientation.inverse()*offset2;
-                LOG::cout<<"Offset1: "<<offset1<<" offset2: "<<offset2<<" x2-x2: "<<(x2-x1).transpose()<<std::endl;
+                LOG::cout<<"Offset1: "<<offset1<<" offset2: "<<offset2<<" x2-x1: "<<(x2-x1).transpose()<<std::endl;
                 if(remembered.first!=call_count){
                     remembered.second=0;
                 }
-                CONSTRAINT_VECTOR DC_DA2=RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure2,object_offset2,x1,x2,direction);
-                CONSTRAINT_VECTOR DC_DA1=RIGID_STRUCTURE_INDEX_MAP<TV>::DC_DA(*structure1,object_offset1,x1,x2,direction);
+                CONSTRAINT_VECTOR dC_dA2=RIGID_STRUCTURE_INDEX_MAP<TV>::dC_dA(*structure2,object_offset2,x1,x2,direction);
+                CONSTRAINT_VECTOR dC_dA1=RIGID_STRUCTURE_INDEX_MAP<TV>::dC_dA(*structure1,object_offset1,x1,x2,direction);
                 T right_hand_side_force;
-                if(constraint_violation<distance_condition){
+                if(constraint_violation<slack_distance){
                     LOG::cout<<"CONSTRAINT IS ON"<<std::endl;
                     right_hand_side_force=remembered.second;
-                    terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s2,DC_DA2));
-                    terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s1,-DC_DA1));
+                    terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s2,dC_dA2));
+                    terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s1,-dC_dA1));
                     rhs.push_back(-constraint_violation+slack_distance);
 #if 0
-                    Matrix<T,t+d,t+d> force_balance_contribution2=remembered.second*RIGID_STRUCTURE_INDEX_MAP<TV>::DF_DA(*structure2,object_offset2,x1,x2,direction);
-                    Matrix<T,t+d,t+d> force_balance_contribution1=remembered.second*RIGID_STRUCTURE_INDEX_MAP<TV>::DF_DA(*structure1,object_offset1,x1,x2,direction);
+                    Matrix<T,t+d,t+d> force_balance_contribution2=remembered.second*RIGID_STRUCTURE_INDEX_MAP<TV>::dF_dA(*structure2,object_offset2,x1,x2,direction);
+                    Matrix<T,t+d,t+d> force_balance_contribution1=remembered.second*RIGID_STRUCTURE_INDEX_MAP<TV>::dF_dA(*structure1,object_offset1,x1,x2,direction);
                 
                     for(int j=0;j<t+d;j++){
                         for(int k=0;k<t+d;k++){
@@ -134,20 +134,26 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                     constraints.push_back(CONSTRAINT(s1,s2));
                 }
                 else if(remembered.first==call_count && remembered.second>0){ // exponential falloff
-                    T exponent=1-1/(1-sqr(constraint_violation/distance_condition-1));
-                    right_hand_side_force=remembered.second*std::exp(exponent);
+                    T exponent=-1/(1-sqr(constraint_violation/slack_distance-1));
+                    right_hand_side_force=remembered.second*std::exp(1+exponent);
                     LOG::cout<<"SOFT CONSTRAINT IS ON"<<std::endl;
                     LOG::cout<<"EXP: "<<exponent<<" RHS contribution: "<<right_hand_side_force<<std::endl;
                     constant_forces.push_back(CONSTRAINT(s1,s2));
 
-                    T constant_part=cube(exponent)*std::exp(exponent)*(-2)*(constraint_violation/distance_condition-1);
-                    Add_Matrix_Term(force_terms,s1,s1,constant_part*RIGID_STRUCTURE_INDEX_MAP<TV>::DX_DA());
-                    Add_Matrix_Term(force_terms,s1,s2,constant_part*RIGID_STRUCTURE_INDEX_MAP<TV>::DX_DA());
-                    Add_Matrix_Term(force_terms,s2,s1,constant_part*RIGID_STRUCTURE_INDEX_MAP<TV>::DX_DA());
-                    Add_Matrix_Term(force_terms,s2,s2,constant_part*RIGID_STRUCTURE_INDEX_MAP<TV>::DX_DA());
+                    T constant_part=-2*right_hand_side_force*sqr(exponent)*(constraint_violation/slack_distance-1)/slack_distance;
+                    auto dc_dx1=RIGID_STRUCTURE_INDEX_MAP<TV>::dXN_dA(*structure1,object_offset1,x1,x2);
+                    auto dc_dx2=RIGID_STRUCTURE_INDEX_MAP<TV>::dXN_dA(*structure2,object_offset2,x1,x2);
+                    Matrix<T,t+d,t+d> dA1dx1=dC_dA1.transpose()*constant_part*dc_dx1;
+                    Matrix<T,t+d,t+d> dA1dx2=-dC_dA1.transpose()*constant_part*dc_dx2;
+                    Matrix<T,t+d,t+d> dA2dx1=-dC_dA2.transpose()*constant_part*dc_dx1;
+                    Matrix<T,t+d,t+d> dA2dx2=dC_dA2.transpose()*constant_part*dc_dx2;
+                    Flatten_Matrix_Term(s1,s1,dA1dx1,force_terms);
+                    Flatten_Matrix_Term(s1,s2,dA1dx2,force_terms);
+                    Flatten_Matrix_Term(s2,s1,dA2dx1,force_terms);
+                    Flatten_Matrix_Term(s2,s2,dA2dx2,force_terms);
                 }
-                right_hand_side.template block<t+d,1>(s1*(t+d),0)+=DC_DA1.transpose()*right_hand_side_force;
-                right_hand_side.template block<t+d,1>(s2*(t+d),0)-=DC_DA2.transpose()*right_hand_side_force;
+                right_hand_side.template block<t+d,1>(s1*(t+d),0)+=dC_dA1.transpose()*right_hand_side_force;
+                right_hand_side.template block<t+d,1>(s2*(t+d),0)-=dC_dA2.transpose()*right_hand_side_force;
             }
         }
     }

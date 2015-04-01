@@ -120,7 +120,6 @@ template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>:
 Gradient()
 {
     return -jacobian.adjoint()*right_hand_side;
-  //return -right_hand_side;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> SparseMatrix<typename TV::Scalar> NONLINEAR_EQUATION<TV>::
