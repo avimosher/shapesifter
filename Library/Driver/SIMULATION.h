@@ -25,6 +25,7 @@ public:
     T last_time;
     bool restart;
     bool substeps;
+    bool write;
     std::string output_directory;
     std::string title;
 

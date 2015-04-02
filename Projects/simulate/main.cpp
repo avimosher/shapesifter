@@ -32,6 +32,9 @@ int main(int argc,char **argv)
     if(Get_Command_Option(argv,argv+argc,"-log")){
         LOG::Output(true);
     }
+    if(Get_Command_Option(argv,argv+argc,"-nowrite")){
+        simulation->write=false;
+    }
     if(!PARSE_SCENE<TV>::Parse_Scene(std::cin,*simulation)){return 1;}
 
     DRIVER<TV> driver(simulation);
