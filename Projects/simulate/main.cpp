@@ -32,8 +32,7 @@ int main(int argc,char **argv)
     if(Get_Command_Option(argv,argv+argc,"-log")){
         LOG::Output(true);
     }
-    std::ifstream config(Get_Command_Option(argv,argv+argc,"-scene"),std::ifstream::in);
-    if(!PARSE_SCENE<TV>::Parse_Scene(config,*simulation)){return 1;}
+    if(!PARSE_SCENE<TV>::Parse_Scene(std::cin,*simulation)){return 1;}
 
     DRIVER<TV> driver(simulation);
     simulation->last_time=10;

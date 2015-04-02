@@ -149,9 +149,11 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
             }
             status=CONTINUE;
         }
-        std::string frame_name="Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration)+" radius "+std::to_string(radius)+" real "+std::to_string(int(status==CONTINUE))+ " f "+std::to_string(f);
-        std::cout<<"WRITING FRAME "<<frame_name<<std::endl;
-        simulation.Write(frame_name);
+        if(simulation.substeps){
+            std::string frame_name="Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration)+" radius "+std::to_string(radius)+" real "+std::to_string(int(status==CONTINUE))+ " f "+std::to_string(f);
+            std::cout<<"WRITING FRAME "<<frame_name<<std::endl;
+            simulation.Write(frame_name);
+        }
         if(status==CONTRACT){status=CONTINUE;}
     }while(status==CONTINUE);
     LOG::cout<<"SOLVE STEPS: "<<iteration<<" Failed due to radius: "<<failed_radius<<std::endl;

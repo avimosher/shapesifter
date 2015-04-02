@@ -23,10 +23,25 @@
          "offset1": [1,0,0],
          "structure2": "right",
          "offset2": [-1,0,0],
-         "links": 3,
+         "links": 5,
          "link_radius": 0.2,
          "link_offset": [0.5,0,0]
         },
-        {"type": "VOLUME_EXCLUSION_CONSTRAINT"}
+        {"type": "VOLUME_EXCLUSION_CONSTRAINT"},
+        {"type": "ANALYTE",
+         "prerequisites": ["evolution"],
+         "predicate": {
+             "type": "distance",
+             "first": {
+                 "type": "rigid_structure_position",
+                 "name": "left",
+                 "offset": [0,0,0]},
+             "second": {
+                 "type": "rigid_structure_position",
+                 "name": "right",
+                 "offset": [0,0,0]}
+         },
+         "aggregator": {"type": "average"}
+        }
     ]
 }

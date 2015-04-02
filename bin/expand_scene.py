@@ -5,8 +5,7 @@ import random
 import string
 import math
 
-json_data=open(sys.argv[1])
-data=json.load(json_data)
+data=json.load(sys.stdin)
 
 expanded_data={}
 expanded_data['root']=[]
@@ -79,6 +78,7 @@ for node in data['root']:
 expanded_data['root'].extend(structure_nodes.values())
 expanded_data['root'].extend(force_nodes)
 
-with open(sys.argv[2],'w') as outfile:
-    json.dump(expanded_data,outfile,indent=4)
+#with open(sys.argv[2],'w') as outfile:
+#    json.dump(expanded_data,outfile,indent=4)
+json.dump(expanded_data,sys.stdout,indent=4)
 

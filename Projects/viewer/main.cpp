@@ -24,11 +24,10 @@ public:
     SIMULATION<TV> simulation;
     osg::Group* root;
 
-    AnimationHandler(const std::string &scenefile)
+    AnimationHandler()
         :root(new osg::Group()),animating(false),lastTime(0),frameTime((T).1)
     {
-        std::ifstream test_config(scenefile,std::ifstream::in);
-        PARSE_SCENE<TV>::Parse_Scene(test_config,simulation);
+        PARSE_SCENE<TV>::Parse_Scene(std::cin,simulation);
         reset();
         root->setUpdateCallback(this);
     }
@@ -96,7 +95,7 @@ public:
 
 int main(int argc,char **argv)
 {
-    AnimationHandler* animation=new AnimationHandler(argv[1]);
+    AnimationHandler* animation=new AnimationHandler();
     KeyboardEventHandler* keyboardEventHandler=new KeyboardEventHandler(animation);
     osgViewer::Viewer viewer;
     viewer.addEventHandler(keyboardEventHandler);
