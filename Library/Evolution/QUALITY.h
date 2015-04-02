@@ -2,6 +2,7 @@
 #define __QUALITY__
 
 #include <Utilities/TYPE_UTILITIES.h>
+#include <cfloat>
 
 namespace Mechanics{
 

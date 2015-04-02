@@ -2,6 +2,7 @@
 #include <Driver/DRIVER.h>
 #include <Driver/SIMULATION.h>
 #include <Evolution/EVOLUTION.h>
+#include <Utilities/LOG.h>
 #include <iostream>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
@@ -32,7 +33,7 @@ Advance_To_Target_Time(const T target_time)
         Advance_One_Time_Step(target_time,done);
         simulation->Write("End frame "+std::to_string(simulation->current_frame));
         simulation->current_frame++;
-        std::cout<<"Frame "<<simulation->current_frame<<std::endl;
+        LOG::cout<<"Frame "<<simulation->current_frame<<std::endl;
     }
 }
 ///////////////////////////////////////////////////////////////////////

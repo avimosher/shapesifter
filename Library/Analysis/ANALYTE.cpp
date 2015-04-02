@@ -2,6 +2,7 @@
 #include <Analysis/ANALYTE.h>
 #include <Analysis/PREDICATE.h>
 #include <Parsing/PARSER_REGISTRY.h>
+#include <Utilities/LOG.h>
 #include <iostream>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
@@ -10,8 +11,8 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
 {
     if(condition && !condition->Scalar(simulation)){return;}
     aggregator->Aggregate(predicate,simulation);
-    aggregator->Print_Report(std::cout);
-    std::cout<<std::endl;
+    aggregator->Print_Report(LOG::cout);
+    LOG::cout<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(ANALYTE)
