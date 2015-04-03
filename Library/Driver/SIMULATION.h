@@ -21,6 +21,7 @@ public:
     int current_frame;
     int restart_frame;
     int output_number;
+    T dt;
     T time;
     T last_time;
     bool restart;

@@ -1,5 +1,7 @@
 {
     "output_directory": "flexible_linker",
+    "dt": 0.1,
+    "last_time": 1000,
     "root": [
         {"type": "DATA",
          "eta": 3.5},

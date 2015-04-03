@@ -22,7 +22,7 @@ using namespace Mechanics;
 template<class TV> SIMULATION<TV>::
 SIMULATION()
     :data(*new DATA<TV>()),evolution(*new EVOLUTION<TV>()),force(*new FORCE<TV>()),
-    current_frame(0),restart_frame(0),output_number(0),time(0),restart(false),substeps(false),write(true),
+    current_frame(0),restart_frame(0),output_number(0),dt(.1),time(0),restart(false),substeps(false),write(true),
     output_directory("."),title("")
 {
 }

@@ -38,7 +38,6 @@ int main(int argc,char **argv)
     if(!PARSE_SCENE<TV>::Parse_Scene(std::cin,*simulation)){return 1;}
 
     DRIVER<TV> driver(simulation);
-    simulation->last_time=10;
     driver.Execute_Main_Program();
     return 0;
 }

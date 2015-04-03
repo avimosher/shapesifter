@@ -1,4 +1,5 @@
 #include <Data/DATA.h>
+#include <Driver/SIMULATION.h>
 #include <Equation/EQUATION.h>
 #include <Evolution/EVOLUTION.h>
 #include <Evolution/EVOLUTION_STEP.h>
@@ -8,7 +9,7 @@ using namespace Mechanics;
 template<class TV> typename TV::Scalar EVOLUTION<TV>::
 Compute_Dt(SIMULATION<TV>& simulation,const T time,const T target_time,bool& done)
 {
-    T dt=.1;
+    T dt=simulation.dt;
     done=time+dt>=target_time;
     return dt;
 }

@@ -16,6 +16,8 @@ Parse_Scene(std::istream& input,SIMULATION<TV>& simulation)
     }
     Json::Value arrayRoot=root["root"];
     Parse_String(root["output_directory"],simulation.output_directory);
+    Parse_Scalar(root["dt"],simulation.dt);
+    Parse_Scalar(root["last_time"],simulation.last_time);
     for(int i=0;i<arrayRoot.size();i++){PARSER_REGISTRY<TV,void>::Parse(arrayRoot[i],simulation);}
     return true;
 }

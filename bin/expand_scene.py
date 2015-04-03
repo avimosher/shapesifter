@@ -9,7 +9,10 @@ data=json.load(sys.stdin)
 
 expanded_data={}
 expanded_data['root']=[]
-expanded_data['output_directory']=data['output_directory']
+for key in data:
+    if key!='root':
+        expanded_data[key]=data[key]
+
 
 def random_name():
     return ''.join(random.choice(string.ascii_lowercase+string.digits) for i in range(12))
