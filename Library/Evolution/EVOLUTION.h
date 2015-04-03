@@ -19,6 +19,7 @@ public:
 
     T Compute_Dt(SIMULATION<TV>& simulation,const T time,const T target_time,bool& done);
     void Advance_One_Step(SIMULATION<TV>& simulation,const T dt,const T time);
+    void Finalize();
 };
 }
 #endif

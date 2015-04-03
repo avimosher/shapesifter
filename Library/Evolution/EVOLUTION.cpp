@@ -20,4 +20,10 @@ Advance_One_Step(SIMULATION<TV>& simulation,const T dt,const T time)
     for(auto step: (*this)){step->Full_Step(simulation,dt,time);}
 }
 ///////////////////////////////////////////////////////////////////////
+template<class TV> void EVOLUTION<TV>::
+Finalize()
+{
+    for(auto step: (*this)){step->Finalize();}
+}
+///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(EVOLUTION)

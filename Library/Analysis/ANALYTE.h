@@ -18,6 +18,7 @@ public:
     ANALYTE(){}
 
     void Step(SIMULATION<TV>& simulation,const T dt,const T time);
+    void Finalize();
     DEFINE_TYPE_NAME("ANALYTE")
 };
 }

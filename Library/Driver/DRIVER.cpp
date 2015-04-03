@@ -42,6 +42,7 @@ Execute_Main_Program()
 {
     Initialize();
     Advance_To_Target_Time(simulation->last_time);
+    simulation->evolution.Finalize();
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(DRIVER)

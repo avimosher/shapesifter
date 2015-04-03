@@ -11,8 +11,13 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
 {
     if(condition && !condition->Scalar(simulation)){return;}
     aggregator->Aggregate(predicate,simulation);
-    aggregator->Print_Report(LOG::cout);
-    LOG::cout<<std::endl;
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void ANALYTE<TV>::
+Finalize()
+{
+    aggregator->Print_Report(std::cout);
+    std::cout<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(ANALYTE)
