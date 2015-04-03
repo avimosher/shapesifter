@@ -3,6 +3,7 @@
 
 #include <Driver/SIMULATION.h>
 #include <Evolution/EVOLUTION.h>
+#include <Utilities/LOG.h>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -21,7 +22,7 @@ public:
     ~PARSER_REGISTRY(){};
 
     static std::shared_ptr<PARSED_TYPE> Parse(Json::Value& node,SIMULATION<TV>& data)
-    {std::cout<<node["type"].asString()<<std::endl;
+    {LOG::cout<<node["type"].asString()<<std::endl;
         return (*Parsers()[node["type"].asString()])(node,data);}
     template<class T_PARSER>static void Register();
 };

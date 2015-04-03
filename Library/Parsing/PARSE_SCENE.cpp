@@ -1,5 +1,6 @@
 #include <Parsing/PARSE_SCENE.h>
 #include <Parsing/PARSER_REGISTRY.h>
+#include <Utilities/LOG.h>
 #include <json/json.h>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
@@ -9,9 +10,9 @@ Parse_Scene(std::istream& input,SIMULATION<TV>& simulation)
     Json::Value root;
     Json::Reader reader;
     bool success=reader.parse(input,root);
-    std::cout<<"Parse success: "<<success<<std::endl;
+    LOG::cout<<"Parse success: "<<success<<std::endl;
     if(!success){
-        std::cout<<reader.getFormattedErrorMessages()<<std::endl;
+        LOG::cout<<reader.getFormattedErrorMessages()<<std::endl;
         return false;
     }
     Json::Value arrayRoot=root["root"];
