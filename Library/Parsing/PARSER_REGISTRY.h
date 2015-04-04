@@ -1,6 +1,7 @@
 #ifndef __PARSER_REGISTRY__
 #define __PARSER_REGISTRY__
 
+#include <Data/ROTATION.h>
 #include <Driver/SIMULATION.h>
 #include <Evolution/EVOLUTION.h>
 #include <Utilities/LOG.h>
@@ -108,6 +109,17 @@ template<class TV> void Parse_Vector(Json::Value& node,TV& vector,const TV& defa
 {
     if(!node.isNull()){for(int i=0;i<vector.size();i++){vector[i]=node[i].asDouble();}}
     else{vector=default_vector;}
+}
+
+template<class TV> void Parse_Rotation(Json::Value& node,ROTATION<TV>& orientation,const ROTATION<TV>& default_orientation=ROTATION<TV>::ORIENTATION::Identity())
+{
+    if(!node.isNull()){
+        typename TV::Scalar angle;Parse_Scalar(node["angle"],angle);
+        TV axis;Parse_Vector(node["axis"],axis);
+        std::cout<<"Axis: "<<axis<<std::endl;
+        orientation=ROTATION<TV>::From_Rotation_Vector((angle*M_PI/180)*axis.normalized());
+    }
+    else{orientation=default_orientation;}
 }
 
 }
