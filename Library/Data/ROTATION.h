@@ -98,6 +98,7 @@ class ROTATION<Eigen::Matrix<T,3,1>>:public Eigen::Quaternion<T>
     int Sign() const{return sgn((*this).w());}
     TV Vec() const{return (*this).vec();}
     T W() const{return (*this).w();}
+    TV Rotation_Vector() const{return Angle()*Axis();}
     static ROTATION From_Rotation_Vector(const TV& rotation_vector){
         T norm=rotation_vector.norm();
         return Eigen::Quaternion<T>(Eigen::AngleAxis<T>(norm,norm?rotation_vector.normalized():TV::UnitX()));

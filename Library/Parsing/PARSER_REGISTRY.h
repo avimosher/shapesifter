@@ -116,7 +116,6 @@ template<class TV> void Parse_Rotation(Json::Value& node,ROTATION<TV>& orientati
     if(!node.isNull()){
         typename TV::Scalar angle;Parse_Scalar(node["angle"],angle);
         TV axis;Parse_Vector(node["axis"],axis);
-        std::cout<<"Axis: "<<axis<<std::endl;
         orientation=ROTATION<TV>::From_Rotation_Vector((angle*M_PI/180)*axis.normalized());
     }
     else{orientation=default_orientation;}
