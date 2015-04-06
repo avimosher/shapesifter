@@ -23,12 +23,13 @@ template<class T> ROTATION<Matrix<T,3,1>> Find_Appropriate_Rotation(const ROTATI
 ///////////////////////////////////////////////////////////////////////
 template<class T> Matrix<T,3,3> Construct_Constraint_Matrix(const ROTATION<Matrix<T,3,1>>& rotation,const ROTATION<Matrix<T,3,1>>& relative_rotation,const ROTATION<Matrix<T,3,1>>& target,Matrix<T,3,1>& rotation_error_vector)
 {
+    typedef Matrix<T,3,1> TV;
     auto orientation=rotation.Rotation_Vector();
-    auto axis=orientation.normalized();auto angle=orientation.norm();
+    auto angle=orientation.norm();auto axis=(fabs(angle)>1e-8?orientation.normalized():TV::UnitX());
     T s=sin(angle/2);T s_over_angle=sinc(angle/2)/2,c=cos(angle/2);
-    ROTATION<Matrix<T,3,1>> rotation_error=rotation*relative_rotation;
-    T at=sgn(rotation_error.w());
-    rotation_error_vector=rotation_error.vec()*at-sgn(target.w())*target.vec();
+    ROTATION<TV> composed_rotation=rotation*relative_rotation;
+    T at=sgn(composed_rotation.w());
+    rotation_error_vector=composed_rotation.vec()*at-sgn(target.w())*target.vec();
     
     auto axis_projection=axis*axis.transpose();
     auto axis_orthogonal_projection=Matrix<T,3,3>::Identity()-axis_projection;
@@ -69,13 +70,17 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         ROTATION<TV> RC=Find_Appropriate_Rotation(frame.orientation,constraint.orientation);
         T_SPIN rotation_error_vector;
         Matrix<T,t,t> dCdR=Construct_Constraint_Matrix(current,base*RC,constraint.orientation*RC,rotation_error_vector);
+        LOG::cout<<"dCdR: "<<dCdR<<std::endl;
+        T_SPIN stored_torque;
         for(int j=0;j<d;j++){
             CONSTRAINT_VECTOR constraint_vector;constraint_vector.setZero();
-            constraint_vector.template block<1,d>(0,0)=dCdR.template block<t,1>(j,0);
+            constraint_vector.template block<1,t>(0,d)=dCdR.template block<1,t>(j,0);
             int index=linear_constraints.size()+i*t+j;
             terms.push_back(Triplet<CONSTRAINT_VECTOR>(index,constraint.s,constraint_vector));
-            constraint_rhs[index]=rotation_error_vector[j];
+            constraint_rhs[index]=-rotation_error_vector[j];
+            stored_torque[j]=stored_forces[index];
         }
+        right_hand_side.template block<t,1>(constraint.s*(t+d)+d,0)-=dCdR.transpose()*stored_torque;
     }
     constraint_terms.resize(Size(),(t+d)*rigid_data->structures.size());
     Flatten_Matrix(terms,constraint_terms);
