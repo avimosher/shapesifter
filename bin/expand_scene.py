@@ -70,7 +70,8 @@ def force(node):
 handle_node={'FLEXIBLE_LINKER': flexible_linker,
              'ASSOCIATION_DISSOCIATION_CONSTRAINT': force,
              'RIGID_STRUCTURE': rigid_structure,
-             'RELATIVE_POSITION_CONSTRAINT': force}
+             'RELATIVE_POSITION_CONSTRAINT': force,
+             'ABSOLUTE_POSITION_CONSTRAINT': force}
 
 def handle_default(node):
     expanded_data['root'].append(node)

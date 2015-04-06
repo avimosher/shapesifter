@@ -30,6 +30,28 @@
          "link_offset": [0.5,0,0]
         },
         {"type": "VOLUME_EXCLUSION_CONSTRAINT"},
+        {"type": "ABSOLUTE_POSITION_CONSTRAINT",
+         "constraints": [
+             {
+                 "type": "linear",
+                 "structure": "left",
+                 "direction": [1,0,0],
+                 "magnitude": 1
+             },
+             {
+                 "type": "linear",
+                 "structure": "left",
+                 "direction": [0,1,0],
+                 "magnitude": 1
+             },
+             {
+                 "type": "linear",
+                 "structure": "left",
+                 "direction": [0,0,1],
+                 "magnitude": 1
+             }
+         ]
+        },
         {"type": "ANALYTE",
          "prerequisites": ["evolution"],
          "predicate": {
