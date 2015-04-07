@@ -77,7 +77,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
 {
 #if 0
     RANDOM<T> random;
-    auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.Find("RIGID_STRUCTURE_DATA"));
+    auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
     if(stochastic){
         constraints.clear();
         for(int i=0;i<interactions.size();i++){
@@ -153,7 +153,7 @@ GENERIC_CEREAL_REGISTRATION(ASSOCIATION_DISSOCIATION_CONSTRAINT)
 GENERIC_TYPE_DEFINITION(ASSOCIATION_DISSOCIATION_CONSTRAINT)
 DEFINE_AND_REGISTER_PARSER(ASSOCIATION_DISSOCIATION_CONSTRAINT,void)
 {
-    auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(simulation.data.Find("RIGID_STRUCTURE_DATA"));
+    auto rigid_data=simulation.data.template Find<RIGID_STRUCTURE_DATA<TV>>();
     auto constraint=std::make_shared<ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>>();
     Json::Value interactions=node["interactions"];
     for(Json::ValueIterator it=interactions.begin();it!=interactions.end();it++){

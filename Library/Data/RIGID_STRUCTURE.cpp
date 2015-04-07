@@ -42,7 +42,7 @@ DEFINE_AND_REGISTER_PARSER(RIGID_STRUCTURE,void)
     Parse_Rotation(node["orientation"],structure->frame.orientation);
     structure->name=node["name"].asString();
     structure->Initialize_Inertia(simulation.data.globals["eta"]);
-    auto data_element=simulation.data.Find(RIGID_STRUCTURE_DATA<TV>::Static_Name());
+    auto data_element=simulation.data.template Find_Or_Create<RIGID_STRUCTURE_DATA<TV>>();
     auto rigid_structure_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data_element);
     rigid_structure_data->structures.push_back(structure);
     return 0;

@@ -31,9 +31,21 @@ public:
         return X2-X1;
     }
 
-    std::shared_ptr<DATA_TYPE<TV>> Find(const std::string& name) const{
-        Finder<std::shared_ptr<DATA_TYPE<TV>>> finder={name};
-        return *(std::find_if(this->begin(),this->end(),finder));
+    template<class SUBTYPE> std::shared_ptr<SUBTYPE> Find_Or_Create() {
+        Finder<std::shared_ptr<DATA_TYPE<TV>>> finder={SUBTYPE::Static_Name()};
+        auto found=std::find_if(this->begin(),this->end(),finder);
+        if(found==this->end()){
+            auto data=std::make_shared<SUBTYPE>();
+            this->push_back(data);
+            return data;
+        }
+        return std::static_pointer_cast<SUBTYPE>(*found);
+    }
+
+    template<class SUBTYPE> std::shared_ptr<SUBTYPE> Find() const {
+        Finder<std::shared_ptr<DATA_TYPE<TV>>> finder={SUBTYPE::Static_Name()};
+        auto found=std::find_if(this->begin(),this->end(),finder);
+        return std::static_pointer_cast<SUBTYPE>(*found);
     }
 
     int Velocity_DOF() const;

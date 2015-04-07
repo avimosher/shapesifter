@@ -19,7 +19,7 @@ using namespace Mechanics;
 template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::
 Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
 {
-    auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.Find("RIGID_STRUCTURE_DATA"));
+    auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
     typedef Matrix<T,1,RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE> CONSTRAINT_VECTOR;
     std::vector<Triplet<CONSTRAINT_VECTOR>> terms;
     RIGID_STRUCTURE_INDEX_MAP<TV> index_map;
@@ -102,7 +102,7 @@ Viewer(const DATA<TV>& data,osg::Node* node)
         }
         group->addChild(relative_position_group);
     }
-    auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.Find("RIGID_STRUCTURE_DATA"));
+    auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
     for(int i=0;i<constraints.size();i++){
         auto lineGeode=(osg::Geode*)relative_position_group->getChild(i);
         auto lineGeometry=(osg::Geometry*)lineGeode->getDrawable(0);
@@ -124,7 +124,7 @@ GENERIC_CEREAL_REGISTRATION(RELATIVE_POSITION_CONSTRAINT)
 GENERIC_TYPE_DEFINITION(RELATIVE_POSITION_CONSTRAINT)
 DEFINE_AND_REGISTER_PARSER(RELATIVE_POSITION_CONSTRAINT,void)
 {
-    auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(simulation.data.Find("RIGID_STRUCTURE_DATA"));
+    auto rigid_data=simulation.data.template Find<RIGID_STRUCTURE_DATA<TV>>();
     auto relative_position_constraint=simulation.force.template Find_Or_Create<RELATIVE_POSITION_CONSTRAINT<TV>>();
     Json::Value constraints=node["constraints"];
     for(Json::ValueIterator it=constraints.begin();it!=constraints.end();it++){

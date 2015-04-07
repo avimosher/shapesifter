@@ -7,24 +7,38 @@
          "eta": 3.5},
         {"type": "RIGID_STRUCTURE_DATA"},
         {"type": "RIGID_STRUCTURE",
-         "position": [1, 1, 1],
-         "radius": 1,
-         "name": "left"
+         "position": [3, 1, 1],
+         "radius": 1.75,
+         "collision_extent": 2.3,
+         "name": "EGFRvIII"
         },
         {"type": "RIGID_STRUCTURE",
-         "position": [3, 1, 1],
-         "radius": 1,
-         "collision_extent": 1,
-         "name": "right"
+         "position": [1, 1, 1],
+         "radius": 1.435,
+         "collision_extent": 0.34,
+         "name": "scFv"
+        },
+        {"type": "RIGID_STRUCTURE",
+         "position": [1, 1, 1],
+         "radius": 1.16,
+         "collision_extent": 0.27,
+         "name": "interferon"
         },
         {"type": "TRUST_REGION"},
         {"type": "BROWNIAN_FORCE",
          "temperature": 300},
-        {"type": "FLEXIBLE_LINKER",
-         "structure1": "right",
-         "offset1": [0,0,2],
-         "structure2": "left",
+        {"type": "RELATIVE_POSITION_CONSTRAINT",
+         "structure1": "EGFRvIII",
+         "offset1": [0,1.75,3.15],
+         "structure2": "scFv",
          "offset2": [-1,0,0],
+         "distance": 1
+        },
+        {"type": "FLEXIBLE_LINKER",
+         "structure1": "scFv",
+         "offset1": [-1.015,0,1.355],
+         "structure2": "interferon",
+         "offset2": [0,0,1.43],
          "links": 2,
          "link_radius": 0.2,
          "link_offset": [0.5,0,0]
@@ -34,23 +48,23 @@
          "constraints": [
              {
                  "type": "linear",
-                 "structure": "right",
+                 "structure": "EGFRvIII",
                  "direction": [1,0,0],
                  "magnitude": 3
              },
              {
                  "type": "linear",
-                 "structure": "right",
+                 "structure": "EGFRvIII",
                  "direction": [0,1,0],
                  "magnitude": 1
              },
              {
                  "type": "linear",
-                 "structure": "right",
+                 "structure": "EGFRvIII",
                  "direction": [0,0,1],
                  "magnitude": 1
              },
-             {"structure": "right",
+             {"structure": "EGFRvIII",
               "type": "angular",
               "orientation": {
                   "angle": 0,
@@ -63,11 +77,11 @@
              "type": "distance",
              "first": {
                  "type": "rigid_structure_position",
-                 "name": "left",
+                 "name": "EGFRvIII",
                  "offset": [0,0,0]},
              "second": {
                  "type": "rigid_structure_position",
-                 "name": "right",
+                 "name": "scFv",
                  "offset": [0,0,0]}
          },
          "aggregator": {"type": "average"}

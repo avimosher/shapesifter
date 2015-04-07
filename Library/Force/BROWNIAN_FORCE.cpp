@@ -22,7 +22,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         T one_over_dt=1/dt;
         stored_right_hand_side.resize(right_hand_side.rows(),1);
         stored_right_hand_side.setZero();
-        auto rigid_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data.Find("RIGID_STRUCTURE_DATA"));
+        auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
         for(int i=0;i<(*rigid_data).structures.size();i++){
             T radius=rigid_data->structures[i]->radius;
             T linear_drag=6*M_PI*eta*radius;
