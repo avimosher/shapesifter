@@ -14,16 +14,16 @@
         {"type": "RIGID_STRUCTURE",
          "position": [3, 1, 1],
          "radius": 1,
-         "collision_extent": 0,
+         "collision_extent": 1,
          "name": "right"
         },
         {"type": "TRUST_REGION"},
         {"type": "BROWNIAN_FORCE",
          "temperature": 300},
         {"type": "FLEXIBLE_LINKER",
-         "structure1": "left",
-         "offset1": [1,0,0],
-         "structure2": "right",
+         "structure1": "right",
+         "offset1": [0,0,2],
+         "structure2": "left",
          "offset2": [-1,0,0],
          "links": 2,
          "link_radius": 0.2,
@@ -34,23 +34,23 @@
          "constraints": [
              {
                  "type": "linear",
-                 "structure": "left",
+                 "structure": "right",
                  "direction": [1,0,0],
-                 "magnitude": 1
+                 "magnitude": 3
              },
              {
                  "type": "linear",
-                 "structure": "left",
+                 "structure": "right",
                  "direction": [0,1,0],
                  "magnitude": 1
              },
              {
                  "type": "linear",
-                 "structure": "left",
+                 "structure": "right",
                  "direction": [0,0,1],
                  "magnitude": 1
              },
-             {"structure": "left",
+             {"structure": "right",
               "type": "angular",
               "orientation": {
                   "angle": 0,
