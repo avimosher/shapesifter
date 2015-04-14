@@ -86,7 +86,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             auto structure1=rigid_data->structures[s1];
             auto structure2=rigid_data->structures[s2];
             TV offset1,offset2;
-            TV direction=structure1->Displacement(data,structure2,offset1,offset2);
+            TV direction=structure1->Displacement(data,*structure2,offset1,offset2);
             T distance=direction.norm();
             T constraint_violation=distance-structure1->collision_radius-structure2->collision_radius;
             T slack_distance=-.005;

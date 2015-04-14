@@ -73,11 +73,11 @@ public:
         return weights[0]*u-w-weights[1]*v;
     }
 
-    TV Displacement(const DATA<TV>& data,const std::shared_ptr<RIGID_STRUCTURE<TV>> structure,TV& offset1,TV& offset2) const {
+    TV Displacement(const DATA<TV>& data,const RIGID_STRUCTURE<TV>& structure,TV& offset1,TV& offset2) const {
         TV centroid1=frame.position;
-        TV centroid2=centroid1+data.Minimum_Offset(frame.position,structure->frame.position);
+        TV centroid2=centroid1+data.Minimum_Offset(frame.position,structure.frame.position);
         TV major_axis1=frame.orientation._transformVector(collision_extent*TV::UnitZ());
-        TV major_axis2=structure->frame.orientation._transformVector(structure->collision_extent*TV::UnitZ());
+        TV major_axis2=structure.frame.orientation._transformVector(structure.collision_extent*TV::UnitZ());
         Matrix<T,2,1> weights;
         Matrix<TV,2,1> segment1;
         segment1[0]=centroid1-major_axis1;

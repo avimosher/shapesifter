@@ -85,15 +85,16 @@
         {"type": "ANALYTE",
          "prerequisites": ["evolution"],
          "predicate": {
-             "type": "distance",
-             "first": {
-                 "type": "rigid_structure_position",
-                 "name": "EGFRvIII",
-                 "offset": [0,0,0]},
-             "second": {
-                 "type": "rigid_structure_position",
-                 "name": "scFv",
-                 "offset": [0,0,0]}
+             "type": "orientation_quality_predicate",
+             "binder_name": "interferon",
+             "occluder_name": "EGFRvIII",
+             "distance_limit": 1,
+             "around_bond_angle_limit": 0.785,
+             "out_of_bond_angle_limit": 0.785,
+             "target_bond_orientation": [0,-1,0],
+             "binder_bond_vector": [0,-1.16,0],
+             "target_height": 3.65,
+             "receptor_radius": 1.8
          },
          "aggregator": {"type": "average"}
         }
