@@ -23,8 +23,12 @@ public:
     ~PARSER_REGISTRY(){};
 
     static std::shared_ptr<PARSED_TYPE> Parse(Json::Value& node,SIMULATION<TV>& data)
-    {LOG::cout<<node["type"].asString()<<std::endl;
-        return (*Parsers()[node["type"].asString()])(node,data);}
+    {
+        std::string node_type=node["type"].asString();
+        LOG::cout<<node_type<<std::endl;
+        if(Parsers().find(node_type)==Parsers().end()){std::cout<<"Parsing failed for node type: "<<node_type<<std::endl;exit(-1);}
+        return (*Parsers()[node_type])(node,data);
+    }
     template<class T_PARSER>static void Register();
 };
 
