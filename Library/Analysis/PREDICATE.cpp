@@ -56,6 +56,19 @@ DEFINE_AND_REGISTER_TEMPLATE_PARSER(LESS_THAN_PREDICATE,PREDICATE)
 }
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
+template<class TV> typename TV::Scalar DT_PREDICATE<TV>::
+Scalar(const SIMULATION<TV>& simulation)
+{
+    return simulation.dt;
+}
+//////////////////////////////////////////////////////////////////////
+GENERIC_TYPE_DEFINITION(DT_PREDICATE)
+DEFINE_AND_REGISTER_TEMPLATE_PARSER(DT_PREDICATE,PREDICATE)
+{
+    return std::make_shared<DT_PREDICATE<TV>>();
+}
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
 template<class TV> typename TV::Scalar SCALAR_PREDICATE<TV>::
 Scalar(const SIMULATION<TV>& simulation)
 {
@@ -67,6 +80,21 @@ DEFINE_AND_REGISTER_TEMPLATE_PARSER(SCALAR_PREDICATE,PREDICATE)
 {
     auto predicate=std::make_shared<SCALAR_PREDICATE<TV>>();
     Parse_Scalar(node["scalar"],predicate->scalar);
+    return predicate;
+}
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+template<class TV> TV VECTOR_PREDICATE<TV>::
+Vector(const SIMULATION<TV>& simulation)
+{
+    return vector;
+}
+//////////////////////////////////////////////////////////////////////
+GENERIC_TYPE_DEFINITION(VECTOR_PREDICATE)
+DEFINE_AND_REGISTER_TEMPLATE_PARSER(VECTOR_PREDICATE,PREDICATE)
+{
+    auto predicate=std::make_shared<VECTOR_PREDICATE<TV>>();
+    Parse_Vector(node["vector"],predicate->vector);
     return predicate;
 }
 //////////////////////////////////////////////////////////////////////

@@ -3,7 +3,6 @@
 #include <Utilities/RANDOM.h>
 #include <fstream>
 #include <iostream>
-#include <cereal/archives/binary.hpp>
 #include <osg/Group>
 using namespace Mechanics;
 /////////////////////////////////////////////////////////////////////// 

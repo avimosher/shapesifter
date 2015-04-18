@@ -3,8 +3,40 @@
 
 #include <Utilities/EIGEN_HELPERS.h>
 #include <cereal/archives/binary.hpp>
+#include <cereal/types/polymorphic.hpp>
+#include <cereal/types/string.hpp>
+#include <cereal/types/vector.hpp>
+#include <cereal/types/unordered_map.hpp>
+#include <cereal/types/utility.hpp>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
+
+#undef CEREAL_BIND_TO_ARCHIVES
+#define CEREAL_BIND_TO_ARCHIVES(...)                                     \
+    namespace cereal {                                                   \
+    namespace detail {                                                   \
+    template<>                                                           \
+    struct init_binding<__VA_ARGS__> {                                   \
+        static bind_to_archives<__VA_ARGS__> const & b;                  \
+    };                                                                   \
+    bind_to_archives<__VA_ARGS__> const & init_binding<__VA_ARGS__>::b = \
+        ::cereal::detail::StaticObject<                                  \
+            bind_to_archives<__VA_ARGS__>                                \
+        >::getInstance().bind();                                         \
+    }} // end namespaces
+
+#undef CEREAL_REGISTER_TYPE
+#define CEREAL_REGISTER_TYPE(...)                                 \
+  namespace cereal {                                              \
+  namespace detail {                                              \
+  template <>                                                     \
+  struct binding_name<__VA_ARGS__>                                \
+  {                                                               \
+    STATIC_CONSTEXPR char const * name() { return #__VA_ARGS__; } \
+  };                                                              \
+  } } /* end namespaces */                                        \
+  CEREAL_BIND_TO_ARCHIVES(__VA_ARGS__)
+
 
 namespace cereal
 {

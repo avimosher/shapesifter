@@ -445,6 +445,7 @@ DEFINE_AND_REGISTER_PARSER(TRUST_REGION,void)
 {
     auto step=std::make_shared<TRUST_REGION<TV>>();
     step->equation=new NONLINEAR_EQUATION<TV>();
+    Parse_String(node["name"],step->name);
     simulation.evolution.push_back(step);
     return 0;
 }

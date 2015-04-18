@@ -5,10 +5,9 @@
 #include <Data/FRAME.h>
 #include <Data/RIGID_STRUCTURE.h>
 #include <Data/TWIST.h>
+#include <Utilities/CEREAL_HELPERS.h>
 #include <Utilities/MATH.h>
 #include <Utilities/TYPE_UTILITIES.h>
-#include <cereal/archives/binary.hpp>
-#include <cereal/types/vector.hpp>
 #include <math.h>
 
 namespace Mechanics{

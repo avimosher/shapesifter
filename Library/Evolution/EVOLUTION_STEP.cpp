@@ -1,10 +1,13 @@
+#include <Driver/SIMULATION.h>
+#include <Evolution/EVOLUTION.h>
 #include <Evolution/EVOLUTION_STEP.h>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void EVOLUTION_STEP<TV>::
 Full_Step(SIMULATION<TV>& simulation,const T dt,const T time)
 {
-    for(auto prerequisite_step : prerequisites) {
+    for(auto prerequisite_name : prerequisites) {
+        auto prerequisite_step=simulation.evolution.Find(prerequisite_name);
         if(!prerequisite_step->Up_To_Date(simulation,dt,time)) {
             prerequisite_step->Full_Step(simulation,dt,time);}
     }

@@ -2,8 +2,8 @@
 #define __TEST_DATA__
 
 #include <Data/DATA_TYPE.h>
+#include <Utilities/CEREAL_HELPERS.h>
 #include <iostream>
-#include <cereal/archives/binary.hpp>
 #include <osg/Geode>
 #include <osg/Node>
 #include <osg/PositionAttitudeTransform>

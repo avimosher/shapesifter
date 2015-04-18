@@ -14,7 +14,7 @@ class EVOLUTION_STEP
 public:
     std::string name;
     T up_to_date_time;
-    std::vector<EVOLUTION_STEP<TV>*> prerequisites;
+    std::vector<std::string> prerequisites;
 
     EVOLUTION_STEP():up_to_date_time(0){}
     virtual ~EVOLUTION_STEP(){}
@@ -22,6 +22,9 @@ public:
     bool Up_To_Date(SIMULATION<TV>& simulation,const T dt,const T time){
         return up_to_date_time>=time;
     }
+
+    std::string Name()
+    {return name;}
 
     void Full_Step(SIMULATION<TV>& simulation,const T dt,const T time);
     virtual void Step(SIMULATION<TV>& simulation,const T dt,const T time)=0;

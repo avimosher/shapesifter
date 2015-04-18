@@ -70,6 +70,19 @@ public:
 };
 
 template<class TV>
+class DT_PREDICATE:public PREDICATE<TV>
+{
+    typedef typename TV::Scalar T;
+public:
+    using PREDICATE<TV>::subtype;
+
+    DT_PREDICATE() {subtype=PREDICATE<TV>::SCALAR;}
+
+    T Scalar(const SIMULATION<TV>& simulation);
+    DEFINE_TYPE_NAME("dt")
+};
+
+template<class TV>
 class SCALAR_PREDICATE:public PREDICATE<TV>
 {
     typedef typename TV::Scalar T;
@@ -81,6 +94,20 @@ public:
 
     T Scalar(const SIMULATION<TV>& simulation);
     DEFINE_TYPE_NAME("scalar")
+};
+
+template<class TV>
+class VECTOR_PREDICATE:public PREDICATE<TV>
+{
+    typedef typename TV::Scalar T;
+public:
+    using PREDICATE<TV>::subtype;
+    TV vector;
+
+    VECTOR_PREDICATE() {subtype=PREDICATE<TV>::VECTOR;}
+
+    TV Vector(const SIMULATION<TV>& simulation);
+    DEFINE_TYPE_NAME("vector")
 };
 
 template<class TV>

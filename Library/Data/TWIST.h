@@ -4,7 +4,6 @@
 #include <Data/ROTATION.h>
 #include <Utilities/CEREAL_HELPERS.h>
 #include <Utilities/TYPE_UTILITIES.h>
-#include <cereal/archives/binary.hpp>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 

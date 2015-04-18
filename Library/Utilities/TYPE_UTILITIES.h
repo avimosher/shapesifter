@@ -1,7 +1,7 @@
 #ifndef __TYPE_UTILITIES__
 #define __TYPE_UTILITIES__
 
-#include <cereal/types/polymorphic.hpp>
+#include <Utilities/CEREAL_HELPERS.h>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 using namespace Eigen;

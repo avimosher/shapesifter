@@ -1,10 +1,8 @@
 #ifndef __RANDOM__
 #define __RANDOM__
 
+#include <Utilities/CEREAL_HELPERS.h>
 #include <random>
-#include <cereal/archives/binary.hpp>
-#include <cereal/types/utility.hpp>
-#include <cereal/types/vector.hpp>
 
 namespace Mechanics{
 

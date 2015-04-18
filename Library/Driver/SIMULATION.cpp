@@ -4,12 +4,10 @@
 #include <Evolution/EVOLUTION.h>
 #include <Force/FORCE.h>
 #include <Force/FORCE_TYPE.h>
+#include <Utilities/CEREAL_HELPERS.h>
 #include <Utilities/OSG_HELPERS.h>
 #include <Utilities/RANDOM.h>
 #include <fstream>
-#include <cereal/archives/binary.hpp>
-#include <cereal/types/string.hpp>
-#include <cereal/types/unordered_map.hpp>
 #include <Eigen/Geometry>
 #include <osg/Geode>
 #include <osg/MatrixTransform>

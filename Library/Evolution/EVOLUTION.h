@@ -17,6 +17,13 @@ public:
     EVOLUTION(){}
     ~EVOLUTION(){}
 
+    std::shared_ptr<EVOLUTION_STEP<TV>> Find(const std::string& name) const {
+        Finder<std::shared_ptr<EVOLUTION_STEP<TV>>> finder={name};
+        auto found=std::find_if(this->begin(),this->end(),finder);
+        if(found==this->end()){std::cout<<"Could not find evolution step: "<<name<<std::endl;exit(-1);}
+        return *found;
+    }
+
     T Compute_Dt(SIMULATION<TV>& simulation,const T time,const T target_time,bool& done);
     void Advance_One_Step(SIMULATION<TV>& simulation,const T dt,const T time);
     void Finalize();

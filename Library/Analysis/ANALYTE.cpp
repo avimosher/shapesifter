@@ -27,6 +27,12 @@ DEFINE_AND_REGISTER_PARSER(ANALYTE,void)
     analyte->aggregator=PARSER_REGISTRY<TV,AGGREGATOR<TV>>::Parse(node["aggregator"],simulation);
     if(node.isMember("condition")){analyte->condition=PARSER_REGISTRY<TV,PREDICATE<TV>>::Parse(node["condition"],simulation);}
     analyte->predicate=PARSER_REGISTRY<TV,PREDICATE<TV>>::Parse(node["predicate"],simulation);
+    Json::Value prerequisites=node["prerequisites"];
+    if(!prerequisites.isNull()){
+        for(Json::ValueIterator it=prerequisites.begin();it!=prerequisites.end();it++){
+            analyte->prerequisites.push_back((*it).asString());
+        }
+    }
     simulation.evolution.push_back(analyte);
     return 0;
 }
