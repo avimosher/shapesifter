@@ -1,0 +1,32 @@
+{
+    "output_directory": "minimal_analysis_conditional",
+    "dt": 0.1,
+    "last_time": 10,
+    "root": [
+        {"type": "DATA",
+         "eta": 3.5},
+        {"type": "RIGID_STRUCTURE",
+         "position": [1, 1, 1],
+         "radius": 1,
+         "name": "object"
+        },
+        {"type": "BROWNIAN_FORCE",
+         "temperature": 300},
+        {"type": "TRUST_REGION",
+         "name": "evolution"},
+        {"type": "ANALYTE",
+         "prerequisites": ["evolution"],
+         "predicate": {"type": "dt"},
+         "aggregator": {"type": "sum"},
+         "condition": {"type": "less_than",
+                       "a": {"type": "distance",
+                             "first": {"type": "rigid_structure_position",
+                                       "name": "object",
+                                       "offset": [0,0,0]},
+                             "second": {"type": "vector",
+                                        "vector": [1,1,1]}},
+                       "b": {"type": "scalar",
+                             "scalar": 0.5}}
+        }
+    ]
+}
