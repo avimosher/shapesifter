@@ -1,7 +1,7 @@
 {
     "output_directory": "chimeric",
     "dt": 0.1,
-    "last_time": 10,
+    "last_time": 100,
     "root": [
         {"type": "DATA",
          "eta": 3.5},
@@ -33,7 +33,8 @@
          "collision_extent": 0.27,
          "name": "interferon"
         },
-        {"type": "TRUST_REGION"},
+        {"type": "TRUST_REGION",
+         "name": "evolution"},
         {"type": "BROWNIAN_FORCE",
          "temperature": 300},
         {"type": "RELATIVE_POSITION_CONSTRAINT",
@@ -50,7 +51,7 @@
          "offset1": [-1.015,0,1.355],
          "structure2": "interferon",
          "offset2": [0,0,1.43],
-         "links": 2,
+         "links": 4,
          "link_radius": 0.2,
          "link_offset": [1.2,0,0]
         },

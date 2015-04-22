@@ -25,7 +25,7 @@ public:
     osg::Group* root;
 
     AnimationHandler()
-        :root(new osg::Group()),animating(false),lastTime(0),frameTime((T).1)
+        :root(new osg::Group()),animating(false),lastTime(0),frameTime((T).05)
     {
         PARSE_SCENE<TV>::Parse_Scene(std::cin,simulation);
         reset();
