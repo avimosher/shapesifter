@@ -16,6 +16,8 @@ for key in data:
 
 def random_name():
     return ''.join(random.choice(string.ascii_lowercase+string.digits) for i in range(12))
+def random_vector(low,high):
+    return [random.uniform(l,h) for l,h in zip(low,high)]
 
 structure_nodes={}
 force_nodes=[]
@@ -63,11 +65,22 @@ def flexible_linker(node):
     constraint={'type': 'RELATIVE_POSITION_CONSTRAINT','constraints': constraints}
     force_nodes.append(constraint)
 
+def distribute_bodies(node):
+    bodies=node['bodies']
+    for i in range(0,bodies):
+        subnode={}
+        subnode['type']='RIGID_STRUCTURE'
+        subnode['radius']=node['radius']
+        subnode['position']=random_vector(node['min'],node['max'])
+        subnode['name']=random_name()
+        structure_nodes[subnode['name']]=subnode
+
 def force(node):
     force_nodes.append(node)
 
 
 handle_node={'FLEXIBLE_LINKER': flexible_linker,
+             'DISTRIBUTE_BODIES': distribute_bodies,
              'ASSOCIATION_DISSOCIATION_CONSTRAINT': force,
              'RIGID_STRUCTURE': rigid_structure,
              'RELATIVE_POSITION_CONSTRAINT': force,
