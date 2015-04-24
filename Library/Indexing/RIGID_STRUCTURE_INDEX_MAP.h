@@ -222,7 +222,48 @@ public:
         }
         return full;
     }
+
+    static Matrix<T,3,3> Construct_Constraint_Matrix(const ROTATION<TV>& rotation,const ROTATION<TV>& relative_rotation,const ROTATION<TV>& target,TV& rotation_error_vector)
+    {
+        auto orientation=rotation.Rotation_Vector();
+        auto angle=orientation.norm();auto axis=(fabs(angle)>1e-8?orientation.normalized():TV::UnitX());
+        T s=sin(angle/2);T s_over_angle=sinc(angle/2)/2,c=cos(angle/2);
+        ROTATION<TV> composed_rotation=rotation*relative_rotation;
+        T at=composed_rotation.Sign();
+        rotation_error_vector=composed_rotation.vec()*at-target.Sign()*target.vec();
     
+        auto axis_projection=axis*axis.transpose();
+        auto axis_orthogonal_projection=Matrix<T,3,3>::Identity()-axis_projection;
+        TV relative_rotation_vec=relative_rotation.vec();
+        auto relative_rotation_cross_product_matrix=Cross_Product_Matrix(relative_rotation_vec);
+
+        auto dudw=(c/2)*axis_projection+s_over_angle*axis_orthogonal_projection;
+        auto dadw=-s/2*axis;
+        auto dCdu=at*(Matrix<T,3,3>::Identity()*relative_rotation.w()-relative_rotation_cross_product_matrix);
+        auto dCda=relative_rotation.vec()*at;
+        return dCda*dadw.transpose()+dCdu*dudw;
+    }
+
+    static Matrix<T,3,3> Construct_Constraint_Matrix(const ROTATION<TV>& rotation,const ROTATION<TV>& relative_rotation,TV& rotation_error_vector)
+    {
+        auto orientation=rotation.Rotation_Vector();
+        auto angle=orientation.norm();auto axis=(fabs(angle)>1e-8?orientation.normalized():TV::UnitX());
+        T s=sin(angle/2);T s_over_angle=sinc(angle/2)/2,c=cos(angle/2);
+        ROTATION<TV> composed_rotation=rotation*relative_rotation;
+        T at=composed_rotation.Sign();
+        rotation_error_vector=composed_rotation.vec()*at;
+    
+        auto axis_projection=axis*axis.transpose();
+        auto axis_orthogonal_projection=Matrix<T,3,3>::Identity()-axis_projection;
+        TV relative_rotation_vec=relative_rotation.vec();
+        auto relative_rotation_cross_product_matrix=Cross_Product_Matrix(relative_rotation_vec);
+
+        auto dudw=(c/2)*axis_projection+s_over_angle*axis_orthogonal_projection;
+        auto dadw=-s/2*axis;
+        auto dCdu=at*(Matrix<T,3,3>::Identity()*relative_rotation.w()-relative_rotation_cross_product_matrix);
+        auto dCda=relative_rotation.vec()*at;
+        return dCda*dadw.transpose()+dCdu*dudw;
+    }
 };
 }
 #endif

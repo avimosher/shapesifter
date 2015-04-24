@@ -21,28 +21,6 @@ template<class T> ROTATION<Matrix<T,3,1>> Find_Appropriate_Rotation(const ROTATI
     return rotation1.inverse()*ROTATION<Matrix<T,3,1>>((rotation2*rotation1.inverse()).inverse()).Scale_Angle((T).5);
 }
 ///////////////////////////////////////////////////////////////////////
-template<class T> Matrix<T,3,3> Construct_Constraint_Matrix(const ROTATION<Matrix<T,3,1>>& rotation,const ROTATION<Matrix<T,3,1>>& relative_rotation,const ROTATION<Matrix<T,3,1>>& target,Matrix<T,3,1>& rotation_error_vector)
-{
-    typedef Matrix<T,3,1> TV;
-    auto orientation=rotation.Rotation_Vector();
-    auto angle=orientation.norm();auto axis=(fabs(angle)>1e-8?orientation.normalized():TV::UnitX());
-    T s=sin(angle/2);T s_over_angle=sinc(angle/2)/2,c=cos(angle/2);
-    ROTATION<TV> composed_rotation=rotation*relative_rotation;
-    T at=sgn(composed_rotation.w());
-    rotation_error_vector=composed_rotation.vec()*at-sgn(target.w())*target.vec();
-    
-    auto axis_projection=axis*axis.transpose();
-    auto axis_orthogonal_projection=Matrix<T,3,3>::Identity()-axis_projection;
-    Matrix<T,3,1> relative_rotation_vec=relative_rotation.vec();
-    auto relative_rotation_cross_product_matrix=Cross_Product_Matrix(relative_rotation_vec);
-
-    auto dudw=(c/2)*axis_projection+s_over_angle*axis_orthogonal_projection;
-    auto dadw=-s/2*axis;
-    auto dCdu=at*(Matrix<T,3,3>::Identity()*relative_rotation.w()-relative_rotation_cross_product_matrix);
-    auto dCda=relative_rotation.vec()*at;
-    return dCda*dadw.transpose()+dCdu*dudw;
-}
-///////////////////////////////////////////////////////////////////////
 template<class TV> void ABSOLUTE_POSITION_CONSTRAINT<TV>::
 Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
 {
@@ -69,7 +47,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         ROTATION<TV> base(current.inverse()*frame.orientation);
         ROTATION<TV> RC=Find_Appropriate_Rotation(frame.orientation,constraint.orientation);
         T_SPIN rotation_error_vector;
-        Matrix<T,t,t> dCdR=Construct_Constraint_Matrix(current,base*RC,constraint.orientation*RC,rotation_error_vector);
+        Matrix<T,t,t> dCdR=RIGID_STRUCTURE_INDEX_MAP<TV>::Construct_Constraint_Matrix(current,base*RC,constraint.orientation*RC,rotation_error_vector);
         LOG::cout<<"dCdR: "<<dCdR<<std::endl;
         T_SPIN stored_torque;
         for(int j=0;j<d;j++){
@@ -82,7 +60,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         }
         right_hand_side.template block<t,1>(constraint.s*(t+d)+d,0)-=dCdR.transpose()*stored_torque;
     }
-    constraint_terms.resize(Size(),(t+d)*rigid_data->structures.size());
+    constraint_terms.resize(Size(),rigid_data->Velocity_DOF());
     Flatten_Matrix(terms,constraint_terms);
     stored_forces.resize(Size());
 }

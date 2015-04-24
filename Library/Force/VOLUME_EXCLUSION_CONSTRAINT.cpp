@@ -77,10 +77,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     constraints.clear();
     constant_forces.clear();
     if(stochastic){
-        for(auto memory : force_memory){
-            memory.second.second=(T)0;
-        }
-    }
+        for(auto memory : force_memory){memory.second.second=(T)0;}}
     for(int s1=0;s1<rigid_data->structures.size();s1++){
         for(int s2=s1+1;s2<rigid_data->structures.size();s2++){
             auto structure1=rigid_data->structures[s1];
@@ -162,7 +159,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     for(int i=0;i<constraints.size();i++){
         stored_forces(i,0)=force_memory[constraints[i]].second;
         }*/
-    constraint_terms.resize(constraints.size(),RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE*rigid_data->structures.size());
+    constraint_terms.resize(constraints.size(),rigid_data->Velocity_DOF());
     constraint_rhs.resize(rhs.size(),1);
     for(int i=0;i<rhs.size();i++){constraint_rhs(i,0)=rhs[i];}
     Flatten_Matrix(terms,constraint_terms);

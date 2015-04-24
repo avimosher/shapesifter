@@ -1,5 +1,7 @@
 {
     "output_directory": "association_dissociation",
+    "dt": 0.1,
+    "last_time": 10,
     "root": [
         {"type": "DATA",
          "eta": 3.5},
@@ -31,71 +33,6 @@
                  "base_association_time": 0.0001
              }
          ]
-        },
-        {"type": "ANALYTE",
-         "prerequisites": ["evolution"],
-         "predicate": {
-             "type": "scalar",
-             "scalar": 1
-         },
-         "aggregator": {
-             "type": "sum"
-         },
-         "condition": {
-             "type": "less_than",
-             "a": {
-                 "type": "distance",
-                 "first": {
-                     "type": "rigid_structure_position",
-                     "name": "left",
-                     "offset": [1,0,0]},
-                 "second": {
-                     "type": "rigid_structure_position",
-                     "name": "right",
-                     "offset": [-1,0,0]}
-             },
-             "b": {
-                 "type": "scalar",
-                 "scalar": 0.1
-             }
-         }
-
-        },
-        {"type": "ANALYTE",
-         "prerequisites": ["evolution"],
-         "predicate": {
-             "type": "distance",
-             "first": {
-                 "type": "rigid_structure_position",
-                 "name": "left",
-                 "offset": [1,0,0]},
-             "second": {
-                 "type": "rigid_structure_position",
-                 "name": "right",
-                 "offset": [-1,0,0]}
-         },
-         "aggregator": {
-             "type": "average"
-         },
-         "condition": {
-             "type": "less_than",
-             "a": {
-                 "type": "distance",
-                 "first": {
-                     "type": "rigid_structure_position",
-                     "name": "left",
-                     "offset": [1,0,0]},
-                 "second": {
-                     "type": "rigid_structure_position",
-                     "name": "right",
-                     "offset": [-1,0,0]}
-             },
-             "b": {
-                 "type": "scalar",
-                 "scalar": 0.5
-             }
-         }
-
         }
     ]
 }
