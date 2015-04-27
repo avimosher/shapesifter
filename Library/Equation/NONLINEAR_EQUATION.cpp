@@ -66,6 +66,8 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     right_hand_side=inverse_inertia*right_hand_side;
     LOG::cout<<"RHS: "<<right_hand_side.transpose()<<std::endl;
     //LOG::cout<<"Jacobian: "<<std::endl<<jacobian<<std::endl;
+    //LOG::cout<<"Rows: "<<jacobian.rows()<<" cols: "<<jacobian.cols()<<std::endl;
+    //LOG::cout<<"RHS rows: "<<right_hand_side.rows()<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>::

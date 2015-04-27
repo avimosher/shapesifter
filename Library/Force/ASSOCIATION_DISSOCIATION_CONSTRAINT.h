@@ -7,6 +7,26 @@
 namespace Mechanics{
 
 template<class TV>
+class STORED_ASSOCIATION_DISSOCIATION_CONSTRAINT:public FORCE_REFERENCE<typename TV::Scalar>
+{
+    typedef typename TV::Scalar T;
+    typedef typename ROTATION<TV>::SPIN T_SPIN;
+public:
+    using FORCE_REFERENCE<T>::value;
+    enum DEFINITIONS{t=T_SPIN::RowsAtCompileTime,d=TV::RowsAtCompileTime};
+    std::vector<int> constraints;
+
+
+    STORED_ASSOCIATION_DISSOCIATION_CONSTRAINT(){}
+    virtual ~STORED_ASSOCIATION_DISSOCIATION_CONSTRAINT(){}
+
+    void setZero(){value.setZero();}
+    virtual int Size(){return constraints.size()*(t+d);}
+    DEFINE_TYPE_NAME("STORED_ASSOCIATION_DISSOCIATION_CONSTRAINT");
+};
+
+
+template<class TV>
 class ASSOCIATION_DISSOCIATION_CONSTRAINT : public FORCE_TYPE<TV>
 {
     typedef typename TV::Scalar T;
@@ -46,8 +66,10 @@ public:
     {}
     ~ASSOCIATION_DISSOCIATION_CONSTRAINT(){}
 
-    void Unpack_Forces(const Matrix<T,Dynamic,1>& forces);
-    void Increment_Forces(const Matrix<T,Dynamic,1>& forces);
+    std::shared_ptr<FORCE_REFERENCE<T>> Create_Stored_Force() const;
+    void Pack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information);
+    void Unpack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_reference);
+    void Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_reference,int increment);
     ROTATION<TV> Find_Appropriate_Rotation(const ROTATION<TV>& rotation1,const ROTATION<TV>& rotation2);
     void Linearize(DATA<TV>& data,const T dt,const T time,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic);
     DEFINE_TYPE_NAME("ASSOCIATION_DISSOCIATION_CONSTRAINT")
