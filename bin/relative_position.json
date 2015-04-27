@@ -1,5 +1,7 @@
 {
     "output_directory": "relative_position",
+    "dt": 0.1,
+    "last_time": 10,
     "root": [
         {"type": "DATA",
          "eta": 3.5},
