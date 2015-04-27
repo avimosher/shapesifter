@@ -33,7 +33,7 @@ Advance_To_Target_Time(const T target_time)
         Advance_One_Time_Step(target_time,done);
         simulation->Write("End frame "+std::to_string(simulation->current_frame));
         simulation->current_frame++;
-        LOG::cout<<"Frame "<<simulation->current_frame<<std::endl;
+        LOG::cout<<"\n\nFrame "<<simulation->current_frame<<std::endl;
     }
 }
 ///////////////////////////////////////////////////////////////////////

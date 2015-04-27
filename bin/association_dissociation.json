@@ -11,8 +11,8 @@
          "radius": 1,
          "name": "left",
          "orientation": {
-             "axis": [1,0,0],
-             "angle": 1
+             "axis": [1,1,0],
+             "angle": 10
          }
         },
         {"type": "RIGID_STRUCTURE",
@@ -21,14 +21,16 @@
          "collision_extent": 2,
          "name": "right"
         },
+        {"type": "BROWNIAN_FORCE",
+         "temperature": 300},
         {"type": "TRUST_REGION"},
         {"type": "ASSOCIATION_DISSOCIATION_CONSTRAINT",
          "interactions": [
              {
                  "structure1": "left",
-                 "offset1": [0.9,0,0],
+                 "offset1": [1,0,0],
                  "structure2": "right",
-                 "offset2": [-0.9,0,0],
+                 "offset2": [-1,0,0],
                  "bond_distance_threshold": 4,
                  "bond_orientation_threshold": 1.5,
                  "base_dissociation_time": 100,
