@@ -1,6 +1,7 @@
 #ifndef __EIGEN_HELPERS__
 #define __EIGEN_HELPERS__
 
+#include <Utilities/LOG.h>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 #include <json/json.h>

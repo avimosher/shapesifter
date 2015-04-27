@@ -247,6 +247,7 @@ Update_One_Step()
             ap=ared/pred;
             LOG::cout<<"AP: "<<ap<<" ared: "<<ared<<" pred: "<<pred<<" radius: "<<radius<<" gs: "<<gs<<" sBs: "<<sBs<<std::endl;
             LOG::cout<<"Gk: "<<gk.transpose()<<std::endl;
+            LOG::cout<<"Sk: "<<sk.transpose()<<std::endl;
             LOG::cout<<"Sk./Gk: "<<sk.cwiseQuotient(gk).transpose()<<std::endl;
         }
         else{step_status=FAILEDCG;}

@@ -21,7 +21,7 @@ public:
     virtual ~STORED_ASSOCIATION_DISSOCIATION_CONSTRAINT(){}
 
     void setZero(){value.setZero();}
-    virtual int Size(){return constraints.size()*(t+d);}
+    virtual int Size(){return constraints.size()*(1+t);}
     DEFINE_TYPE_NAME("STORED_ASSOCIATION_DISSOCIATION_CONSTRAINT");
 };
 
@@ -35,9 +35,9 @@ class ASSOCIATION_DISSOCIATION_CONSTRAINT : public FORCE_TYPE<TV>
 public:
     enum DEFINITIONS{t=T_SPIN::RowsAtCompileTime,d=TV::RowsAtCompileTime};
     typedef Matrix<T,t,t> ROTATION_MATRIX;
-    typedef Matrix<T,d,t+d> LINEAR_CONSTRAINT_MATRIX;
+    typedef Matrix<T,1,t+d> LINEAR_CONSTRAINT_MATRIX;
     typedef Matrix<T,t,t+d> ANGULAR_CONSTRAINT_MATRIX;
-    typedef Matrix<T,t+d,1> FORCE_VECTOR;
+    typedef Matrix<T,1+t,1> FORCE_VECTOR;
     using FORCE_TYPE<TV>::stored_forces;
     typedef int CONSTRAINT;
 

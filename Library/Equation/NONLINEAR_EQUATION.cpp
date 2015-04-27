@@ -62,7 +62,7 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     inverse_inertia.setFromTriplets(inverse_inertia_terms.begin(),inverse_inertia_terms.end());
     Merge_Block_Vectors(full_right_hand_side,right_hand_side);
     jacobian=inverse_inertia*jacobian;
-    //LOG::cout<<"RHS before inertia: "<<right_hand_side.transpose()<<std::endl;
+    LOG::cout<<"RHS before inertia: "<<right_hand_side.transpose()<<std::endl;
     right_hand_side=inverse_inertia*right_hand_side;
     LOG::cout<<"RHS: "<<right_hand_side.transpose()<<std::endl;
     //LOG::cout<<"Jacobian: "<<std::endl<<jacobian<<std::endl;
