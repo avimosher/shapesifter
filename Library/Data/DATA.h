@@ -24,10 +24,10 @@ public:
     ~DATA();
 
     TV Wrap(const TV& unwrapped) const{
-        return unwrapped; // TODO: wrap to domain boundaries
-    }
+        if(periodic){return domain.Wrap(unwrapped);} return unwrapped;}
 
     TV Minimum_Offset(const TV& X1,const TV& X2) const{
+        if(periodic){return 
         return X2-X1;
     }
 
