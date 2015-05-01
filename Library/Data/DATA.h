@@ -2,6 +2,8 @@
 #define __DATA__
 
 #include <Data/DATA_TYPE.h>
+#include <Data/RANGE.h>
+#include <Utilities/EIGEN_HELPERS.h>
 #include <Utilities/TYPE_UTILITIES.h>
 #include <memory>
 #include <Eigen/Geometry>
@@ -19,15 +21,18 @@ class DATA:public std::vector<std::shared_ptr<DATA_TYPE<TV>>>
 public:
     std::unordered_map<std::string,T> globals;
     RANDOM<T>& random;
+    RANGE<TV> domain;
+    bool periodic;
 
     DATA();
     ~DATA();
 
     TV Wrap(const TV& unwrapped) const{
-        if(periodic){return domain.Wrap(unwrapped);} return unwrapped;}
+        if(periodic){return domain.Wrap(unwrapped);} return unwrapped;
+    }
 
     TV Minimum_Offset(const TV& X1,const TV& X2) const{
-        if(periodic){return 
+        if(periodic){return cwiseMinMag((X2-X1).eval(),cwiseMinMag((X2-(X1-domain.Edge_Lengths())).eval(),((X2-domain.Edge_Lengths())-X1).eval()));}
         return X2-X1;
     }
 

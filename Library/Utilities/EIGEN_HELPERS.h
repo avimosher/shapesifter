@@ -2,6 +2,7 @@
 #define __EIGEN_HELPERS__
 
 #include <Utilities/LOG.h>
+#include <Utilities/MATH.h>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 #include <json/json.h>
@@ -44,6 +45,13 @@ std::ostream& operator<<(std::ostream& os,const Quaternion<T>& rotation)
 {
     os<<rotation.coeffs();
     return os;
+}
+
+template<class T>
+Matrix<T,3,1> cwiseMinMag(const Matrix<T,3,1>& v1,const Matrix<T,3,1>& v2)
+{
+    Matrix<T,3,1> result;result<<minmag(v1[0],v2[0]),minmag(v1[1],v2[1]),minmag(v1[2],v2[2]);
+    return result;
 }
 }
 

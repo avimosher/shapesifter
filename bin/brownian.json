@@ -1,7 +1,13 @@
 {
     "output_directory": "brownian",
+    "dt": 1,
+    "last_time": 1000,
     "root": [
         {"type": "DATA",
+         "domain": {
+             "minimum_corner": [0,0,0],
+             "maximum_corner": [2,2,2]
+         },
          "eta": 3.5},
         {"type": "RIGID_STRUCTURE_DATA"},
         {"type": "RIGID_STRUCTURE",
@@ -11,6 +17,6 @@
         },
         {"type": "BROWNIAN_FORCE",
          "temperature": 300},
-        {"type": "NONLINEAR_EQUATION"}
+        {"type": "TRUST_REGION"}
     ]
 }

@@ -4,7 +4,12 @@
     "last_time": 10,
     "root": [
         {"type": "DATA",
-         "eta": 3.5},
+         "eta": 3.5,
+         "domain": {
+             "minimum_corner": [0,0,0],
+             "maximum_corner": [10,10,10]
+         }
+        },
         {"type": "RIGID_STRUCTURE_DATA"},
         {"type": "RIGID_STRUCTURE",
          "position": [1, 1, 1],

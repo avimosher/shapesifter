@@ -66,7 +66,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
             std::cout<<"Norm with ratio "<<ratio<<" is "<<norm<<" ("<<last_norm<<")"<<std::endl;
             //T curvature_factor=equation->Sufficient_Descent_Factor(solve_vector);
             //std::cout<<"Curvature factor: "<<curvature_factor<<std::endl;
-            if(norm<=last_norm+c1*sufficient_descent_factor*ratio){// && curvature_factor<0 && abs(curvature_factor)<=abs(c2*sufficient_descent_factor)){ //TODO: properly implement "sufficient reduction" criterion
+            if(norm<=last_norm+c1*sufficient_descent_factor*ratio){// && curvature_factor<0 && std::abs(curvature_factor)<=std::abs(c2*sufficient_descent_factor)){ //TODO: properly implement "sufficient reduction" criterion
                 break;
             }
             // restore previous state

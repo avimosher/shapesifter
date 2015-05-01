@@ -81,7 +81,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 if(bond_distance<interaction.bond_distance_threshold){
                     position_compatibility=1-bond_distance/interaction.bond_distance_threshold;
                     ROTATION<TV> composed_rotation(structure2->frame.orientation.inverse()*structure1->frame.orientation*interaction.relative_orientation.inverse());
-                    orientation_compatibility=std::max((T)0,1-abs(composed_rotation.Angle())/interaction.bond_orientation_threshold);}
+                    orientation_compatibility=std::max((T)0,1-std::abs(composed_rotation.Angle())/interaction.bond_orientation_threshold);}
                 T compatibility=orientation_compatibility*position_compatibility;
                 T association_rate=compatibility/interaction.base_association_time;
                 T cumulative_distribution=1-exp(-association_rate*dt);

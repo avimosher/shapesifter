@@ -94,6 +94,12 @@ GENERIC_TYPE_DEFINITION(DATA)
 DEFINE_AND_REGISTER_PARSER(DATA,void)
 {
     for(Json::ValueIterator itr=node.begin();itr!=node.end();itr++){
+        if(itr.key()=="type"){continue;}
+        if(itr.key()=="domain"){
+            simulation.data.periodic=true;
+            Parse_Vector(node["domain"]["minimum_corner"],simulation.data.domain.minimum_corner);
+            Parse_Vector(node["domain"]["maximum_corner"],simulation.data.domain.maximum_corner);
+            continue;}
         if(itr.key()!="type"){Parse_Scalar(*itr,simulation.data.globals[itr.key().asString()]);}}
     return 0;
 }
