@@ -14,7 +14,7 @@ using namespace Mechanics;
 template<class TV> int RIGID_STRUCTURE_DATA<TV>::
 Size()
 {
-    return structures.size()*TWIST<TV>::STATIC_SIZE;
+    return structures.size();
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> int RIGID_STRUCTURE_DATA<TV>::
@@ -165,4 +165,25 @@ DEFINE_AND_REGISTER_PARSER(RIGID_STRUCTURE_DATA,void)
 {
     simulation.data.push_back(std::make_shared<RIGID_STRUCTURE_DATA<TV>>());
     return 0;
+}
+///////////////////////////////////////////////////////////////////////
+namespace Eigen{
+namespace internal{
+template<> AlignedBox<double,3> bounding_box(const std::shared_ptr<RIGID_STRUCTURE<Matrix<double,3,1>>> structure)
+{
+    typedef double T;
+    const static int d=3;
+    Matrix<T,d,1> minimum=structure->frame*(-Matrix<T,d,1>::Unit(2)*structure->collision_extent);
+    Matrix<T,d,1> maximum=structure->frame*(Matrix<T,d,1>::Unit(2)*structure->collision_extent);
+    return AlignedBox<T,3>(minimum.cwiseMin(maximum)-Matrix<double,3,1>::Constant(structure->radius),minimum.cwiseMax(maximum)+Matrix<double,3,1>::Constant(structure->radius));
+}
+template<> AlignedBox<float,3> bounding_box(const std::shared_ptr<RIGID_STRUCTURE<Matrix<float,3,1>>> structure)
+{
+    typedef float T;
+    const static int d=3;
+    Matrix<T,d,1> minimum=structure->frame*(-Matrix<T,d,1>::Unit(2)*structure->collision_extent);
+    Matrix<T,d,1> maximum=structure->frame*(Matrix<T,d,1>::Unit(2)*structure->collision_extent);
+    return AlignedBox<T,3>(minimum.cwiseMin(maximum)-Matrix<float,3,1>::Constant(structure->radius),minimum.cwiseMax(maximum)+Matrix<float,3,1>::Constant(structure->radius));
+}
+}
 }

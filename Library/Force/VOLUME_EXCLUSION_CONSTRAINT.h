@@ -3,13 +3,37 @@
 
 #include <Force/FORCE_TYPE.h>
 #include <Force/STORED_FORCE.h>
+#include <Data/RIGID_STRUCTURE.h>
 #include <cereal/archives/binary.hpp>
 #include <cereal/types/utility.hpp>
 #include <cereal/types/vector.hpp>
 
 namespace Mechanics{
-
+template<class TV> class RIGID_STRUCTURE;
 typedef std::pair<int,int> CONSTRAINT;
+
+template<class TV>
+class TEST_INTERSECTOR
+{
+    typedef typename TV::Scalar T;
+public:
+    enum DEFINITIONS{d=TV::RowsAtCompileTime};
+    AlignedBox<T,d> box;
+    std::vector<int> candidates;
+
+    TEST_INTERSECTOR(const AlignedBox<T,d>& input_box){
+        box=input_box;
+    }
+
+    bool intersectVolume(const AlignedBox<T,d>& volume){
+        return box.intersects(volume);
+    }
+
+    bool intersectObject(int structure){
+        candidates.push_back(structure);
+        return false;
+    }
+};
 
 template<class T>
 class STORED_VOLUME_EXCLUSION_CONSTRAINT:public FORCE_REFERENCE<T>

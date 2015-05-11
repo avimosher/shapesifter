@@ -12,6 +12,7 @@
 #include <Utilities/RANDOM.h>
 #include <iostream>
 #include <math.h>
+#include <unsupported/Eigen/BVH>
 #include <osg/Geometry>
 #include <osg/Geode>
 using namespace Mechanics;
@@ -78,9 +79,29 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     constant_forces.clear();
     if(stochastic){
         for(auto memory : force_memory){memory.second.second=(T)0;}}
+    // let's say I rebuild the hierarchy every solve step
+    // pass in list of indices and pre-built volumes
+    
+    //KdBVH<T,3,std::shared_ptr<RIGID_STRUCTURE<TV>>> hierarchy(rigid_data->structures.begin(),rigid_data->structures.end());
+    std::vector<AlignedBox<T,d>> bounding_list(rigid_data->Size());
+    std::vector<int> index_list(rigid_data->Size());
+    for(int s=0;s<rigid_data->Size();s++){
+        auto structure=rigid_data->structures[s];
+        bounding_list[s]=bounding_box(structure);
+        index_list[s]=s;
+    }
+    KdBVH<T,3,int> hierarchy(index_list.begin(),index_list.end(),bounding_list.begin(),bounding_list.end());
+    //LOG::cout<<"Test "<<rigid_data->structures[0]->name<<std::endl;
+    //TEST_INTERSECTOR<TV> intersector(bounding_box(rigid_data->structures[0]));
+    //BVIntersect(hierarchy,intersector);
+    
     for(int s1=0;s1<rigid_data->structures.size();s1++){
-        for(int s2=s1+1;s2<rigid_data->structures.size();s2++){
-            auto structure1=rigid_data->structures[s1];
+        auto structure1=rigid_data->structures[s1];
+        TEST_INTERSECTOR<TV> intersector(bounding_box(structure1));
+        BVIntersect(hierarchy,intersector);
+        //for(int s2=s1+1;s2<rigid_data->structures.size();s2++){
+        for(int s2 : intersector.candidates){
+            if(s1==s2){continue;}
             auto structure2=rigid_data->structures[s2];
             TV offset1,offset2;
             TV direction=structure1->Displacement(data,*structure2,offset1,offset2);
@@ -96,6 +117,9 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             // weird idea: if we're exerting positive force and we're not violating the constraint, leave the force on, don't create the constraint, reduce the force slowly?
             //if(constraint_violation<distance_condition){// || (remembered.first==call_count && remembered.second>0)){
             if(constraint_violation<0){
+                if(s1==0){
+                    LOG::cout<<"Collision with "<<structure2->name<<" and "<<structure1->name<<std::endl;
+                }
                 TV x1=structure1->frame.position+offset1;
                 TV x2=structure2->frame.position+offset2;
                 TV object_offset1=structure1->frame.orientation.inverse()*offset1;
