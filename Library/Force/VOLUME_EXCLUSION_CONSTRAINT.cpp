@@ -79,10 +79,9 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     constant_forces.clear();
     if(stochastic){
         for(auto memory : force_memory){memory.second.second=(T)0;}}
+
     // let's say I rebuild the hierarchy every solve step
-    // pass in list of indices and pre-built volumes
-    
-    //KdBVH<T,3,std::shared_ptr<RIGID_STRUCTURE<TV>>> hierarchy(rigid_data->structures.begin(),rigid_data->structures.end());
+    // pass in list of indices and pre-built volumes    
     std::vector<AlignedBox<T,d>> bounding_list(rigid_data->Size());
     std::vector<int> index_list(rigid_data->Size());
     for(int s=0;s<rigid_data->Size();s++){
@@ -91,9 +90,6 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         index_list[s]=s;
     }
     KdBVH<T,3,int> hierarchy(index_list.begin(),index_list.end(),bounding_list.begin(),bounding_list.end());
-    //LOG::cout<<"Test "<<rigid_data->structures[0]->name<<std::endl;
-    //TEST_INTERSECTOR<TV> intersector(bounding_box(rigid_data->structures[0]));
-    //BVIntersect(hierarchy,intersector);
     
     for(int s1=0;s1<rigid_data->structures.size();s1++){
         auto structure1=rigid_data->structures[s1];
@@ -111,11 +107,6 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             T distance_condition=-.001;
             std::pair<int,T>& remembered=force_memory[CONSTRAINT(s1,s2)];
             LOG::cout<<"Constraint between "<<s1<<" and "<<s2<<" remembered force "<<remembered.second<<" count "<<remembered.first<<" "<<call_count<<" violation "<<constraint_violation<<" direction "<<direction.transpose()<<std::endl;
-            //LOG::cout<<"Constraint violation: "<<constraint_violation<<" remembered force: "<<remembered.second<<" call count: "<<call_count<<" remembered call count: "<<remembered.first<<std::endl;
-            //if((remembered.first==call_count && remembered.second>0) || (constraint_violation<distance_condition && !(remembered.first==call_count && remembered.second<0))){
-            //if(constraint_violation<distance_condition && !(remembered.first==call_count && remembered.second<0)){// || (remembered.first==call_count && remembered.second>0)){
-            // weird idea: if we're exerting positive force and we're not violating the constraint, leave the force on, don't create the constraint, reduce the force slowly?
-            //if(constraint_violation<distance_condition){// || (remembered.first==call_count && remembered.second>0)){
             if(constraint_violation<0){
                 if(s1==0){
                     LOG::cout<<"Collision with "<<structure2->name<<" and "<<structure1->name<<std::endl;
@@ -179,10 +170,6 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             }
         }
     }
-    /*stored_forces.resize(constraints.size(),1);
-    for(int i=0;i<constraints.size();i++){
-        stored_forces(i,0)=force_memory[constraints[i]].second;
-        }*/
     constraint_terms.resize(constraints.size(),rigid_data->Velocity_DOF());
     constraint_rhs.resize(rhs.size(),1);
     for(int i=0;i<rhs.size();i++){constraint_rhs(i,0)=rhs[i];}

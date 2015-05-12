@@ -39,7 +39,7 @@ public:
     T radius;
     T min_radius;
     T tol;
-    T prec;
+    T precision;
     T contract_factor;
     T expand_factor;
     T contract_threshold;

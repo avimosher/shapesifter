@@ -16,7 +16,7 @@ TRUST_REGION()
     f*=function_scale_factor;
     gk*=function_scale_factor;
     norm_gk=gk.norm();
-    prec=1e-6;
+    precision=1e-6;
     contract_factor=.25;
     expand_factor=2.5;
     contract_threshold=.25;
@@ -130,7 +130,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
         iteration++;
         status=Update_One_Step();
         LOG::cout<<"norm_gk: "<<norm_gk<<" norm_gk/sqrt(nvars): "<<norm_gk/sqrt(T(nvars))<<std::endl;
-        if(norm_gk/sqrt(T(nvars))<=prec){
+        if(norm_gk/sqrt(T(nvars))<=precision){
             status=SUCCESS;
         }
         if(iteration>=max_iterations){
@@ -162,67 +162,19 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
 template<class TV> void TRUST_REGION<TV>::
 Update_Preconditioner()
 {
-    bool success=false;
-    T alpha,beta,bmin;
-
     nvars=Bk.rows();
     Vector TT(nvars);
     SparseMatrix<T> BB(nvars,nvars);
-    //BB=Bk.template selfadjointView<Lower>();
     BB.setIdentity();
-    
-    /*for(int j=0;j<BB.outerSize();j++){
-        TT(j)=sqrt(BB.innerVector(j).dot(BB.innerVector(j)));
-    }
-
-    for(int j=0;j<BB.outerSize();j++){
-        for(typename SparseMatrix<T>::InnerIterator it(BB,j);it;++it){
-            BB.coeffRef(it.row(),j)*=1/sqrt(TT(it.row())*TT(j));
-        }
-    }
-
-    beta=sqrt(BB.cwiseAbs2().sum());
-    bmin=BB.coeff(0,0);
-    for(int j=0;j<nvars;j++){
-        bmin=std::min(bmin,BB.coeff(j,j));
-    }
-    
-    if(bmin>0){alpha=0;}
-    else{alpha=beta/2;}*/
-#if 0
-    int ii=0;
-    do{
-        ii++;
-        PrecondLLt.factorize(BB);
-        if(PrecondLLt.info()==Eigen::Success){
-            success=true;
-        }
-        /*else{
-            alpha=std::max(2*alpha,beta/2)-alpha;
-            for(int j=0;j<nvars;j++){
-                BB.coeffRef(j,j)+=alpha;
-            }
-            }*/
-    }while(!success);
-#endif
     PrecondLLt.analyzePattern(BB);
     PrecondLLt.factorize(BB);
-
-    /*Matrix<T,Dynamic,Dynamic> L(PrecondLLt.matrixL());
-    Matrix<T,Dynamic,Dynamic> Lt(PrecondLLt.matrixU());
-    LOG::cout<<"LLt"<<std::endl;
-    LOG::cout<<PrecondLLt.permutationPinv()*L*Lt*PrecondLLt.permutationP()<<std::endl;
-    LOG::cout<<"BB"<<std::endl;
-    LOG::cout<<BB<<std::endl;*/
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
 Update_Hessian()
 {
-    // call to NONLINEAR_EQUATION
     Bk=equation->Hessian();
     Bk*=function_scale_factor;
-    //LOG::cout<<"HESSIAN"<<std::endl<<Bk<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> typename TRUST_REGION<TV>::STATUS TRUST_REGION<TV>::
@@ -257,10 +209,8 @@ Update_One_Step()
             Get_Gradient(try_x,try_g);
             if(finite(try_g.norm())){
                 try_g*=function_scale_factor;
-                //yk=try_g-gk;
                 f=try_f;
                 Increment_X();
-                //xk+=sk;
                 gk=try_g;
                 norm_gk=gk.norm();
                 //tol=std::min(0.5,sqrt(norm_gk))*norm_gk;
@@ -447,6 +397,7 @@ DEFINE_AND_REGISTER_PARSER(TRUST_REGION,void)
     auto step=std::make_shared<TRUST_REGION<TV>>();
     step->equation=new NONLINEAR_EQUATION<TV>();
     Parse_String(node["name"],step->name);
+    Parse_Scalar(node["precision"],step->precision,step->precision);
     simulation.evolution.push_back(step);
     return 0;
 }
