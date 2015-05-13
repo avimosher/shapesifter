@@ -64,6 +64,16 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     if(stochastic){
         for(auto memory : force_memory){memory.second.second.setZero();}
         constraints.clear();
+        // acceleration.  really, need to do this for every interaction pair.
+        std::vector<AlignedBox<T,d>> bounding_list(rigid_data->Size());
+        std::vector<int> index_list(rigid_data->Size());
+        for(int s=0;s<rigid_data->Size();s++){
+            auto structure=rigid_data->structures[s];
+            bounding_list[s]=bounding_box(structure);
+            index_list[s]=s;
+        }
+        KdBVH<T,3,int> hierarchy(index_list.begin(),index_list.end(),bounding_list.begin(),bounding_list.end());
+
         for(int i=0;i<interactions.size();i++){
             auto interaction=interactions[i];
             auto structure1=rigid_data->structures[interaction.s1];
