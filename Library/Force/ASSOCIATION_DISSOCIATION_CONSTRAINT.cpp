@@ -64,6 +64,32 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     if(stochastic){
         for(auto memory : force_memory){memory.second.second.setZero();}
         constraints.clear();
+
+        for(int i=0;i<interaction_types.size();i++){
+            // build acceleration structure out of all binding sites
+            KdBVH<T,3,int> hierarchy_second_binder;
+            
+            for(auto first_binder : interaction_types(i).first_binders){
+                auto structure1=rigid_data->structures[first_binder.index];
+                PROXIMITY_SEARCH<TV> proximity_search(first_binder);
+                ROTATION<TV> binder1_frame=structure1->frame*ROTATION<TV>::From_Rotated_Vector(TV::Unit(1),first_binder.second);
+                BVIntersect(hierarchy_second_binder,proximity_search);
+                for(auto candidate : proximity_search.candidates){
+                    auto structure2=rigid_data->structure[candidate.index];
+                    TV direction=data.Minimum_Offset(structure1->frame*interaction_type.v1,structure2->frame*interaction_type.v2);
+                    T bond_distance=direction.norm();
+                    T orientation_compatibility=T(),position_compatibility=T();
+                    if(bond_distance<interaction_type.bond_distance_threshold){
+                        position_compatibility=1-bond_distance/interaction_type.bond_distance_threshold;
+                        ROTATION<TV> composed_rotation(structure2->frame.orientation.inverse()*structure1->frame.orientation*interaction_type.relative_orientation.inverse());
+                        orientation_compatibility=std::max((T)0,1-std::abs(composed_rotation.Angle())/interaction_type.bond_orientation_threshold);}
+                    T compatibility=orientation_compatibility*position_compatibility;
+                    T association_rate=compatibility/interaction_type.base_association_time;
+                    T cumulative_distribution=1-exp(-association_rate*dt);
+                    constraint_active=random.Uniform((T)0,(T)1)<cumulative_distribution;}
+                if(constraint_active){constraints.push_back(SPECIFIED_CONSTRAINT);}
+            }
+        }
         // acceleration.  really, need to do this for every interaction pair.
         std::vector<AlignedBox<T,d>> bounding_list(rigid_data->Size());
         std::vector<int> index_list(rigid_data->Size());
@@ -72,6 +98,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             bounding_list[s]=bounding_box(structure);
             index_list[s]=s;
         }
+
+
         KdBVH<T,3,int> hierarchy(index_list.begin(),index_list.end(),bounding_list.begin(),bounding_list.end());
 
         for(int i=0;i<interactions.size();i++){

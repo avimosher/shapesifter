@@ -7,6 +7,25 @@
 namespace Mechanics{
 
 template<class TV>
+class PROXIMITY_SEARCH
+{
+    typedef typename TV::Scalar T;
+public:
+
+    PROXIMITY_SEARCH()
+    {}
+
+    bool intersectVolume(const AlignedBox& volume){
+        return return volume.contains(point);
+    }
+
+    bool intersectObject(BINDER binder){
+        candidates.push_back(binder);
+        return false;
+    }
+};
+
+template<class TV>
 class STORED_ASSOCIATION_DISSOCIATION_CONSTRAINT:public FORCE_REFERENCE<typename TV::Scalar>
 {
     typedef typename TV::Scalar T;
@@ -42,6 +61,20 @@ public:
 
     int call_count;
     std::unordered_map<CONSTRAINT,std::pair<int,FORCE_VECTOR>> force_memory;
+
+    struct INTERACTION_TYPE{
+        std::vector<std::pair<int,TV>> first_binders; // list of body, object space offset pairs
+        std::vector<std::pair<int,TV>> second_binders;
+        T bond_distance_threshold;
+        T bond_orientation_threshold;
+
+        T base_association_time;
+        T base_dissociation_time;
+        
+        ROTATION<TV> relative_orientation;
+    };
+    std::vector<INTERACTION_TYPE> interaction_types;
+
 
     struct INTERACTION{
         T bond_distance_threshold;
