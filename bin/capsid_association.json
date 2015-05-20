@@ -1,0 +1,42 @@
+{
+    "output_directory": "capsid_association",
+    "dt": 0.1,
+    "last_time": 10,
+    "root": [
+        {"type": "DATA",
+         "domain": {
+             "minimum_corner": [0,0,0],
+             "maximum_corner": [10,10,10]
+         },
+         "eta": 3.5},
+        {"type": "RIGID_STRUCTURE_DATA"},
+        {"type": "DISTRIBUTE_BODIES",
+         "min": [0,0,0],
+         "max": [10,10,10],
+         "radius": 1,
+         "bodies": 24
+        },
+        {"type": "TRUST_REGION",
+         "name": "evolution"},
+        {"type": "BROWNIAN_FORCE",
+         "temperature": 300},
+        {"type": "VOLUME_EXCLUSION_CONSTRAINT"},
+        {"type": "ASSOCIATION_DISSOCIATION_CONSTRAINT",
+         "interactions": [
+             {
+                 "bond_distance_threshold": 1,
+                 "bond_orientation_threshold": 1.5,
+                 "base_dissociation_time": 100,
+                 "base_association_time": 0.0001,
+                 "relative_orientation": {"angle": 180, "axis": [1,0,0]},
+                 "first_site": [
+                     {"name": "left", "site": [0,0,1]}
+                 ],
+                 "second_site": [
+                     {"name": "right", "site": [0,0,1]}
+                 ]
+             }
+         ]
+        }
+    ]
+}
