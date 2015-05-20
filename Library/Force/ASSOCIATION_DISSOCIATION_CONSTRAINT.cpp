@@ -5,6 +5,7 @@
 #include <Indexing/RIGID_STRUCTURE_INDEX_MAP.h>
 #include <Parsing/PARSER_REGISTRY.h>
 #include <Utilities/RANDOM.h>
+#include <unsupported/Eigen/BVH>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> std::shared_ptr<FORCE_REFERENCE<typename TV::Scalar>> ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::
@@ -67,42 +68,52 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
 
         for(int i=0;i<interaction_types.size();i++){
             // build acceleration structure out of all binding sites
-            KdBVH<T,3,int> hierarchy_second_binder;
-            
-            for(auto first_binder : interaction_types(i).first_binders){
-                auto structure1=rigid_data->structures[first_binder.index];
-                PROXIMITY_SEARCH<TV> proximity_search(first_binder);
-                ROTATION<TV> binder1_frame=structure1->frame*ROTATION<TV>::From_Rotated_Vector(TV::Unit(1),first_binder.second);
-                BVIntersect(hierarchy_second_binder,proximity_search);
-                for(auto candidate : proximity_search.candidates){
-                    auto structure2=rigid_data->structure[candidate.index];
-                    TV direction=data.Minimum_Offset(structure1->frame*interaction_type.v1,structure2->frame*interaction_type.v2);
-                    T bond_distance=direction.norm();
-                    T orientation_compatibility=T(),position_compatibility=T();
-                    if(bond_distance<interaction_type.bond_distance_threshold){
-                        position_compatibility=1-bond_distance/interaction_type.bond_distance_threshold;
-                        ROTATION<TV> composed_rotation(structure2->frame.orientation.inverse()*structure1->frame.orientation*interaction_type.relative_orientation.inverse());
-                        orientation_compatibility=std::max((T)0,1-std::abs(composed_rotation.Angle())/interaction_type.bond_orientation_threshold);}
-                    T compatibility=orientation_compatibility*position_compatibility;
-                    T association_rate=compatibility/interaction_type.base_association_time;
-                    T cumulative_distribution=1-exp(-association_rate*dt);
-                    constraint_active=random.Uniform((T)0,(T)1)<cumulative_distribution;}
-                if(constraint_active){constraints.push_back(SPECIFIED_CONSTRAINT);}
+            auto& interaction_type=interaction_types[i];
+            auto& second_sites=interaction_type.second_sites;
+            std::vector<AlignedBox<T,d>> bounding_list(second_sites.size());
+            std::vector<int> index_list(second_sites.size());
+            for(int s=0;s<second_sites.size();s++){
+                auto structure=rigid_data->structures[second_sites[s].first];
+                bounding_list[s]=AlignedBox<T,d>(structure->frame*second_sites[s].second-TV::Constant(interaction_type.bond_distance_threshold),
+                    structure->frame*second_sites[s].second+TV::Constant(interaction_type.bond_distance_threshold));
+                index_list[s]=s;
             }
-        }
-        // acceleration.  really, need to do this for every interaction pair.
-        std::vector<AlignedBox<T,d>> bounding_list(rigid_data->Size());
-        std::vector<int> index_list(rigid_data->Size());
-        for(int s=0;s<rigid_data->Size();s++){
-            auto structure=rigid_data->structures[s];
-            bounding_list[s]=bounding_box(structure);
-            index_list[s]=s;
-        }
+            KdBVH<T,3,int> hierarchy_second_site(index_list.begin(),index_list.end(),bounding_list.begin(),bounding_list.end());;
+            
+            for(auto first_site : interaction_type.first_sites){
+                auto structure1=rigid_data->structures[first_site.first];
+                auto first_site_position=structure1->frame*first_site.second;
+                PROXIMITY_SEARCH<TV> proximity_search(first_site_position);
+                ROTATION<TV> binder1_frame=structure1->frame.orientation*ROTATION<TV>::From_Rotated_Vector(TV::Unit(1),first_site.second);
+                BVIntersect(hierarchy_second_site,proximity_search);
+                for(auto candidate_second : proximity_search.candidates){
+                    bool constraint_active=false;
+                    CONSTRAINT constraint(i,first_site.first,candidate_second);
+                    std::pair<int,FORCE_VECTOR> remembered=force_memory[constraint];
+                    if(remembered.first==call_count){
+                        T dissociation_rate=1/interaction_type.base_dissociation_time;
+                        T cumulative_distribution=1-exp(-dissociation_rate*dt);
+                        constraint_active=random.Uniform((T)0,(T)1)>cumulative_distribution;
+                    }
+                    else{
+                        auto structure2=rigid_data->structures[candidate_second];
+                        auto second_site_position=structure2->frame*interaction_type.second_sites[candidate_second].second;
+                        TV direction=data.Minimum_Offset(first_site_position,second_site_position);
+                        T bond_distance=direction.norm();
+                        T orientation_compatibility=T(),position_compatibility=T();
+                        if(bond_distance<interaction_type.bond_distance_threshold){
+                            position_compatibility=1-bond_distance/interaction_type.bond_distance_threshold;
+                            ROTATION<TV> composed_rotation(structure2->frame.orientation.inverse()*structure1->frame.orientation*interaction_type.relative_orientation.inverse());
+                            orientation_compatibility=std::max((T)0,1-std::abs(composed_rotation.Angle())/interaction_type.bond_orientation_threshold);}
+                        T compatibility=orientation_compatibility*position_compatibility;
+                        T association_rate=compatibility/interaction_type.base_association_time;
+                        T cumulative_distribution=1-exp(-association_rate*dt);
+                        constraint_active=random.Uniform((T)0,(T)1)<cumulative_distribution;}
+                    if(constraint_active){constraints.push_back(constraint);}}
+            }
+        }}
 
-
-        KdBVH<T,3,int> hierarchy(index_list.begin(),index_list.end(),bounding_list.begin(),bounding_list.end());
-
-        for(int i=0;i<interactions.size();i++){
+/*        for(int i=0;i<interactions.size();i++){
             auto interaction=interactions[i];
             auto structure1=rigid_data->structures[interaction.s1];
             auto structure2=rigid_data->structures[interaction.s2];
@@ -124,7 +135,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 T association_rate=compatibility/interaction.base_association_time;
                 T cumulative_distribution=1-exp(-association_rate*dt);
                 constraint_active=random.Uniform((T)0,(T)1)<cumulative_distribution;}
-            if(constraint_active){constraints.push_back(i);}}}
+                if(constraint_active){constraints.push_back(i);}}}*/
 
     Matrix<T,t,t+d> angular_to_constraint;angular_to_constraint.setZero();
     angular_to_constraint.template block<t,t>(0,d).setIdentity();
@@ -133,34 +144,40 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     constraint_rhs.resize(constraints.size()*(d+t));
     stored_forces.resize(constraints.size()*(d+t));
     for(int i=0;i<constraints.size();i++){
-        int interaction_index=constraints[i];
-        auto interaction=interactions[interaction_index];
-        auto structure1=rigid_data->structures[interaction.s1];
-        auto structure2=rigid_data->structures[interaction.s2];
+        auto interaction_index=constraints[i];
+        auto interaction_type=interaction_types[std::get<0>(interaction_index)];
+        int first_site_index=std::get<1>(interaction_index);
+        int second_site_index=std::get<2>(interaction_index);
+        auto s1=interaction_type.first_sites[first_site_index].first;
+        auto s2=interaction_type.second_sites[first_site_index].first;
+        auto v1=interaction_type.first_sites[first_site_index].second;
+        auto v2=interaction_type.second_sites[first_site_index].second;
+        auto structure1=rigid_data->structures[s1];
+        auto structure2=rigid_data->structures[s2];
         FORCE_VECTOR rhs;
 
-        auto x1=structure1->frame*interaction.v1;
-        auto x2=structure2->frame*interaction.v2;
+        auto x1=structure1->frame*v1;
+        auto x2=structure2->frame*v2;
         //TV direction=structure1->Displacement(data,*structure2,offset1,offset2).normalized(); // use core-core direction for stability reasons
         TV direction=data.Minimum_Offset(x1,x2); // can't easily use point-point distance then, though.
         
-        LINEAR_CONSTRAINT_MATRIX dC_dX1=RIGID_STRUCTURE_INDEX_MAP<TV>::Velocity_Map(*structure1,interaction.v1);
-        LINEAR_CONSTRAINT_MATRIX dC_dX2=RIGID_STRUCTURE_INDEX_MAP<TV>::Velocity_Map(*structure2,interaction.v2);
-        linear_terms.push_back(Triplet<LINEAR_CONSTRAINT_MATRIX>(i,interaction.s2,dC_dX2));
-        linear_terms.push_back(Triplet<LINEAR_CONSTRAINT_MATRIX>(i,interaction.s1,-dC_dX1));
+        LINEAR_CONSTRAINT_MATRIX dC_dX1=RIGID_STRUCTURE_INDEX_MAP<TV>::Velocity_Map(*structure1,v1);
+        LINEAR_CONSTRAINT_MATRIX dC_dX2=RIGID_STRUCTURE_INDEX_MAP<TV>::Velocity_Map(*structure2,v2);
+        linear_terms.push_back(Triplet<LINEAR_CONSTRAINT_MATRIX>(i,s2,dC_dX2));
+        linear_terms.push_back(Triplet<LINEAR_CONSTRAINT_MATRIX>(i,s1,-dC_dX1));
         rhs.template block<d,1>(0,0)=-direction;
 
         ROTATION<TV> R1_current=ROTATION<TV>::From_Rotation_Vector(structure1->twist.angular);
         ROTATION<TV> R2_current=ROTATION<TV>::From_Rotation_Vector(structure2->twist.angular);
-        ROTATION<TV> R1_base=(R1_current.inverse()*structure1->frame.orientation)*interaction.relative_orientation.inverse();
+        ROTATION<TV> R1_base=(R1_current.inverse()*structure1->frame.orientation)*interaction_type.relative_orientation.inverse();
         ROTATION<TV> R2_base=R2_current.inverse()*structure2->frame.orientation;
         ROTATION<TV> RC=Find_Appropriate_Rotation(R1_current*R1_base,R2_current*R2_base);
         T_SPIN first_rotation_error_vector,second_rotation_error_vector;
         
         ANGULAR_CONSTRAINT_MATRIX dC_dA1=RIGID_STRUCTURE_INDEX_MAP<TV>::Construct_Constraint_Matrix(R1_current,R1_base*RC,first_rotation_error_vector)*angular_to_constraint;
         ANGULAR_CONSTRAINT_MATRIX dC_dA2=RIGID_STRUCTURE_INDEX_MAP<TV>::Construct_Constraint_Matrix(R2_current,R2_base*RC,second_rotation_error_vector)*angular_to_constraint;
-        angular_terms.push_back(Triplet<ANGULAR_CONSTRAINT_MATRIX>(i,interaction.s2,dC_dA2.eval()));
-        angular_terms.push_back(Triplet<ANGULAR_CONSTRAINT_MATRIX>(i,interaction.s1,-dC_dA1.eval()));
+        angular_terms.push_back(Triplet<ANGULAR_CONSTRAINT_MATRIX>(i,s2,dC_dA2.eval()));
+        angular_terms.push_back(Triplet<ANGULAR_CONSTRAINT_MATRIX>(i,s1,-dC_dA1.eval()));
         T_SPIN total_rotation_error=second_rotation_error_vector-first_rotation_error_vector;
         rhs.template block<t,1>(d,0)=-total_rotation_error;
         constraint_rhs.template block<d+t,1>((d+t)*i,0)=rhs;
@@ -169,8 +186,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         stored_forces.template block<d+t,1>((d+t)*i,0)=remembered.second;
         TV right_hand_force=remembered.second.template block<d,1>(0,0);
         T_SPIN right_hand_torque=remembered.second.template block<t,1>(d,0);
-        right_hand_side.template block<d+t,1>(interaction.s1*(d+t),0)+=dC_dA1.transpose()*right_hand_torque+dC_dX1.transpose()*right_hand_force;
-        right_hand_side.template block<d+t,1>(interaction.s2*(d+t),0)-=dC_dA2.transpose()*right_hand_torque+dC_dX2.transpose()*right_hand_force;
+        right_hand_side.template block<d+t,1>(s1*(d+t),0)+=dC_dA1.transpose()*right_hand_torque+dC_dX1.transpose()*right_hand_force;
+        right_hand_side.template block<d+t,1>(s2*(d+t),0)-=dC_dA2.transpose()*right_hand_torque+dC_dX2.transpose()*right_hand_force;
     }
     constraint_terms.resize(constraints.size()*(d+t),rigid_data->Velocity_DOF());
     Flatten_Matrices(linear_terms,d*constraints.size(),angular_terms,constraint_terms);
@@ -182,18 +199,28 @@ DEFINE_AND_REGISTER_PARSER(ASSOCIATION_DISSOCIATION_CONSTRAINT,void)
 {
     auto rigid_data=simulation.data.template Find<RIGID_STRUCTURE_DATA<TV>>();
     auto constraint=std::make_shared<ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>>();
-    Json::Value interactions=node["interactions"];
+    auto interactions=node["interactions"];
     for(Json::ValueIterator it=interactions.begin();it!=interactions.end();it++){
-        typename ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::INTERACTION interaction;
-        interaction.s1=rigid_data->Structure_Index((*it)["structure1"].asString());
-        Parse_Vector((*it)["offset1"],interaction.v1);
-        interaction.s2=rigid_data->Structure_Index((*it)["structure2"].asString());
-        Parse_Vector((*it)["offset2"],interaction.v2);
+        typename ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::INTERACTION_TYPE interaction;
         interaction.bond_distance_threshold=(*it)["bond_distance_threshold"].asDouble();
         interaction.bond_orientation_threshold=(*it)["bond_orientation_threshold"].asDouble();
         interaction.base_association_time=(*it)["base_association_time"].asDouble();
         interaction.base_dissociation_time=(*it)["base_dissociation_time"].asDouble();
-        constraint->interactions.push_back(interaction);
+        Parse_Rotation((*it)["relative_orientation"],interaction.relative_orientation);
+        auto first_sites=(*it)["first_site"];
+        for(auto site_it=first_sites.begin();site_it!=first_sites.end();site_it++){
+            std::pair<int,TV> site;
+            site.first=rigid_data->Structure_Index((*site_it)["name"].asString());
+            Parse_Vector((*site_it)["site"],site.second);
+            interaction.first_sites.push_back(site);
+        }
+        auto second_sites=(*it)["second_site"];
+        for(auto site_it=second_sites.begin();site_it!=second_sites.end();site_it++){
+            std::pair<int,TV> site;
+            site.first=rigid_data->Structure_Index((*site_it)["name"].asString());
+            Parse_Vector((*site_it)["site"],site.second);
+            interaction.second_sites.push_back(site);
+        }
     }
     simulation.force.push_back(constraint);
     return 0;

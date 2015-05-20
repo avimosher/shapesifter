@@ -105,13 +105,14 @@ class ROTATION<Eigen::Matrix<T,3,1>>:public Eigen::Quaternion<T>
     }
 
     static ROTATION From_Rotated_Vector(const TV& initial_vector,const TV& final_vector){
-        TV initial_unit=initial_vector.normalized(),final_unit=final_vector.normalized();
+        return Eigen::Quaternion<T>::FromTwoVectors(initial_vector,final_vector);
+        /*TV initial_unit=initial_vector.normalized(),final_unit=final_vector.normalized();
         T cos_theta=initial_unit.dot(final_unit);
         TV v=initial_unit.cross(final_unit);
-        T v_magnitude=v.magnitude();if(v_magnitude==0){return ROTATION();}
+        T v_magnitude=v.norm();if(v_magnitude==0){return ROTATION();}
         T s_squared=(T).5*(1+cos_theta);
         T v_magnitude_desired=sqrt(1-s_squared);v*=(v_magnitude_desired/v_magnitude);
-        return ROTATION(Eigen::AngleAxis<T>(sqrt(s_squared),v));
+        return ROTATION(Eigen::Quaternion<T>(sqrt(s_squared),v));*/
     }
 };
 

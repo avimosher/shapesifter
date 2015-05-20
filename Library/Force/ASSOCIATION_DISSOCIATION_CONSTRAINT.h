@@ -3,6 +3,7 @@
 
 #include <Data/ROTATION.h>
 #include <Force/FORCE_TYPE.h>
+#include <Utilities/HASHING.h>
 
 namespace Mechanics{
 
@@ -11,15 +12,19 @@ class PROXIMITY_SEARCH
 {
     typedef typename TV::Scalar T;
 public:
+    enum DEFINITIONS{d=TV::RowsAtCompileTime};
+    TV point;
+    std::vector<int> candidates;
 
-    PROXIMITY_SEARCH()
+    PROXIMITY_SEARCH(const TV& point_input)
+        :point(point_input)
     {}
 
-    bool intersectVolume(const AlignedBox& volume){
-        return return volume.contains(point);
+    bool intersectVolume(const AlignedBox<T,d>& volume){
+        return volume.contains(point);
     }
 
-    bool intersectObject(BINDER binder){
+    bool intersectObject(int binder){
         candidates.push_back(binder);
         return false;
     }
@@ -33,7 +38,8 @@ class STORED_ASSOCIATION_DISSOCIATION_CONSTRAINT:public FORCE_REFERENCE<typename
 public:
     using FORCE_REFERENCE<T>::value;
     enum DEFINITIONS{t=T_SPIN::RowsAtCompileTime,d=TV::RowsAtCompileTime};
-    std::vector<int> constraints;
+    typedef std::tuple<int,int,int> CONSTRAINT;
+    std::vector<CONSTRAINT> constraints;
 
 
     STORED_ASSOCIATION_DISSOCIATION_CONSTRAINT(){}
@@ -57,14 +63,14 @@ public:
     typedef Matrix<T,t,t+d> ANGULAR_CONSTRAINT_MATRIX;
     typedef Matrix<T,d+t,1> FORCE_VECTOR;
     using FORCE_TYPE<TV>::stored_forces;
-    typedef int CONSTRAINT;
+    typedef std::tuple<int,int,int> CONSTRAINT;
 
     int call_count;
     std::unordered_map<CONSTRAINT,std::pair<int,FORCE_VECTOR>> force_memory;
 
     struct INTERACTION_TYPE{
-        std::vector<std::pair<int,TV>> first_binders; // list of body, object space offset pairs
-        std::vector<std::pair<int,TV>> second_binders;
+        std::vector<std::pair<int,TV>> first_sites; // list of body, object space offset pairs
+        std::vector<std::pair<int,TV>> second_sites;
         T bond_distance_threshold;
         T bond_orientation_threshold;
 
