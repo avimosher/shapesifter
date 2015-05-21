@@ -14,7 +14,8 @@
          "min": [0,0,0],
          "max": [10,10,10],
          "radius": 1,
-         "bodies": 24
+         "bodies": 24,
+         "tag": "distributed"
         },
         {"type": "TRUST_REGION",
          "name": "evolution"},
@@ -29,12 +30,8 @@
                  "base_dissociation_time": 100,
                  "base_association_time": 0.0001,
                  "relative_orientation": {"angle": 180, "axis": [1,0,0]},
-                 "first_site": [
-                     {"name": "left", "site": [0,0,1]}
-                 ],
-                 "second_site": [
-                     {"name": "right", "site": [0,0,1]}
-                 ]
+                 "first_site": {"tag": "distributed", "site": [0,0,1]},
+                 "second_site": {"tag": "distributed", "site": [0,0,1]}
              }
          ]
         }
