@@ -2,7 +2,7 @@ import math
 import string
 import json
 
-def association_dissociation_constraint(node,structure_nodes,force_nodes):
+def association_dissociation_group(node,structure_nodes,force_nodes):
     interaction_types=node['interactions']
     interactions=[]
     for interaction_type in interaction_types:

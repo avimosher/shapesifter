@@ -4,7 +4,7 @@ import sys
 import random
 import string
 from mechanics.flexible_linker import *
-from mechanics.association_dissociation import *
+from mechanics.association_dissociation_group import *
 
 data=json.load(sys.stdin)
 
@@ -45,7 +45,8 @@ def force(node,structure_nodes,force_nodes):
 
 handle_node={'FLEXIBLE_LINKER': flexible_linker,
              'DISTRIBUTE_BODIES': distribute_bodies,
-             'ASSOCIATION_DISSOCIATION_CONSTRAINT': association_dissociation_constraint,
+             'ASSOCIATION_DISSOCIATION_CONSTRAINT': force,
+             'ASSOCIATION_DISSOCIATION_GROUP': association_dissociation_group,
              'RIGID_STRUCTURE': rigid_structure,
              'RELATIVE_POSITION_CONSTRAINT': force,
              'ABSOLUTE_POSITION_CONSTRAINT': force}

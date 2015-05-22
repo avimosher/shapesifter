@@ -88,7 +88,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 ROTATION<TV> binder1_frame=structure1->frame.orientation*ROTATION<TV>::From_Rotated_Vector(TV::Unit(1),first_site.second);
                 BVIntersect(hierarchy_second_site,proximity_search);
                 for(auto candidate_second : proximity_search.candidates){
-                    if(first_site.first==candidate_second){continue;}
+                    int s2=interaction_type.second_sites[candidate_second].first;
+                    if(first_site.first==s2){continue;}
                     LOG::cout<<"Candidate at least"<<std::endl;
                     bool constraint_active=false;
                     CONSTRAINT constraint(i,first_site.first,candidate_second);
@@ -99,7 +100,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                         constraint_active=random.Uniform((T)0,(T)1)>cumulative_distribution;
                     }
                     else{
-                        auto structure2=rigid_data->structures[candidate_second];
+                        auto structure2=rigid_data->structures[s2];
                         auto second_site_position=structure2->frame*interaction_type.second_sites[candidate_second].second;
                         TV direction=data.Minimum_Offset(first_site_position,second_site_position);
                         T bond_distance=direction.norm();

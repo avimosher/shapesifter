@@ -32,14 +32,13 @@
         {"type": "ASSOCIATION_DISSOCIATION_CONSTRAINT",
          "interactions": [
              {
-                 "structure1": "left",
-                 "offset1": [1,0,0],
-                 "structure2": "right",
-                 "offset2": [-1,0,0],
+                 "first_sites": [{"name":  "left", "site": [1,0,0]}],
+                 "second_sites": [{"name": "right", "site": [-1,0,0]}],
                  "bond_distance_threshold": 4,
                  "bond_orientation_threshold": 1.5,
                  "base_dissociation_time": 100,
-                 "base_association_time": 0.0001
+                 "base_association_time": 0.0001,
+                 "relative_orientation": {"angle": 0, "axis": [0,1,0]}
              }
          ]
         }
