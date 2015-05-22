@@ -79,7 +79,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                     structure->frame*second_sites[s].second+TV::Constant(interaction_type.bond_distance_threshold));
                 index_list[s]=s;
             }
-            KdBVH<T,3,int> hierarchy_second_site(index_list.begin(),index_list.end(),bounding_list.begin(),bounding_list.end());;
+            KdBVH<T,3,int> hierarchy_second_site(index_list.begin(),index_list.end(),bounding_list.begin(),bounding_list.end());
             
             for(auto first_site : interaction_type.first_sites){
                 auto structure1=rigid_data->structures[first_site.first];
@@ -88,7 +88,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 ROTATION<TV> binder1_frame=structure1->frame.orientation*ROTATION<TV>::From_Rotated_Vector(TV::Unit(1),first_site.second);
                 BVIntersect(hierarchy_second_site,proximity_search);
                 for(auto candidate_second : proximity_search.candidates){
-                    int s2=interaction_type.second_sites[candidate_second].first;
+                    auto second_site=interaction_type.second_sites[candidate_second];
+                    int s2=second_site.first;
                     if(first_site.first==s2){continue;}
                     LOG::cout<<"Candidate at least"<<std::endl;
                     bool constraint_active=false;
@@ -98,17 +99,26 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                         T dissociation_rate=1/interaction_type.base_dissociation_time;
                         T cumulative_distribution=1-exp(-dissociation_rate*dt);
                         constraint_active=random.Uniform((T)0,(T)1)>cumulative_distribution;
+                        LOG::cout<<"Stayin' an active"<<std::endl;
                     }
                     else{
                         auto structure2=rigid_data->structures[s2];
-                        auto second_site_position=structure2->frame*interaction_type.second_sites[candidate_second].second;
+                        auto second_site_position=structure2->frame*second_site.second;
+                        ROTATION<TV> binder2_frame=structure2->frame.orientation*ROTATION<TV>::From_Rotated_Vector(TV::Unit(1),second_site.second);
                         TV direction=data.Minimum_Offset(first_site_position,second_site_position);
                         T bond_distance=direction.norm();
                         T orientation_compatibility=T(),position_compatibility=T();
                         if(bond_distance<interaction_type.bond_distance_threshold){
                             position_compatibility=1-bond_distance/interaction_type.bond_distance_threshold;
-                            ROTATION<TV> composed_rotation(structure2->frame.orientation.inverse()*structure1->frame.orientation*interaction_type.relative_orientation.inverse());
-                            LOG::cout<<"Angles: "<<structure2->frame.orientation.Angle()<<" "<<structure1->frame.orientation.Angle()<<" "<<interaction_type.relative_orientation.Angle()<<" "<<(structure2->frame.orientation.inverse()*structure1->frame.orientation*interaction_type.relative_orientation.inverse()).w()<<" "<<(structure2->frame.orientation.inverse()*structure1->frame.orientation).w()<<std::endl;
+                            ROTATION<TV> composed_rotation(binder2_frame.inverse()*binder1_frame*interaction_type.relative_orientation.inverse());
+                            //ROTATION<TV> composed_rotation(structure2->frame.orientation.inverse()*structure1->frame.orientation*interaction_type.relative_orientation.inverse());
+                            LOG::cout<<"Axis 1: "<<binder1_frame.Axis().transpose()<<" Angle: "<<binder1_frame.Angle()<<std::endl;
+                            LOG::cout<<"Axis 2: "<<binder2_frame.Axis().transpose()<<" Angle: "<<binder2_frame.Angle()<<std::endl;
+                            ROTATION<TV> relative_rotation(binder2_frame.inverse()*binder1_frame);
+                            LOG::cout<<"Relative axis: "<<relative_rotation.Axis().transpose()<<" Angle: "<<relative_rotation.Angle()<<std::endl;
+                            LOG::cout<<"Desired relative: "<<interaction_type.relative_orientation.Axis().transpose()<<" Angle: "<<interaction_type.relative_orientation.Angle()<<std::endl;
+                            LOG::cout<<"Composed: "<<composed_rotation.Axis().transpose()<<" Angle: "<<composed_rotation.Angle()<<std::endl;
+                            //LOG::cout<<"Angles: "<<structure2->frame.orientation.Angle()<<" "<<structure1->frame.orientation.Angle()<<" "<<interaction_type.relative_orientation.Angle()<<" "<<(structure2->frame.orientation.inverse()*structure1->frame.orientation*interaction_type.relative_orientation.inverse()).w()<<" "<<(structure2->frame.orientation.inverse()*structure1->frame.orientation).w()<<std::endl;
                             LOG::cout<<"Normalized angle compatibility: "<<std::abs(composed_rotation.Angle())/interaction_type.bond_orientation_threshold<<std::endl;
                             orientation_compatibility=std::max((T)0,1-std::abs(composed_rotation.Angle())/interaction_type.bond_orientation_threshold);}
                         T compatibility=orientation_compatibility*position_compatibility;
@@ -156,10 +166,12 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         auto interaction_type=interaction_types[std::get<0>(interaction_index)];
         int first_site_index=std::get<1>(interaction_index);
         int second_site_index=std::get<2>(interaction_index);
-        auto s1=interaction_type.first_sites[first_site_index].first;
-        auto s2=interaction_type.second_sites[first_site_index].first;
-        auto v1=interaction_type.first_sites[first_site_index].second;
-        auto v2=interaction_type.second_sites[first_site_index].second;
+        auto first_site=interaction_type.first_sites[first_site_index];
+        auto second_site=interaction_type.second_sites[second_site_index];
+        auto s1=first_site.first;
+        auto s2=second_site.first;
+        auto v1=first_site.second;
+        auto v2=second_site.second;
         auto structure1=rigid_data->structures[s1];
         auto structure2=rigid_data->structures[s2];
         FORCE_VECTOR rhs;
@@ -175,9 +187,11 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         linear_terms.push_back(Triplet<LINEAR_CONSTRAINT_MATRIX>(i,s1,-dC_dX1));
         rhs.template block<d,1>(0,0)=-direction;
 
+        ROTATION<TV> relative_orientation=ROTATION<TV>::From_Rotated_Vector(TV::Unit(1),second_site.second)*interaction_type.relative_orientation*ROTATION<TV>::From_Rotated_Vector(TV::Unit(1),first_site.second).inverse();
+
         ROTATION<TV> R1_current=ROTATION<TV>::From_Rotation_Vector(structure1->twist.angular);
         ROTATION<TV> R2_current=ROTATION<TV>::From_Rotation_Vector(structure2->twist.angular);
-        ROTATION<TV> R1_base=(R1_current.inverse()*structure1->frame.orientation)*interaction_type.relative_orientation.inverse();
+        ROTATION<TV> R1_base=(R1_current.inverse()*structure1->frame.orientation)*relative_orientation.inverse();
         ROTATION<TV> R2_base=R2_current.inverse()*structure2->frame.orientation;
         ROTATION<TV> RC=Find_Appropriate_Rotation(R1_current*R1_base,R2_current*R2_base);
         T_SPIN first_rotation_error_vector,second_rotation_error_vector;
@@ -187,6 +201,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         angular_terms.push_back(Triplet<ANGULAR_CONSTRAINT_MATRIX>(i,s2,dC_dA2.eval()));
         angular_terms.push_back(Triplet<ANGULAR_CONSTRAINT_MATRIX>(i,s1,-dC_dA1.eval()));
         T_SPIN total_rotation_error=second_rotation_error_vector-first_rotation_error_vector;
+        LOG::cout<<"rotation error: "<<total_rotation_error.transpose()<<std::endl;
         rhs.template block<t,1>(d,0)=-total_rotation_error;
         constraint_rhs.template block<d+t,1>((d+t)*i,0)=rhs;
         auto& remembered=force_memory[interaction_index];
