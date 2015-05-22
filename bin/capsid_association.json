@@ -25,13 +25,13 @@
         {"type": "ASSOCIATION_DISSOCIATION_CONSTRAINT",
          "interactions": [
              {
-                 "bond_distance_threshold": 1,
+                 "bond_distance_threshold": 2,
                  "bond_orientation_threshold": 1.5,
                  "base_dissociation_time": 100,
                  "base_association_time": 0.0001,
                  "relative_orientation": {"angle": 180, "axis": [1,0,0]},
                  "first_site": {"tag": "distributed", "site": [0,0,1]},
-                 "second_site": {"tag": "distributed", "site": [0,0,1]}
+                 "second_site": {"tag": "distributed", "site": [0,0,-1]}
              }
          ]
         }

@@ -21,6 +21,7 @@ public:
     {}
 
     bool intersectVolume(const AlignedBox<T,d>& volume){
+        LOG::cout<<"Intersecting volume "<<volume.center().transpose()<<" distance: "<<(volume.center()-point).norm()<<" point: "<<point.transpose()<<std::endl;
         return volume.contains(point);
     }
 
