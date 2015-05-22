@@ -82,7 +82,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             KdBVH<T,3,int> hierarchy_second_site(index_list.begin(),index_list.end(),bounding_list.begin(),bounding_list.end());
             
             for(auto first_site : interaction_type.first_sites){
-                auto structure1=rigid_data->structures[first_site.first];
+                int s1=first_site.first;
+                auto structure1=rigid_data->structures[s1];
                 auto first_site_position=structure1->frame*first_site.second;
                 PROXIMITY_SEARCH<TV> proximity_search(first_site_position);
                 ROTATION<TV> binder1_frame=structure1->frame.orientation*ROTATION<TV>::From_Rotated_Vector(TV::Unit(1),first_site.second);
@@ -99,7 +100,9 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                         T dissociation_rate=1/interaction_type.base_dissociation_time;
                         T cumulative_distribution=1-exp(-dissociation_rate*dt);
                         constraint_active=random.Uniform((T)0,(T)1)>cumulative_distribution;
-                        LOG::cout<<"Stayin' an active"<<std::endl;
+                        if(!constraint_active){
+                            std::cout<<"CONSTRAINT DEACTIVATED: "<<s1<<" "<<s2<<std::endl;
+                        }
                     }
                     else{
                         auto structure2=rigid_data->structures[s2];
@@ -126,6 +129,9 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                         T cumulative_distribution=1-exp(-association_rate*dt);
                         constraint_active=random.Uniform((T)0,(T)1)<cumulative_distribution;
                         LOG::cout<<"Maybe activating constraint: "<<constraint_active<<" compatibility "<<compatibility<<" bond_distance: "<<bond_distance<<" orientation_compatibility: "<<orientation_compatibility<<std::endl;
+                        if(constraint_active){
+                            std::cout<<"CONSTRAINT ACTIVATED: "<<s1<<" "<<s2<<std::endl;
+                        }
                     }
                     if(constraint_active){constraints.push_back(constraint);}}
             }
