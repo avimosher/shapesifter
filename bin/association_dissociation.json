@@ -19,7 +19,6 @@
         {"type": "RIGID_STRUCTURE",
          "position": [3.2, 1, 1],
          "radius": 1,
-         "collision_extent": 2,
          "name": "right"
         },
         {"type": "RIGID_STRUCTURE",
