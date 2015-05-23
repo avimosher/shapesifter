@@ -80,8 +80,9 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 index_list[s]=s;
             }
             KdBVH<T,3,int> hierarchy_second_site(index_list.begin(),index_list.end(),bounding_list.begin(),bounding_list.end());
-            
-            for(auto first_site : interaction_type.first_sites){
+
+            for(int candidate_first=0;candidate_first<interaction_type.first_sites.size();candidate_first++){
+                auto first_site=interaction_type.first_sites[candidate_first];
                 int s1=first_site.first;
                 auto structure1=rigid_data->structures[s1];
                 auto first_site_position=structure1->frame*first_site.second;
@@ -94,7 +95,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                     if(first_site.first==s2){continue;}
                     LOG::cout<<"Candidate at least"<<std::endl;
                     bool constraint_active=false;
-                    CONSTRAINT constraint(i,first_site.first,candidate_second);
+                    CONSTRAINT constraint(i,candidate_first,candidate_second);
                     std::pair<int,FORCE_VECTOR> remembered=force_memory[constraint];
                     if(remembered.first==call_count){
                         T dissociation_rate=1/interaction_type.base_dissociation_time;
