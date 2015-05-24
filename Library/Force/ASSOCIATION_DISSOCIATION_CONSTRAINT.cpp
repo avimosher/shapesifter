@@ -22,7 +22,11 @@ Pack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information)
     information->value.resize(information->Size());
     information->value.setZero();
     for(int i=0;i<information->constraints.size();i++){
-        information->value.template block<d+t,1>((d+t)*i,0)=force_memory[information->constraints[i]].second;}
+        FORCE_VECTOR& value=force_memory[information->constraints[i]].second;
+        //information->value.template block<d+t,1>((d+t)*i,0)=;
+        information->value.template block<d,1>(d*i,0)=value.template block<d,1>(0,0);;
+        information->value.template block<t,1>(d*information->constraints.size()+t*i,0)=value.template block<t,1>(d,0);;
+    }
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::
@@ -40,13 +44,18 @@ Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,int incre
     call_count+=increment;
     auto information=std::static_pointer_cast<STORED_ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>>(force_information);
     for(int i=0;i<information->constraints.size();i++){
+        FORCE_VECTOR value;
+        value.template block<d,1>(0,0)=information->value.template block<d,1>(d*i,0);
+        value.template block<t,1>(d,0)=information->value.template block<t,1>(d*information->constraints.size()+t*i,0);
         if(force_memory.find(information->constraints[i])!=force_memory.end()){
             auto& memory=force_memory[information->constraints[i]];
             memory.first=call_count;
-            memory.second+=increment*information->value.template block<d+t,1>(i*(d+t),0);
+            memory.second+=increment*value;
+            //memory.second+=increment*information->value.template block<d+t,1>(i*(d+t),0);
         }
         else{
-            force_memory[information->constraints[i]]=std::pair<int,FORCE_VECTOR>(call_count,increment*information->value.template block<d+t,1>(i*(d+t),0));
+            force_memory[information->constraints[i]]=std::pair<int,FORCE_VECTOR>(call_count,increment*value);
+            //force_memory[information->constraints[i]]=std::pair<int,FORCE_VECTOR>(call_count,increment*information->value.template block<d+t,1>(i*(d+t),0));
         }
     }
 }
@@ -210,7 +219,9 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         T_SPIN total_rotation_error=second_rotation_error_vector-first_rotation_error_vector;
         LOG::cout<<"rotation error: "<<total_rotation_error.transpose()<<std::endl;
         rhs.template block<t,1>(d,0)=-total_rotation_error;
-        constraint_rhs.template block<d+t,1>((d+t)*i,0)=rhs;
+        constraint_rhs.template block<d,1>(d*i,0)=rhs.template block<d,1>(0,0);
+        constraint_rhs.template block<t,1>(d*constraints.size()+i*t,0)=rhs.template block<t,1>(d,0);
+        //constraint_rhs.template block<d+t,1>((d+t)*i,0)=rhs;
         auto& remembered=force_memory[interaction_index];
         if(remembered.first!=call_count){remembered.second.setZero();}
         stored_forces.template block<d+t,1>((d+t)*i,0)=remembered.second;

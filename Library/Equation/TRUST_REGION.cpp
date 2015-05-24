@@ -259,7 +259,7 @@ Solve_Trust_CG(Vector& pk)
     T norm_rj,dot_ry,dot_ry_old,norm_zj,aj,bj,tau,dBd,norm_gk;
     int j;
     T crit;
-    
+
     zj.resize(Bk.rows());
     zj.setZero();
     rj=-gk;
