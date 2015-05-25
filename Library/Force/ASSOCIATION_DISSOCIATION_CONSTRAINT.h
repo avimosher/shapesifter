@@ -1,6 +1,7 @@
 #ifndef __ASSOCIATION_DISSOCIATION_CONSTRAINT__
 #define __ASSOCIATION_DISSOCIATION_CONSTRAINT__
 
+#include <Data/DATA.h>
 #include <Data/ROTATION.h>
 #include <Force/FORCE_TYPE.h>
 #include <Utilities/HASHING.h>
@@ -13,16 +14,18 @@ class PROXIMITY_SEARCH
     typedef typename TV::Scalar T;
 public:
     enum DEFINITIONS{d=TV::RowsAtCompileTime};
+    const DATA<TV>& data;
     TV point;
+    T proximity_squared;
     std::vector<int> candidates;
 
-    PROXIMITY_SEARCH(const TV& point_input)
-        :point(point_input)
+    PROXIMITY_SEARCH(DATA<TV>& data_input,const TV& point_input,T proximity)
+        :data(data_input),point(point_input),proximity_squared(sqr(proximity))
     {}
 
     bool intersectVolume(const AlignedBox<T,d>& volume){
-        LOG::cout<<"Intersecting volume "<<volume.center().transpose()<<" distance: "<<(volume.center()-point).norm()<<" point: "<<point.transpose()<<std::endl;
-        return volume.contains(point);
+        //LOG::cout<<"Intersecting volume "<<volume.center().transpose()<<" distance: "<<(volume.center()-point).norm()<<" point: "<<point.transpose()<<std::endl;
+        return data.Minimum_Offset(volume.center(),point).squaredNorm()<=proximity_squared;//volume.contains(point);
     }
 
     bool intersectObject(int binder){

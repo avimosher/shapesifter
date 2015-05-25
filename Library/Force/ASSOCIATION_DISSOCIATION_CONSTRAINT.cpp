@@ -23,7 +23,6 @@ Pack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information)
     information->value.setZero();
     for(int i=0;i<information->constraints.size();i++){
         FORCE_VECTOR& value=force_memory[information->constraints[i]].second;
-        //information->value.template block<d+t,1>((d+t)*i,0)=;
         information->value.template block<d,1>(d*i,0)=value.template block<d,1>(0,0);;
         information->value.template block<t,1>(d*information->constraints.size()+t*i,0)=value.template block<t,1>(d,0);;
     }
@@ -51,11 +50,9 @@ Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,int incre
             auto& memory=force_memory[information->constraints[i]];
             memory.first=call_count;
             memory.second+=increment*value;
-            //memory.second+=increment*information->value.template block<d+t,1>(i*(d+t),0);
         }
         else{
             force_memory[information->constraints[i]]=std::pair<int,FORCE_VECTOR>(call_count,increment*value);
-            //force_memory[information->constraints[i]]=std::pair<int,FORCE_VECTOR>(call_count,increment*information->value.template block<d+t,1>(i*(d+t),0));
         }
     }
 }
@@ -75,7 +72,6 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         for(auto memory : force_memory){memory.second.second.setZero();}
         constraints.clear();
 
-        LOG::cout<<"Interaction types: "<<interaction_types.size()<<std::endl;
         for(int i=0;i<interaction_types.size();i++){
             // build acceleration structure out of all binding sites
             auto& interaction_type=interaction_types[i];
@@ -95,14 +91,13 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 int s1=first_site.first;
                 auto structure1=rigid_data->structures[s1];
                 auto first_site_position=structure1->frame*first_site.second;
-                PROXIMITY_SEARCH<TV> proximity_search(first_site_position);
+                PROXIMITY_SEARCH<TV> proximity_search(data,first_site_position,interaction_type.bond_distance_threshold);
                 ROTATION<TV> binder1_frame=structure1->frame.orientation*ROTATION<TV>::From_Rotated_Vector(TV::Unit(1),first_site.second);
                 BVIntersect(hierarchy_second_site,proximity_search);
                 for(auto candidate_second : proximity_search.candidates){
                     auto second_site=interaction_type.second_sites[candidate_second];
                     int s2=second_site.first;
                     if(first_site.first==s2){continue;}
-                    LOG::cout<<"Candidate at least"<<std::endl;
                     bool constraint_active=false;
                     CONSTRAINT constraint(i,candidate_first,candidate_second);
                     std::pair<int,FORCE_VECTOR> remembered=force_memory[constraint];
@@ -124,15 +119,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                         if(bond_distance<interaction_type.bond_distance_threshold){
                             position_compatibility=1-bond_distance/interaction_type.bond_distance_threshold;
                             ROTATION<TV> composed_rotation(binder2_frame.inverse()*binder1_frame*interaction_type.relative_orientation.inverse());
-                            //ROTATION<TV> composed_rotation(structure2->frame.orientation.inverse()*structure1->frame.orientation*interaction_type.relative_orientation.inverse());
-                            LOG::cout<<"Axis 1: "<<binder1_frame.Axis().transpose()<<" Angle: "<<binder1_frame.Angle()<<std::endl;
-                            LOG::cout<<"Axis 2: "<<binder2_frame.Axis().transpose()<<" Angle: "<<binder2_frame.Angle()<<std::endl;
                             ROTATION<TV> relative_rotation(binder2_frame.inverse()*binder1_frame);
-                            LOG::cout<<"Relative axis: "<<relative_rotation.Axis().transpose()<<" Angle: "<<relative_rotation.Angle()<<std::endl;
-                            LOG::cout<<"Desired relative: "<<interaction_type.relative_orientation.Axis().transpose()<<" Angle: "<<interaction_type.relative_orientation.Angle()<<std::endl;
-                            LOG::cout<<"Composed: "<<composed_rotation.Axis().transpose()<<" Angle: "<<composed_rotation.Angle()<<std::endl;
                             //LOG::cout<<"Angles: "<<structure2->frame.orientation.Angle()<<" "<<structure1->frame.orientation.Angle()<<" "<<interaction_type.relative_orientation.Angle()<<" "<<(structure2->frame.orientation.inverse()*structure1->frame.orientation*interaction_type.relative_orientation.inverse()).w()<<" "<<(structure2->frame.orientation.inverse()*structure1->frame.orientation).w()<<std::endl;
-                            LOG::cout<<"Normalized angle compatibility: "<<std::abs(composed_rotation.Angle())/interaction_type.bond_orientation_threshold<<std::endl;
                             orientation_compatibility=std::max((T)0,1-std::abs(composed_rotation.Angle())/interaction_type.bond_orientation_threshold);}
                         T compatibility=orientation_compatibility*position_compatibility;
                         T association_rate=compatibility/interaction_type.base_association_time;
