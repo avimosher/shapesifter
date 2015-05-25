@@ -16,16 +16,21 @@ public:
     enum DEFINITIONS{d=TV::RowsAtCompileTime};
     const DATA<TV>& data;
     TV point;
-    T proximity_squared;
+    T proximity;
     std::vector<int> candidates;
 
-    PROXIMITY_SEARCH(DATA<TV>& data_input,const TV& point_input,T proximity)
-        :data(data_input),point(point_input),proximity_squared(sqr(proximity))
+    PROXIMITY_SEARCH(DATA<TV>& data_input,const TV& point_input,T proximity_input)
+        :data(data_input),point(point_input),proximity(proximity_input)
     {}
 
     bool intersectVolume(const AlignedBox<T,d>& volume){
         //LOG::cout<<"Intersecting volume "<<volume.center().transpose()<<" distance: "<<(volume.center()-point).norm()<<" point: "<<point.transpose()<<std::endl;
-        return data.Minimum_Offset(volume.center(),point).squaredNorm()<=proximity_squared;//volume.contains(point);
+        TV half_edge_length=volume.sizes()/2;
+        TV offset=data.Minimum_Offset(volume.center(),point);
+        TV abs_offset=offset.cwiseAbs();
+        TV difference=abs_offset-half_edge_length;
+        return (difference.array()<=proximity).all();
+        //return data.Minimum_Offset(volume.center(),point).squaredNorm()<=proximity_squared;//volume.contains(point);
     }
 
     bool intersectObject(int binder){

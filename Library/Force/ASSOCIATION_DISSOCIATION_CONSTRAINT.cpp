@@ -94,6 +94,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 PROXIMITY_SEARCH<TV> proximity_search(data,first_site_position,interaction_type.bond_distance_threshold);
                 ROTATION<TV> binder1_frame=structure1->frame.orientation*ROTATION<TV>::From_Rotated_Vector(TV::Unit(1),first_site.second);
                 BVIntersect(hierarchy_second_site,proximity_search);
+                LOG::cout<<proximity_search.candidates.size()<<" candidates"<<std::endl;
                 for(auto candidate_second : proximity_search.candidates){
                     auto second_site=interaction_type.second_sites[candidate_second];
                     int s2=second_site.first;
@@ -126,7 +127,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                         T association_rate=compatibility/interaction_type.base_association_time;
                         T cumulative_distribution=1-exp(-association_rate*dt);
                         constraint_active=random.Uniform((T)0,(T)1)<cumulative_distribution;
-                        LOG::cout<<"Maybe activating constraint: "<<constraint_active<<" compatibility "<<compatibility<<" bond_distance: "<<bond_distance<<" orientation_compatibility: "<<orientation_compatibility<<std::endl;
+                        //LOG::cout<<"Maybe activating constraint: "<<constraint_active<<" compatibility "<<compatibility<<" bond_distance: "<<bond_distance<<" orientation_compatibility: "<<orientation_compatibility<<std::endl;
                         if(constraint_active){
                             std::cout<<"CONSTRAINT ACTIVATED: "<<s1<<" "<<s2<<std::endl;
                         }

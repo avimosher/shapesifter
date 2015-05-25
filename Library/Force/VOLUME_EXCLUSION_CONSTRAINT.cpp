@@ -48,14 +48,12 @@ template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
 Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,int increment)
 {
     call_count+=increment;
-    LOG::cout<<"Count after increment: "<<call_count<<std::endl;
     auto information=std::static_pointer_cast<STORED_VOLUME_EXCLUSION_CONSTRAINT<T>>(force_information);
     for(int i=0;i<information->constraints.size();i++){
         if(force_memory.count(information->constraints[i])){// this could be compressed if I could be sure that the force would be initialized properly
             auto& memory=force_memory[information->constraints[i]];
             memory.first=call_count;
             memory.second+=increment*information->value[i];
-            LOG::cout<<i<<" after increment: "<<memory.second<<std::endl;
         }
         else{
             force_memory[information->constraints[i]]=std::pair<int,T>(call_count,increment*information->value[i]);
@@ -106,16 +104,13 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             T slack_distance=-.005;
             T distance_condition=-.001;
             std::pair<int,T>& remembered=force_memory[CONSTRAINT(s1,s2)];
-            LOG::cout<<"Constraint between "<<s1<<" and "<<s2<<" remembered force "<<remembered.second<<" count "<<remembered.first<<" "<<call_count<<" violation "<<constraint_violation<<" direction "<<direction.transpose()<<std::endl;
+            //LOG::cout<<"Constraint between "<<s1<<" and "<<s2<<" remembered force "<<remembered.second<<" count "<<remembered.first<<" "<<call_count<<" violation "<<constraint_violation<<" direction "<<direction.transpose()<<std::endl;
             if(constraint_violation<0){
-                if(s1==0){
-                    LOG::cout<<"Collision with "<<structure2->name<<" and "<<structure1->name<<std::endl;
-                }
                 TV x1=structure1->frame.position+offset1;
                 TV x2=structure2->frame.position+offset2;
                 TV object_offset1=structure1->frame.orientation.inverse()*offset1;
                 TV object_offset2=structure2->frame.orientation.inverse()*offset2;
-                LOG::cout<<"Offset1: "<<offset1<<" offset2: "<<offset2<<" x2-x1: "<<(x2-x1).transpose()<<std::endl;
+                //LOG::cout<<"Offset1: "<<offset1<<" offset2: "<<offset2<<" x2-x1: "<<(x2-x1).transpose()<<std::endl;
                 if(remembered.first!=call_count){
                     remembered.second=0;
                 }
@@ -123,7 +118,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 CONSTRAINT_VECTOR dC_dA1=RIGID_STRUCTURE_INDEX_MAP<TV>::dC_dA(*structure1,object_offset1,x1,x2,direction);
                 T right_hand_side_force;
                 if(constraint_violation<slack_distance){
-                    LOG::cout<<"CONSTRAINT IS ON"<<std::endl;
+                    //LOG::cout<<"CONSTRAINT IS ON"<<std::endl;
                     right_hand_side_force=remembered.second;
                     terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s2,dC_dA2));
                     terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s1,-dC_dA1));
@@ -149,8 +144,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 else if(remembered.first==call_count){ // exponential falloff
                     T exponent=-1/(1-sqr(constraint_violation/slack_distance-1));
                     right_hand_side_force=remembered.second*std::exp(1+exponent);
-                    LOG::cout<<"SOFT CONSTRAINT IS ON"<<std::endl;
-                    LOG::cout<<"EXP: "<<exponent<<" RHS contribution: "<<right_hand_side_force<<std::endl;
+                    //LOG::cout<<"SOFT CONSTRAINT IS ON"<<std::endl;
+                    //LOG::cout<<"EXP: "<<exponent<<" RHS contribution: "<<right_hand_side_force<<std::endl;
                     constant_forces.push_back(CONSTRAINT(s1,s2));
 
                     T constant_part=-2*right_hand_side_force*sqr(exponent)*(constraint_violation/slack_distance-1)/slack_distance;
@@ -184,14 +179,13 @@ Viewer(const DATA<TV>& data,osg::Node* node)
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
     osg::Group* volume_exclusion_group=new osg::Group();
     volume_exclusion_group->setName(Static_Name());
-    LOG::cout<<"Volume exclusion constraints: "<<constraints.size()<<std::endl;
     for(int i=0;i<constraints.size();i++){
         auto lineGeometry=new osg::Geometry();
         auto vertices=new osg::Vec3Array(2);
         const CONSTRAINT& constraint=constraints[i];
         int body_index1=constraint.first;
         int body_index2=constraint.second;
-        LOG::cout<<"Between "<<body_index1<<" and "<<body_index2<<std::endl;
+        //LOG::cout<<"Between "<<body_index1<<" and "<<body_index2<<std::endl;
         auto rigid_structure1=rigid_data->structures[body_index1];
         auto rigid_structure2=rigid_data->structures[body_index2];
         auto firstAttachment=rigid_structure1->frame.position;
