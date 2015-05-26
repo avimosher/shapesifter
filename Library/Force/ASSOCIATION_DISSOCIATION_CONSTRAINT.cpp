@@ -4,8 +4,12 @@
 #include <Force/FORCE.h>
 #include <Indexing/RIGID_STRUCTURE_INDEX_MAP.h>
 #include <Parsing/PARSER_REGISTRY.h>
+#include <Utilities/OSG_HELPERS.h>
 #include <Utilities/RANDOM.h>
 #include <unsupported/Eigen/BVH>
+#include <osg/Geometry>
+#include <osg/Geode>
+#include <osg/LineWidth>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> std::shared_ptr<FORCE_REFERENCE<typename TV::Scalar>> ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::
@@ -136,30 +140,6 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             }
         }}
 
-/*        for(int i=0;i<interactions.size();i++){
-            auto interaction=interactions[i];
-            auto structure1=rigid_data->structures[interaction.s1];
-            auto structure2=rigid_data->structures[interaction.s2];
-            std::pair<int,FORCE_VECTOR> remembered=force_memory[i];
-            bool constraint_active=false;
-            if(remembered.first==call_count){ // decide whether constraint gets turned off
-                T dissociation_rate=1/interaction.base_dissociation_time;
-                T cumulative_distribution=1-exp(-dissociation_rate*dt);
-                constraint_active=random.Uniform((T)0,(T)1)>cumulative_distribution;}
-            else{ // decide whether constraint gets turned on
-                TV direction=data.Minimum_Offset(structure1->frame*interaction.v1,structure2->frame*interaction.v2);
-                T bond_distance=direction.norm();
-                T orientation_compatibility=T(),position_compatibility=(T)0;
-                if(bond_distance<interaction.bond_distance_threshold){
-                    position_compatibility=1-bond_distance/interaction.bond_distance_threshold;
-                    ROTATION<TV> composed_rotation(structure2->frame.orientation.inverse()*structure1->frame.orientation*interaction.relative_orientation.inverse());
-                    orientation_compatibility=std::max((T)0,1-std::abs(composed_rotation.Angle())/interaction.bond_orientation_threshold);}
-                T compatibility=orientation_compatibility*position_compatibility;
-                T association_rate=compatibility/interaction.base_association_time;
-                T cumulative_distribution=1-exp(-association_rate*dt);
-                constraint_active=random.Uniform((T)0,(T)1)<cumulative_distribution;}
-                if(constraint_active){constraints.push_back(i);}}}*/
-
     Matrix<T,t,t+d> angular_to_constraint;angular_to_constraint.setZero();
     angular_to_constraint.template block<t,t>(0,d).setIdentity();
     std::vector<Triplet<LINEAR_CONSTRAINT_MATRIX>> linear_terms;
@@ -223,12 +203,68 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     Flatten_Matrices(linear_terms,d*constraints.size(),angular_terms,constraint_terms);
 }
 ///////////////////////////////////////////////////////////////////////
+template<class TV> void ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::
+Viewer(const DATA<TV>& data,osg::Node* node)
+{
+    std::cout<<"Viewer has "<<interaction_types.size()<<" types "<<constraints.size()<<" constraints"<<std::endl;
+    osg::Group* group=node->asGroup();
+    group->removeChild(getNamedChild(group,Static_Name()));
+    auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
+    osg::Group* volume_exclusion_group=new osg::Group();
+    volume_exclusion_group->setName(Static_Name());
+    for(int i=0;i<constraints.size();i++){
+        auto lineGeometry=new osg::Geometry();
+        auto vertices=new osg::Vec3Array(2);
+
+        auto interaction_index=constraints[i];
+        auto interaction_type=interaction_types[std::get<0>(interaction_index)];
+        int first_site_index=std::get<1>(interaction_index);
+        int second_site_index=std::get<2>(interaction_index);
+        auto first_site=interaction_type.first_sites[first_site_index];
+        auto second_site=interaction_type.second_sites[second_site_index];
+        auto body_index1=first_site.first;
+        auto body_index2=second_site.first;
+        auto v1=first_site.second;
+        auto v2=second_site.second;
+
+        //LOG::cout<<"Between "<<body_index1<<" and "<<body_index2<<std::endl;
+        auto rigid_structure1=rigid_data->structures[body_index1];
+        auto rigid_structure2=rigid_data->structures[body_index2];
+        //auto firstAttachment=rigid_structure1->frame*v1;
+        //auto secondAttachment=rigid_structure2->frame*v2;
+        auto firstAttachment=rigid_structure1->frame.position;
+        auto secondAttachment=rigid_structure2->frame.position;
+        (*vertices)[0].set(firstAttachment(0),firstAttachment(1),firstAttachment(2));
+        (*vertices)[1].set(secondAttachment(0),secondAttachment(1),secondAttachment(2));
+        lineGeometry->setVertexArray(vertices);
+        auto colors=new osg::Vec4Array;
+        colors->push_back(osg::Vec4(1.0f,0.0f,0.0f,1.0f));
+        lineGeometry->setColorArray(colors);
+        lineGeometry->setColorBinding(osg::Geometry::BIND_OVERALL);
+        auto normals=new osg::Vec3Array;
+        normals->push_back(osg::Vec3f(0.0f,-1.0f,0.0f));
+        lineGeometry->setNormalArray(normals);
+        lineGeometry->setNormalBinding(osg::Geometry::BIND_OVERALL);
+        osg::StateSet* stateset=new osg::StateSet;
+        osg::LineWidth* lineWidth=new osg::LineWidth();
+        lineWidth->setWidth(4.0f);
+        stateset->setAttributeAndModes(lineWidth,osg::StateAttribute::ON);
+        stateset->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
+        lineGeometry->setStateSet(stateset);
+        lineGeometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES,0,2));
+        auto lineGeode=new osg::Geode();
+        lineGeode->addDrawable(lineGeometry);
+        volume_exclusion_group->addChild(lineGeode);
+    }
+    group->addChild(volume_exclusion_group);
+}
+///////////////////////////////////////////////////////////////////////
 GENERIC_CEREAL_REGISTRATION(ASSOCIATION_DISSOCIATION_CONSTRAINT)
 GENERIC_TYPE_DEFINITION(ASSOCIATION_DISSOCIATION_CONSTRAINT)
 DEFINE_AND_REGISTER_PARSER(ASSOCIATION_DISSOCIATION_CONSTRAINT,void)
 {
     auto rigid_data=simulation.data.template Find<RIGID_STRUCTURE_DATA<TV>>();
-    auto constraint=std::make_shared<ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>>();
+    auto constraint=simulation.force.template Find_Or_Create<ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>>();
     auto interactions=node["interactions"];
     for(Json::ValueIterator it=interactions.begin();it!=interactions.end();it++){
         typename ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::INTERACTION_TYPE interaction;
@@ -254,5 +290,6 @@ DEFINE_AND_REGISTER_PARSER(ASSOCIATION_DISSOCIATION_CONSTRAINT,void)
         constraint->interaction_types.push_back(interaction);
     }
     simulation.force.push_back(constraint);
+    std::cout<<"Parsed "<<constraint->interaction_types.size()<<" types"<<std::endl;
     return 0;
 }

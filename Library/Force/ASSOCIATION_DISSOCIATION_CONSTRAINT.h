@@ -5,6 +5,8 @@
 #include <Data/ROTATION.h>
 #include <Force/FORCE_TYPE.h>
 #include <Utilities/HASHING.h>
+#include <cereal/archives/binary.hpp>
+#include <cereal/types/polymorphic.hpp>
 
 namespace Mechanics{
 
@@ -89,23 +91,6 @@ public:
         ROTATION<TV> relative_orientation;
     };
     std::vector<INTERACTION_TYPE> interaction_types;
-
-
-    struct INTERACTION{
-        T bond_distance_threshold;
-        T bond_orientation_threshold;
-
-        T base_association_time;
-        T base_dissociation_time;
-        
-        ROTATION<TV> relative_orientation;
-        TV v1;
-        TV v2;
-        int s1;
-        int s2;
-    };
-
-    std::vector<INTERACTION> interactions;
     std::vector<CONSTRAINT> constraints;
 
     ASSOCIATION_DISSOCIATION_CONSTRAINT()
@@ -113,12 +98,23 @@ public:
     {}
     ~ASSOCIATION_DISSOCIATION_CONSTRAINT(){}
 
+
+    void Archive(cereal::BinaryOutputArchive& archive){archive(constraints,call_count);}
+    void Archive(cereal::BinaryInputArchive& archive){archive(constraints,call_count);}
+
+    template<class Archive>
+    void serialize(Archive& archive)
+    {
+        std::cout<<"Serialize has "<<interaction_types.size()<<" types"<<std::endl;
+        archive(constraints,call_count);}
+
     std::shared_ptr<FORCE_REFERENCE<T>> Create_Stored_Force() const;
     void Pack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information);
     void Unpack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_reference);
     void Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_reference,int increment);
     ROTATION<TV> Find_Appropriate_Rotation(const ROTATION<TV>& rotation1,const ROTATION<TV>& rotation2);
     void Linearize(DATA<TV>& data,const T dt,const T time,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic);
+    void Viewer(const DATA<TV>& data,osg::Node* node);
     DEFINE_TYPE_NAME("ASSOCIATION_DISSOCIATION_CONSTRAINT")
 };
 }

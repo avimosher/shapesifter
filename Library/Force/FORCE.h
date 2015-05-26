@@ -1,9 +1,11 @@
 #ifndef __FORCE__
 #define __FORCE__
 
+#include <Force/FORCE_TYPE.h>
 #include <Utilities/TYPE_UTILITIES.h>
 #include <memory>
 #include <vector>
+#include <cereal/archives/binary.hpp>
 #include <Eigen/SparseCore>
 #include <osg/Group>
 
@@ -33,6 +35,12 @@ public:
         return std::static_pointer_cast<SUBTYPE>(*found);
     }
 
+    template<class Archive>
+    void serialize(Archive& archive)
+    {
+        for(int i=0;i<(*this).size();i++){(*this)[i]->Archive(archive);}
+    }
+
     T Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T target_time);
     int Force_DOF() const;
     void Pack_Forces(STORED_FORCE<T>& stored_force) const;
@@ -40,5 +48,12 @@ public:
     void Increment_Forces(const STORED_FORCE<T>& stored_force,T ratio);
     void Viewer(const DATA<TV>& data,osg::Group*& root);
 };
+
+}
+
+namespace cereal
+{
+template<class Archive,class TV>
+struct specialize<Archive,Mechanics::FORCE<TV>,cereal::specialization::member_serialize>{};
 }
 #endif
