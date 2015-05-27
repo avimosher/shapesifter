@@ -80,8 +80,8 @@ public:
     std::unordered_map<CONSTRAINT,std::pair<int,FORCE_VECTOR>> force_memory;
 
     struct INTERACTION_TYPE{
-        std::vector<std::pair<int,TV>> first_sites; // list of body, object space offset pairs
-        std::vector<std::pair<int,TV>> second_sites;
+        std::vector<std::tuple<int,TV,bool>> first_sites; // list of body, object space offset pairs
+        std::vector<std::tuple<int,TV,bool>> second_sites;
         T bond_distance_threshold;
         T bond_orientation_threshold;
 

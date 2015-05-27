@@ -1,6 +1,7 @@
 #ifndef __VOLUME_EXCLUSION_CONSTRAINT__
 #define __VOLUME_EXCLUSION_CONSTRAINT__
 
+#include <Data/DATA.h>
 #include <Force/FORCE_TYPE.h>
 #include <Force/STORED_FORCE.h>
 #include <Data/RIGID_STRUCTURE.h>
@@ -18,15 +19,19 @@ class TEST_INTERSECTOR
     typedef typename TV::Scalar T;
 public:
     enum DEFINITIONS{d=TV::RowsAtCompileTime};
+    const DATA<TV>& data;
     AlignedBox<T,d> box;
     std::vector<int> candidates;
 
-    TEST_INTERSECTOR(const AlignedBox<T,d>& input_box){
-        box=input_box;
-    }
+    TEST_INTERSECTOR(DATA<TV>& data_input,const AlignedBox<T,d>& input_box)
+        :data(data_input),box(input_box)
+    {}
 
     bool intersectVolume(const AlignedBox<T,d>& volume){
-        return box.intersects(volume);
+        TV offset=data.Minimum_Offset(volume.center(),box.center());
+        TV abs_offset=offset.cwiseAbs();
+        return (abs_offset.array()<=((volume.sizes()+box.sizes())/2).array()).all();
+        //return box.intersects(volume);
     }
 
     bool intersectObject(int structure){

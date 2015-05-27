@@ -50,6 +50,7 @@ Resize_Vectors()
 template<class TV> void TRUST_REGION<TV>::
 Linearize(SIMULATION<TV>& simulation,const T dt,const T time)
 {
+    LOG::cout<<"Linearize"<<std::endl;
     DATA<TV>& data=simulation.data;
     FORCE<TV>& force=simulation.force;
 
@@ -72,6 +73,7 @@ Linearize(SIMULATION<TV>& simulation,const T dt,const T time)
 template<class TV> void TRUST_REGION<TV>::
 Linearize_Around()
 {
+    LOG::cout<<"Linearize_Around"<<std::endl;
     DATA<TV>& data=stored_simulation->data;
     FORCE<TV>& force=stored_simulation->force;
     // sk is solve_vector

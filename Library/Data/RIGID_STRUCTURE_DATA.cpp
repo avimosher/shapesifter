@@ -4,6 +4,7 @@
 #include <Parsing/PARSER_REGISTRY.h>
 #include <Utilities/OSG_HELPERS.h>
 #include <osg/Geode>
+#include <osg/LineWidth>
 #include <osg/Node>
 #include <osg/PolygonMode>
 #include <osg/Shape>
@@ -118,6 +119,28 @@ Viewer(osg::Node* node)
                 unitSphereDrawable->setColor(osg::Vec4(1.0f,1.0f,1.0f,0.5f));
                 basicShapesGeode->addDrawable(unitSphereDrawable);
             }
+            auto lineGeometry=new osg::Geometry();
+            auto vertices=new osg::Vec3Array(2);
+            (*vertices)[0].set(0,0,0);
+            (*vertices)[0].set(0,1,0);
+            lineGeometry->setVertexArray(vertices);
+            auto colors=new osg::Vec4Array;
+            colors->push_back(osg::Vec4(0.0f,1.0f,0.0f,1.0f));
+            lineGeometry->setColorArray(colors);
+            lineGeometry->setColorBinding(osg::Geometry::BIND_OVERALL);
+            auto normals=new osg::Vec3Array;
+            normals->push_back(osg::Vec3f(0.0f,-1.0f,0.0f));
+            lineGeometry->setNormalArray(normals);
+            lineGeometry->setNormalBinding(osg::Geometry::BIND_OVERALL);
+            osg::StateSet* stateset=new osg::StateSet;
+            osg::LineWidth* lineWidth=new osg::LineWidth();
+            lineWidth->setWidth(4.0f);
+            stateset->setAttributeAndModes(lineWidth,osg::StateAttribute::ON);
+            stateset->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
+            lineGeometry->setStateSet(stateset);
+            lineGeometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES,0,2));
+            basicShapesGeode->addDrawable(lineGeometry);
+            
             /*auto program=new osg::Program;
             auto fragmentShader=new osg::Shader(osg::Shader::FRAGMENT);
             fragmentShader->setShaderSource(

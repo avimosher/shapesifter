@@ -91,7 +91,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     
     for(int s1=0;s1<rigid_data->structures.size();s1++){
         auto structure1=rigid_data->structures[s1];
-        TEST_INTERSECTOR<TV> intersector(bounding_box(structure1));
+        TEST_INTERSECTOR<TV> intersector(data,bounding_box(structure1));
         BVIntersect(hierarchy,intersector);
         //for(int s2=s1+1;s2<rigid_data->structures.size();s2++){
         for(int s2 : intersector.candidates){
@@ -140,12 +140,9 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
 #endif
                     constraints.push_back(CONSTRAINT(s1,s2));
                 }
-                //else if(remembered.first==call_count && remembered.second>0){ // exponential falloff
                 else if(remembered.first==call_count){ // exponential falloff
                     T exponent=-1/(1-sqr(constraint_violation/slack_distance-1));
                     right_hand_side_force=remembered.second*std::exp(1+exponent);
-                    //LOG::cout<<"SOFT CONSTRAINT IS ON"<<std::endl;
-                    //LOG::cout<<"EXP: "<<exponent<<" RHS contribution: "<<right_hand_side_force<<std::endl;
                     constant_forces.push_back(CONSTRAINT(s1,s2));
 
                     T constant_part=-2*right_hand_side_force*sqr(exponent)*(constraint_violation/slack_distance-1)/slack_distance;
