@@ -114,6 +114,19 @@ class ROTATION<Eigen::Matrix<T,3,1>>:public Eigen::Quaternion<T>
         T v_magnitude_desired=sqrt(1-s_squared);v*=(v_magnitude_desired/v_magnitude);
         return ROTATION(Eigen::Quaternion<T>(sqrt(s_squared),v));*/
     }
+
+    static ROTATION From_Rotated_Vector_Around_Axis(const TV& initial_vector,const TV& final_vector,const TV& axis_direction){
+        TV axis=axis_direction.normalized();
+        TV v0=(initial_vector-initial_vector.dot(axis)*axis).normalized();
+        TV v1=(final_vector-final_vector.dot(axis)*axis).normalized();
+        T c=v1.dot(v0);
+        T ch=sqrt(0.5*(1+c));
+        T sh=sqrt(1-sqr(ch));
+        Eigen::Quaternion<T> q;
+        q.coeffs().template block<3,1>(0,0)=axis*sh;
+        q.coeffs()[3]=ch;
+        return q;
+    }
 };
 
 template<class T>

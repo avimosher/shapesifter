@@ -127,14 +127,18 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                             position_compatibility=1-bond_distance/interaction_type.bond_distance_threshold;
                             ROTATION<TV> composed_rotation(binder2_frame.inverse()*binder1_frame*interaction_type.relative_orientation.inverse());
                             ROTATION<TV> relative_rotation(binder2_frame.inverse()*binder1_frame);
-                            //LOG::cout<<"Angles: "<<structure2->frame.orientation.Angle()<<" "<<structure1->frame.orientation.Angle()<<" "<<interaction_type.relative_orientation.Angle()<<" "<<(structure2->frame.orientation.inverse()*structure1->frame.orientation*interaction_type.relative_orientation.inverse()).w()<<" "<<(structure2->frame.orientation.inverse()*structure1->frame.orientation).w()<<std::endl;
-                            orientation_compatibility=std::max((T)0,1-std::abs(composed_rotation.Angle())/interaction_type.bond_orientation_threshold);}
+                            LOG::cout<<"Angles: "<<structure2->frame.orientation.Angle()<<" "<<structure1->frame.orientation.Angle()<<" "<<interaction_type.relative_orientation.Angle()<<" "<<(structure2->frame.orientation.inverse()*structure1->frame.orientation*interaction_type.relative_orientation.inverse()).w()<<" "<<(structure2->frame.orientation.inverse()*structure1->frame.orientation).w()<<std::endl;
+                            LOG::cout<<"Relative rotation axis: "<<relative_rotation.Axis().transpose()<<" Angle: "<<relative_rotation.Angle()<<std::endl;;
+                            LOG::cout<<"Desired relative rotation axis: "<<interaction_type.relative_orientation.Axis().transpose()<<" Angle: "<<interaction_type.relative_orientation.Angle()<<std::endl;
+                            LOG::cout<<"Composed angle: "<<composed_rotation.Angle()<<std::endl;
+                            T angle_magnitude=std::abs(composed_rotation.Angle());
+                            orientation_compatibility=std::max((T)0,1-std::min(angle_magnitude,2*(T)M_PI-angle_magnitude)/interaction_type.bond_orientation_threshold);}
                         //orientation_compatibility=1;
                         T compatibility=orientation_compatibility*position_compatibility;
                         T association_rate=compatibility/interaction_type.base_association_time;
                         T cumulative_distribution=1-exp(-association_rate*dt);
                         constraint_active=random.Uniform((T)0,(T)1)<cumulative_distribution;
-                        //LOG::cout<<"Maybe activating constraint: "<<constraint_active<<" compatibility "<<compatibility<<" bond_distance: "<<bond_distance<<" orientation_compatibility: "<<orientation_compatibility<<std::endl;
+                        LOG::cout<<"Maybe activating constraint: "<<constraint_active<<" compatibility "<<compatibility<<" bond_distance: "<<bond_distance<<" orientation_compatibility: "<<orientation_compatibility<<std::endl;
                         if(constraint_active){
                             std::get<2>(interaction_type.first_sites[candidate_first])=true;
                             std::get<2>(interaction_type.second_sites[candidate_second])=true;
@@ -178,11 +182,11 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         linear_terms.push_back(Triplet<LINEAR_CONSTRAINT_MATRIX>(i,s1,-dC_dX1));
         rhs.template block<d,1>(0,0)=-direction;
 
-        ROTATION<TV> relative_orientation=ROTATION<TV>::From_Rotated_Vector(TV::Unit(1),v2)*interaction_type.relative_orientation*ROTATION<TV>::From_Rotated_Vector(TV::Unit(1),v1).inverse();
+        ROTATION<TV> relative_orientation=interaction_type.relative_orientation;
 
         ROTATION<TV> R1_current=ROTATION<TV>::From_Rotation_Vector(structure1->twist.angular);
         ROTATION<TV> R2_current=ROTATION<TV>::From_Rotation_Vector(structure2->twist.angular);
-        ROTATION<TV> R1_base=(R1_current.inverse()*structure1->frame.orientation)*relative_orientation.inverse();
+        ROTATION<TV> R1_base=relative_orientation*(R1_current.inverse()*structure1->frame.orientation);
         ROTATION<TV> R2_base=R2_current.inverse()*structure2->frame.orientation;
         ROTATION<TV> RC=Find_Appropriate_Rotation(R1_current*R1_base,R2_current*R2_base);
         T_SPIN first_rotation_error_vector,second_rotation_error_vector;
@@ -279,12 +283,27 @@ DEFINE_AND_REGISTER_PARSER(ASSOCIATION_DISSOCIATION_CONSTRAINT,void)
         interaction.bond_orientation_threshold=(*it)["bond_orientation_threshold"].asDouble();
         interaction.base_association_time=(*it)["base_association_time"].asDouble();
         interaction.base_dissociation_time=(*it)["base_dissociation_time"].asDouble();
-        Parse_Rotation((*it)["relative_orientation"],interaction.relative_orientation);
+        TV first_site_offset;Parse_Vector((*it)["first_site_offset"],first_site_offset);
+        TV second_site_offset;Parse_Vector((*it)["second_site_offset"],first_site_offset);
+        {
+            auto& binder_orientation=(*it)["binder_orientation"];
+            TV primary_axis;Parse_Vector(binder_orientation["primary_axis"],primary_axis);
+            TV secondary_axis_from;Parse_Vector(binder_orientation["secondary_axis"]["from"],secondary_axis_from);
+            TV secondary_axis_to;Parse_Vector(binder_orientation["secondary_axis"]["to"],secondary_axis_to);
+            ROTATION<TV> primary_rotation=ROTATION<TV>::From_Rotated_Vector(first_site_offset,primary_axis);
+            ROTATION<TV> secondary_rotation=ROTATION<TV>::From_Rotated_Vector_Around_Axis(primary_rotation*secondary_axis_from,secondary_axis_to,primary_axis);
+            interaction.relative_orientation=secondary_rotation*primary_rotation;
+            std::cout<<"Primary first rotation: "<<(primary_rotation*TV::Unit(1)).transpose()<<std::endl;
+            std::cout<<"Primary rotated: "<<(interaction.relative_orientation*TV::Unit(1)).transpose()<<std::endl;
+            std::cout<<"Secondary rotated: "<<(interaction.relative_orientation*secondary_axis_from).transpose()<<std::endl;
+        }
+        //Parse_Rotation((*it)["relative_orientation"],interaction.relative_orientation);
         auto first_sites=(*it)["first_sites"];
         for(auto site_it=first_sites.begin();site_it!=first_sites.end();site_it++){
             std::tuple<int,TV,bool> site;
             std::get<0>(site)=rigid_data->Structure_Index((*site_it)["name"].asString());
-            Parse_Vector((*site_it)["site"],std::get<1>(site));
+            std::get<1>(site)=first_site_offset;
+            //Parse_Vector((*site_it)["site"],std::get<1>(site));
             std::get<2>(site)=false;
             interaction.first_sites.push_back(site);
         }
@@ -292,7 +311,8 @@ DEFINE_AND_REGISTER_PARSER(ASSOCIATION_DISSOCIATION_CONSTRAINT,void)
         for(auto site_it=second_sites.begin();site_it!=second_sites.end();site_it++){
             std::tuple<int,TV,bool> site;
             std::get<0>(site)=rigid_data->Structure_Index((*site_it)["name"].asString());
-            Parse_Vector((*site_it)["site"],std::get<1>(site));
+            std::get<1>(site)=second_site_offset;
+            //Parse_Vector((*site_it)["site"],std::get<1>(site));
             std::get<2>(site)=false;
             interaction.second_sites.push_back(site);
         }

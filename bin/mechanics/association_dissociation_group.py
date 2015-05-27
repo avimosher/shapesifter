@@ -10,7 +10,10 @@ def association_dissociation_group(node,structure_nodes,force_nodes):
                      'bond_orientation_threshold': interaction_type['bond_orientation_threshold'],
                      'base_dissociation_time': interaction_type['base_dissociation_time'],
                      'base_association_time': interaction_type['base_association_time'],
-                     'relative_orientation': interaction_type['relative_orientation']}
+                     'binder_orientation': interaction_type['binder_orientation'],
+                     'first_site_offset': interaction_type['first_site_offset'],
+                     'second_site_offset': interaction_type['second_site_offset']
+                 }
         first_site_tag=interaction_type['first_site']['tag']
         first_site_offset=interaction_type['first_site']['site']
         second_site_tag=interaction_type['second_site']['tag']
