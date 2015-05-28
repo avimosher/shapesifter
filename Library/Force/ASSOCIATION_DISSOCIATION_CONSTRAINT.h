@@ -78,6 +78,7 @@ public:
 
     int call_count;
     std::unordered_map<CONSTRAINT,std::pair<int,FORCE_VECTOR>> force_memory;
+    std::unordered_map<std::pair<int,int>,bool> partners;
 
     struct INTERACTION_TYPE{
         std::vector<std::tuple<int,TV,bool>> first_sites; // list of body, object space offset pairs

@@ -106,26 +106,29 @@ class ROTATION<Eigen::Matrix<T,3,1>>:public Eigen::Quaternion<T>
 
     static ROTATION From_Rotated_Vector(const TV& initial_vector,const TV& final_vector){
         return Eigen::Quaternion<T>::FromTwoVectors(initial_vector,final_vector);
-        /*TV initial_unit=initial_vector.normalized(),final_unit=final_vector.normalized();
-        T cos_theta=initial_unit.dot(final_unit);
-        TV v=initial_unit.cross(final_unit);
-        T v_magnitude=v.norm();if(v_magnitude==0){return ROTATION();}
-        T s_squared=(T).5*(1+cos_theta);
-        T v_magnitude_desired=sqrt(1-s_squared);v*=(v_magnitude_desired/v_magnitude);
-        return ROTATION(Eigen::Quaternion<T>(sqrt(s_squared),v));*/
     }
 
     static ROTATION From_Rotated_Vector_Around_Axis(const TV& initial_vector,const TV& final_vector,const TV& axis_direction){
-        TV axis=axis_direction.normalized();
-        TV v0=(initial_vector-initial_vector.dot(axis)*axis).normalized();
-        TV v1=(final_vector-final_vector.dot(axis)*axis).normalized();
+        //TV axis=axis_direction.normalized();
+        TV v0=(initial_vector-initial_vector.dot(axis_direction)*axis_direction).normalized();
+        TV v1=(final_vector-final_vector.dot(axis_direction)*axis_direction).normalized();
         T c=v1.dot(v0);
-        T ch=sqrt(0.5*(1+c));
+        /*T ch=sqrt(0.5*(1+c));
         T sh=sqrt(1-sqr(ch));
+        std::cout<<"v0: "<<v0.transpose()<<" v1: "<<v1.transpose()<<" c: "<<c<<std::endl;
         Eigen::Quaternion<T> q;
         q.coeffs().template block<3,1>(0,0)=axis*sh;
         q.coeffs()[3]=ch;
-        return q;
+        std::cout<<"v0 rotated: "<<q._transformVector(v0).transpose()<<std::endl;
+        ROTATION<TV> r(q);
+        std::cout<<"final dot: "<<(r*v0).dot(v1)<<std::endl;
+        std::cout<<"axis: "<<r.Axis().transpose()<<" angle: "<<r.Angle()<<std::endl;*/
+        
+        TV axis=v0.cross(v1);
+        Eigen::Quaternion<T> q;
+        q.w()=1+v0.dot(v1);
+        q.vec()=axis;
+        return q.normalized();
     }
 };
 

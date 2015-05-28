@@ -103,6 +103,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                     auto second_site=interaction_type.second_sites[candidate_second];
                     int s2=std::get<0>(second_site);
                     if(s1==s2){continue;}
+                    std::pair<int,int> partnership(std::min(s1,s2),std::max(s1,s2));
                     bool constraint_active=false;
                     CONSTRAINT constraint(i,candidate_first,candidate_second);
                     std::pair<int,FORCE_VECTOR> remembered=force_memory[constraint];
@@ -114,9 +115,10 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                             std::get<2>(interaction_type.first_sites[candidate_first])=false;
                             std::get<2>(interaction_type.second_sites[candidate_second])=false;
                             std::cout<<"CONSTRAINT DEACTIVATED: "<<s1<<" "<<s2<<std::endl;
+                            partners[partnership]=false;
                         }
                     }
-                    else if(!std::get<2>(first_site) && !std::get<2>(second_site)){ // do not re-bind already bound
+                    else if(!std::get<2>(first_site) && !std::get<2>(second_site) && !partners[partnership]){ // do not re-bind already bound
                         auto structure2=rigid_data->structures[s2];
                         auto second_site_position=structure2->frame*std::get<1>(second_site);
                         ROTATION<TV> binder2_frame=structure2->frame.orientation;//*ROTATION<TV>::From_Rotated_Vector(TV::Unit(1),std::get<1>(second_site));
@@ -134,6 +136,9 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                             LOG::cout<<"Relative rotation axis: "<<relative_rotation.Axis().transpose()<<" Angle: "<<relative_rotation.Angle()<<std::endl;;
                             LOG::cout<<"Desired relative rotation axis: "<<interaction_type.relative_orientation.Axis().transpose()<<" Angle: "<<interaction_type.relative_orientation.Angle()<<std::endl;
                             LOG::cout<<"Composed angle: "<<composed_rotation.Angle()<<std::endl;
+                            ROTATION<TV> R2_O=binder2_frame*interaction_type.relative_orientation;
+                            LOG::cout<<"R2_0: Axis: "<<R2_O.Axis().transpose()<<" angle: "<<R2_O.Angle()<<std::endl;
+                            LOG::cout<<"R1: Axis: "<<binder1_frame.Axis().transpose()<<" angle: "<<binder1_frame.Angle()<<std::endl;
                             T angle_magnitude=std::abs(composed_rotation.Angle());
                             orientation_compatibility=std::max((T)0,1-std::min(angle_magnitude,2*(T)M_PI-angle_magnitude)/interaction_type.bond_orientation_threshold);}
                         //orientation_compatibility=1;
@@ -146,6 +151,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                             std::get<2>(interaction_type.first_sites[candidate_first])=true;
                             std::get<2>(interaction_type.second_sites[candidate_second])=true;
                             std::cout<<"CONSTRAINT ACTIVATED: "<<s1<<" "<<s2<<" "<<candidate_first<<" "<<candidate_second<<" remembered: "<<remembered.first<<" call count: "<<call_count<<std::endl;
+                            partners[partnership]=true;
                         }
                     }
                     if(constraint_active){constraints.push_back(constraint);}}
@@ -189,15 +195,26 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
 
         ROTATION<TV> R1_current=ROTATION<TV>::From_Rotation_Vector(structure1->twist.angular);
         ROTATION<TV> R2_current=ROTATION<TV>::From_Rotation_Vector(structure2->twist.angular);
-        ROTATION<TV> R1_base=relative_orientation*(R1_current.inverse()*structure1->frame.orientation);
+        ROTATION<TV> R1_base=(R1_current.inverse()*structure1->frame.orientation)*relative_orientation.inverse();
         ROTATION<TV> R2_base=R2_current.inverse()*structure2->frame.orientation;
         ROTATION<TV> RC=Find_Appropriate_Rotation(R1_current*R1_base,R2_current*R2_base);
         T_SPIN first_rotation_error_vector,second_rotation_error_vector;
         
+        // R1=R1_s*R1_0
+        // R1_s*O*R1_0
+
+        // R1
         ANGULAR_CONSTRAINT_MATRIX dC_dA1=RIGID_STRUCTURE_INDEX_MAP<TV>::Construct_Constraint_Matrix(R1_current,R1_base*RC,first_rotation_error_vector)*angular_to_constraint;
+        // R2*O
         ANGULAR_CONSTRAINT_MATRIX dC_dA2=RIGID_STRUCTURE_INDEX_MAP<TV>::Construct_Constraint_Matrix(R2_current,R2_base*RC,second_rotation_error_vector)*angular_to_constraint;
         angular_terms.push_back(Triplet<ANGULAR_CONSTRAINT_MATRIX>(i,s2,dC_dA2.eval()));
         angular_terms.push_back(Triplet<ANGULAR_CONSTRAINT_MATRIX>(i,s1,-dC_dA1.eval()));
+        //R2^-1*R1*O^-1=I
+        //R1*O^-1=R2
+        //R1=R2*O
+        ROTATION<TV> composed_rotation(relative_orientation.inverse()*(structure2->frame.orientation*RC).inverse()*(structure1->frame.orientation*RC));
+        LOG::cout<<"Composed angle: "<<composed_rotation.Angle()<<" axis: "<<composed_rotation.Axis().transpose()<<std::endl;
+        LOG::cout<<"Composed angle w: "<<composed_rotation.Vec().transpose()<<" W: "<<composed_rotation.W()<<std::endl;
         T_SPIN total_rotation_error=second_rotation_error_vector-first_rotation_error_vector;
         LOG::cout<<"rotation error: "<<total_rotation_error.transpose()<<std::endl;
         rhs.template block<t,1>(d,0)=-total_rotation_error;
@@ -241,7 +258,7 @@ Viewer(const DATA<TV>& data,osg::Node* node)
         auto v1=std::get<1>(first_site);
         auto v2=std::get<1>(second_site);
 
-        //LOG::cout<<"Between "<<body_index1<<" and "<<body_index2<<std::endl;
+        std::cout<<"Between "<<body_index1<<" and "<<body_index2<<std::endl;
         auto rigid_structure1=rigid_data->structures[body_index1];
         auto rigid_structure2=rigid_data->structures[body_index2];
         auto firstAttachment=rigid_structure1->frame*(v1/2);
@@ -252,7 +269,11 @@ Viewer(const DATA<TV>& data,osg::Node* node)
         (*vertices)[1].set(secondAttachment(0),secondAttachment(1),secondAttachment(2));
         lineGeometry->setVertexArray(vertices);
         auto colors=new osg::Vec4Array;
-        colors->push_back(osg::Vec4(1.0f,0.0f,0.0f,1.0f));
+        osg::Vec4 color;
+        color[3]=1;
+        color[std::get<0>(interaction_index)]=1;
+        colors->push_back(color);
+        //colors->push_back(osg::Vec4(1.0f,0.0f,0.0f,1.0f));
         lineGeometry->setColorArray(colors);
         lineGeometry->setColorBinding(osg::Geometry::BIND_OVERALL);
         auto normals=new osg::Vec3Array;
@@ -263,7 +284,7 @@ Viewer(const DATA<TV>& data,osg::Node* node)
         osg::LineWidth* lineWidth=new osg::LineWidth();
         lineWidth->setWidth(4.0f);
         stateset->setAttributeAndModes(lineWidth,osg::StateAttribute::ON);
-        stateset->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
+        //stateset->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
         lineGeometry->setStateSet(stateset);
         lineGeometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES,0,2));
         auto lineGeode=new osg::Geode();
@@ -294,11 +315,21 @@ DEFINE_AND_REGISTER_PARSER(ASSOCIATION_DISSOCIATION_CONSTRAINT,void)
             TV secondary_axis_from;Parse_Vector(binder_orientation["secondary_axis"]["from"],secondary_axis_from);
             TV secondary_axis_to;Parse_Vector(binder_orientation["secondary_axis"]["to"],secondary_axis_to);
             ROTATION<TV> primary_rotation=ROTATION<TV>::From_Rotated_Vector(first_site_offset,primary_axis);
+            std::cout<<"Secondary axis from: "<<secondary_axis_from.transpose()<<" to: "<<secondary_axis_to.transpose()<<" primary: "<<primary_axis.transpose()<<std::endl;
             ROTATION<TV> secondary_rotation=ROTATION<TV>::From_Rotated_Vector_Around_Axis(primary_rotation*secondary_axis_from,secondary_axis_to,primary_axis);
             interaction.relative_orientation=secondary_rotation*primary_rotation;
-            std::cout<<"Primary first rotation: "<<(primary_rotation*TV::Unit(1)).transpose()<<std::endl;
-            std::cout<<"Primary rotated: "<<(interaction.relative_orientation*TV::Unit(1)).transpose()<<std::endl;
-            std::cout<<"Secondary rotated: "<<(interaction.relative_orientation*secondary_axis_from).transpose()<<std::endl;
+            std::cout<<"Secondary rotated by primary: "<<(primary_rotation*secondary_axis_from).transpose()<<std::endl;
+            std::cout<<"Secondary rotated by primary inverse secondary: "<<(secondary_rotation.inverse()*primary_rotation*secondary_axis_from).transpose()<<std::endl;
+            std::cout<<"First rotation axis: "<<primary_rotation.Axis().transpose()<<" angle: "<<primary_rotation.Angle()<<std::endl;
+            std::cout<<"Second rotation axis: "<<secondary_rotation.Axis().transpose()<<" angle: "<<secondary_rotation.Angle()<<std::endl;
+            std::cout<<"Axis: "<<interaction.relative_orientation.Axis().transpose()<<" "<<interaction.relative_orientation.Angle()<<std::endl;
+            TV test1;test1<<1.1,0,0;
+            TV test2;test2<<0.55,0.953,0;
+            TV test3;test3<<0.55,0.318,0.898;
+            std::cout<<"Test1: "<<(interaction.relative_orientation*test1).transpose()<<std::endl;
+            std::cout<<"Test2: "<<(interaction.relative_orientation*test2).transpose()<<std::endl;
+            std::cout<<"Test3: "<<(interaction.relative_orientation*test3).transpose()<<std::endl;
+            std::cout<<std::endl<<std::endl;
         }
         //Parse_Rotation((*it)["relative_orientation"],interaction.relative_orientation);
         auto first_sites=(*it)["first_sites"];
