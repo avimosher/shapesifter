@@ -36,21 +36,13 @@
                  "second_sites": [{"name": "right", "site": [-1,0,0]}],
                  "bond_distance_threshold": 4,
                  "bond_orientation_threshold": 1.5,
-                 "base_dissociation_time": 100,
+                 "base_dissociation_time": 10000,
                  "base_association_time": 0.0001,
+                 "first_site_offset": [1,0,0],
+                 "second_site_offset": [-1,0,0],
                  "binder_orientation": {
-                     "primary_axis": [0,-1,0],
-                     "secondary_axis": {"from": [1,0,0], "to": [1,0,0]}},
-                 "relative_orientation": {"angle": -180, "axis": [0,0,1]}
-             },
-             {
-                 "first_sites": [{"name":  "right", "site": [1,0,0]}],
-                 "second_sites": [{"name": "third", "site": [-1,0,0]}],
-                 "bond_distance_threshold": 4,
-                 "bond_orientation_threshold": 1.5,
-                 "base_dissociation_time": 100,
-                 "base_association_time": 0.0001,
-                 "relative_orientation": {"angle": -180, "axis": [0,0,1]}
+                     "primary_axis": [1,0,0],
+                     "secondary_axis": {"from": [0,1,0], "to": [0,1,0]}}
              }
          ]
         }

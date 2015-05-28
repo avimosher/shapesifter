@@ -96,7 +96,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 auto structure1=rigid_data->structures[s1];
                 auto first_site_position=structure1->frame*std::get<1>(first_site);
                 PROXIMITY_SEARCH<TV> proximity_search(data,first_site_position,interaction_type.bond_distance_threshold);
-                ROTATION<TV> binder1_frame=structure1->frame.orientation*ROTATION<TV>::From_Rotated_Vector(TV::Unit(1),std::get<1>(first_site));
+                ROTATION<TV> binder1_frame=structure1->frame.orientation;//*ROTATION<TV>::From_Rotated_Vector(TV::Unit(1),std::get<1>(first_site));
                 BVIntersect(hierarchy_second_site,proximity_search);
                 LOG::cout<<proximity_search.candidates.size()<<" candidates"<<std::endl;
                 for(auto candidate_second : proximity_search.candidates){
@@ -119,8 +119,11 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                     else if(!std::get<2>(first_site) && !std::get<2>(second_site)){ // do not re-bind already bound
                         auto structure2=rigid_data->structures[s2];
                         auto second_site_position=structure2->frame*std::get<1>(second_site);
-                        ROTATION<TV> binder2_frame=structure2->frame.orientation*ROTATION<TV>::From_Rotated_Vector(TV::Unit(1),std::get<1>(second_site));
+                        ROTATION<TV> binder2_frame=structure2->frame.orientation;//*ROTATION<TV>::From_Rotated_Vector(TV::Unit(1),std::get<1>(second_site));
+                        LOG::cout<<"First axis: "<<structure2->frame.orientation.Axis().transpose()<<" angle: "<<structure2->frame.orientation.Angle()<<std::endl;
+                        LOG::cout<<"First site: "<<first_site_position.transpose()<<" Second site: "<<second_site_position.transpose()<<std::endl;
                         TV direction=data.Minimum_Offset(first_site_position,second_site_position);
+                        LOG::cout<<"Direction: "<<direction.transpose()<<std::endl;
                         T bond_distance=direction.norm();
                         T orientation_compatibility=T(),position_compatibility=T();
                         if(bond_distance<interaction_type.bond_distance_threshold){
@@ -241,10 +244,10 @@ Viewer(const DATA<TV>& data,osg::Node* node)
         //LOG::cout<<"Between "<<body_index1<<" and "<<body_index2<<std::endl;
         auto rigid_structure1=rigid_data->structures[body_index1];
         auto rigid_structure2=rigid_data->structures[body_index2];
-        //auto firstAttachment=rigid_structure1->frame*v1;
-        //auto secondAttachment=rigid_structure2->frame*v2;
-        auto firstAttachment=rigid_structure1->frame.position;
-        auto secondAttachment=firstAttachment+data.Minimum_Offset(firstAttachment,rigid_structure2->frame.position);
+        auto firstAttachment=rigid_structure1->frame*(v1/2);
+        auto secondAttachment=firstAttachment+data.Minimum_Offset(firstAttachment,rigid_structure2->frame*(v2/2));
+        //auto firstAttachment=rigid_structure1->frame.position;
+        //auto secondAttachment=firstAttachment+data.Minimum_Offset(firstAttachment,rigid_structure2->frame.position);
         (*vertices)[0].set(firstAttachment(0),firstAttachment(1),firstAttachment(2));
         (*vertices)[1].set(secondAttachment(0),secondAttachment(1),secondAttachment(2));
         lineGeometry->setVertexArray(vertices);
@@ -284,7 +287,7 @@ DEFINE_AND_REGISTER_PARSER(ASSOCIATION_DISSOCIATION_CONSTRAINT,void)
         interaction.base_association_time=(*it)["base_association_time"].asDouble();
         interaction.base_dissociation_time=(*it)["base_dissociation_time"].asDouble();
         TV first_site_offset;Parse_Vector((*it)["first_site_offset"],first_site_offset);
-        TV second_site_offset;Parse_Vector((*it)["second_site_offset"],first_site_offset);
+        TV second_site_offset;Parse_Vector((*it)["second_site_offset"],second_site_offset);
         {
             auto& binder_orientation=(*it)["binder_orientation"];
             TV primary_axis;Parse_Vector(binder_orientation["primary_axis"],primary_axis);
