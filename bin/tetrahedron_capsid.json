@@ -22,49 +22,43 @@
         {"type": "BROWNIAN_FORCE",
          "temperature": 900},
         {"type": "VOLUME_EXCLUSION_CONSTRAINT"},
-        {"type": "ASSOCIATION_DISSOCIATION_GROUP",
+        {"type": "SYMMETRIC_ASSOCIATION_DISSOCIATION_GROUP",
          "interactions": [
              {
                  "bond_distance_threshold": 1.5,
                  "bond_orientation_threshold": 1.5,
-                 "base_dissociation_time": 1000,
+                 "base_dissociation_time": 20,
                  "base_association_time": 0.001,
-                 "first_site_offset": [1.1,0,0],
-                 "second_site_offset": [1.1,0,0],
+                 "site_offset": [1.1,0,0],
                  "binder_orientation": {
                      "primary_axis": [-1,0,0],
                      "secondary_axis": {"from": [0.55,0.318,0.898], "to": [-0.55,0.953,0]}
                  },
-                 "first_site": {"tag": "distributed", "site": [1.1,0,0]},
-                 "second_site": {"tag": "distributed", "site": [1.1,0,0]}
+                 "site": {"tag": "distributed", "site": [1.1,0,0]}
              },
              {
                  "bond_distance_threshold": 1.5,
                  "bond_orientation_threshold": 1.5,
-                 "base_dissociation_time": 1000,
+                 "base_dissociation_time": 20,
                  "base_association_time": 0.001,
-                 "first_site_offset": [0.55,0.953,0],
-                 "second_site_offset": [0.55,0.953,0],
+                 "site_offset": [0.55,0.953,0],
                  "binder_orientation": {
                      "primary_axis": [-0.55,-0.953,0],
                      "secondary_axis": {"from": [0.55,0.318,0.898], "to": [0.55,-0.953,0]}
                  },
-                 "first_site": {"tag": "distributed", "site": [0.55,0.953,0]},
-                 "second_site": {"tag": "distributed", "site": [0.55,0.953,0]}
+                 "site": {"tag": "distributed", "site": [0.55,0.953,0]}
              },
              {
                  "bond_distance_threshold": 1.5,
                  "bond_orientation_threshold": 1.5,
-                 "base_dissociation_time": 1000,
+                 "base_dissociation_time": 20,
                  "base_association_time": 0.001,
-                 "first_site_offset": [0.55,0.318,0.898],
-                 "second_site_offset": [0.55,0.318,0.898],
+                 "site_offset": [0.55,0.318,0.898],
                  "binder_orientation": {
                      "primary_axis": [-0.55,-0.318,-0.898],
                      "secondary_axis": {"from": [0.55,0.953,0], "to": [0.55,-0.318,-0.898]}
                  },
-                 "first_site": {"tag": "distributed", "site": [0.55,0.318,0.898]},
-                 "second_site": {"tag": "distributed", "site": [0.55,0.318,0.898]}
+                 "site": {"tag": "distributed", "site": [0.55,0.318,0.898]}
              }
          ]
         }
