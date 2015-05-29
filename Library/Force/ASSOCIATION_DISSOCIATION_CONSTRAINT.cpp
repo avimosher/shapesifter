@@ -284,7 +284,7 @@ Viewer(const DATA<TV>& data,osg::Node* node)
         osg::LineWidth* lineWidth=new osg::LineWidth();
         lineWidth->setWidth(4.0f);
         stateset->setAttributeAndModes(lineWidth,osg::StateAttribute::ON);
-        //stateset->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
+        stateset->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
         lineGeometry->setStateSet(stateset);
         lineGeometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES,0,2));
         auto lineGeode=new osg::Geode();

@@ -6,15 +6,15 @@
         {"type": "DATA",
          "domain": {
              "minimum_corner": [0,0,0],
-             "maximum_corner": [5,5,5]
+             "maximum_corner": [10,10,10]
          },
          "eta": 3.5},
         {"type": "RIGID_STRUCTURE_DATA"},
         {"type": "DISTRIBUTE_BODIES",
          "min": [0,0,0],
-         "max": [5,5,5],
+         "max": [10,10,10],
          "radius": 1,
-         "bodies": 4,
+         "bodies": 16,
          "tag": "distributed"
         },
         {"type": "TRUST_REGION",
