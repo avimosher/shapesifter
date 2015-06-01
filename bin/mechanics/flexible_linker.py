@@ -1,11 +1,6 @@
-import random
+from random_helpers import *
 import math
 import string
-
-def random_name():
-    return ''.join(random.choice(string.ascii_lowercase+string.digits) for i in range(12))
-def random_vector(low,high):
-    return [random.uniform(l,h) for l,h in zip(low,high)]
 
 # handle flexible linkers
 def flexible_linker(node,structure_nodes,force_nodes):
