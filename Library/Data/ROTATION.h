@@ -114,40 +114,14 @@ class ROTATION<Eigen::Matrix<T,3,1>>:public Eigen::Quaternion<T>
         TV v0_base=initial_vector-v0_projection*axis_normalized;
         T v1_projection=final_vector.dot(axis_normalized);
         TV v1_base=final_vector-v1_projection*axis_normalized;
-        std::cout<<"Axis direction: "<<axis_normalized.transpose()<<std::endl;
-        std::cout<<"v0 initial: "<<initial_vector.transpose()<<" projection: "<<v0_projection<<" projected out: "<<v0_base.transpose()<<std::endl;
-        std::cout<<"v1 initial: "<<final_vector.transpose()<<" projection: "<<v1_projection<<" projected out: "<<v1_base.transpose()<<std::endl;
         TV v0=v0_base.normalized();
         TV v1=v1_base.normalized();
-        std::cout<<"v0: "<<v0.transpose()<<std::endl;
-        std::cout<<"v1: "<<v1.transpose()<<std::endl;
-        //TV v0=(initial_vector-initial_vector.dot(axis_direction)*axis_direction).normalized();
-        //TV v1=(final_vector-final_vector.dot(axis_direction)*axis_direction).normalized();
-        /*T c=v1.dot(v0);
-        T ch=sqrt(0.5*(1+c));
-        T sh=sqrt(1-sqr(ch));
-        std::cout<<"v0: "<<v0.transpose()<<" v1: "<<v1.transpose()<<" c: "<<c<<std::endl;
-        Eigen::Quaternion<T> q;
-        q.coeffs().template block<3,1>(0,0)=axis*sh;
-        q.coeffs()[3]=ch;
-        std::cout<<"v0 rotated: "<<q._transformVector(v0).transpose()<<std::endl;
-        ROTATION<TV> r(q);
-        std::cout<<"final dot: "<<(r*v0).dot(v1)<<std::endl;
-        std::cout<<"axis: "<<r.Axis().transpose()<<" angle: "<<r.Angle()<<std::endl;*/
         
         TV axis=v0.cross(v1);
         Eigen::Quaternion<T> q;
         q.w()=1+v0.dot(v1);
         q.vec()=axis;
         q.normalize();
-        std::cout<<"Target: "<<v1.transpose()<<" actual: "<<q._transformVector(v0).transpose()<<std::endl;
-        std::cout<<"Rotation axis: "<<axis.transpose()<<std::endl;
-        std::cout<<"Full target: "<<final_vector.transpose()<<" full actual: "<<q._transformVector(initial_vector).transpose()<<std::endl;
-        std::cout<<"Rotation applied to projected part of v0: "<<q._transformVector(v0_projection*axis_direction).transpose()<<std::endl;
-        std::cout<<"Rotation applied to projected part of v1: "<<q._transformVector(v1_projection*axis_direction).transpose()<<std::endl;
-        std::cout<<"Rotation applied to un-normalized v0: "<<q._transformVector(v0_base).transpose()<<std::endl;
-        std::cout<<"Rotation applied to un-normalized v1: "<<q._transformVector(v1_base).transpose()<<std::endl;
-        std::cout<<std::endl;
         return q;
     }
 };

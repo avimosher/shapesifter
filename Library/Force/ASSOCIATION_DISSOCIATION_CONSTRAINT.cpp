@@ -70,7 +70,6 @@ Find_Appropriate_Rotation(const ROTATION<TV>& rotation1,const ROTATION<TV>& rota
 template<class TV> void ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::
 Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
 {
-    RANDOM<T> random;
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
     if(stochastic){
         for(auto memory : force_memory){memory.second.second.setZero();}
@@ -110,7 +109,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                     if(remembered.first==call_count){
                         T dissociation_rate=1/interaction_type.base_dissociation_time;
                         T cumulative_distribution=1-exp(-dissociation_rate*dt);
-                        constraint_active=random.Uniform((T)0,(T)1)>cumulative_distribution;
+                        constraint_active=data.random.Uniform((T)0,(T)1)>cumulative_distribution;
                         if(!constraint_active){
                             std::get<2>(interaction_type.first_sites[candidate_first])=false;
                             std::get<2>(interaction_type.second_sites[candidate_second])=false;
@@ -145,7 +144,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                         T compatibility=orientation_compatibility*position_compatibility;
                         T association_rate=compatibility/interaction_type.base_association_time;
                         T cumulative_distribution=1-exp(-association_rate*dt);
-                        constraint_active=random.Uniform((T)0,(T)1)<cumulative_distribution;
+                        constraint_active=data.random.Uniform((T)0,(T)1)<cumulative_distribution;
                         LOG::cout<<"Maybe activating constraint: "<<constraint_active<<" compatibility "<<compatibility<<" bond_distance: "<<bond_distance<<" orientation_compatibility: "<<orientation_compatibility<<std::endl;
                         if(constraint_active){
                             std::get<2>(interaction_type.first_sites[candidate_first])=true;

@@ -70,7 +70,6 @@ Find_Appropriate_Rotation(const ROTATION<TV>& rotation1,const ROTATION<TV>& rota
 template<class TV> void SYMMETRIC_ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::
 Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
 {
-    RANDOM<T> random;
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
     if(stochastic){
         for(auto memory : force_memory){memory.second.second.setZero();}
@@ -96,7 +95,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 auto structure1=rigid_data->structures[s1];
                 auto first_site_position=structure1->frame*std::get<1>(first_site);
                 PROXIMITY_SEARCH<TV> proximity_search(data,first_site_position,interaction_type.bond_distance_threshold);
-                ROTATION<TV> binder1_frame=structure1->frame.orientation;//*ROTATION<TV>::From_Rotated_Vector(TV::Unit(1),std::get<1>(first_site));
+                ROTATION<TV> binder1_frame=structure1->frame.orientation;
                 BVIntersect(hierarchy_second_site,proximity_search);
                 LOG::cout<<proximity_search.candidates.size()<<" candidates"<<std::endl;
                 for(auto candidate_second : proximity_search.candidates){
@@ -110,7 +109,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                     if(remembered.first==call_count){
                         T dissociation_rate=1/interaction_type.base_dissociation_time;
                         T cumulative_distribution=1-exp(-dissociation_rate*dt);
-                        constraint_active=random.Uniform((T)0,(T)1)>cumulative_distribution;
+                        constraint_active=data.random.Uniform((T)0,(T)1)>cumulative_distribution;
                         if(!constraint_active){
                             std::get<2>(interaction_type.sites[candidate_first])=false;
                             std::get<2>(interaction_type.sites[candidate_second])=false;
@@ -121,7 +120,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                     else if(!std::get<2>(first_site) && !std::get<2>(second_site) && !partners[partnership]){ // do not re-bind already bound
                         auto structure2=rigid_data->structures[s2];
                         auto second_site_position=structure2->frame*std::get<1>(second_site);
-                        ROTATION<TV> binder2_frame=structure2->frame.orientation;//*ROTATION<TV>::From_Rotated_Vector(TV::Unit(1),std::get<1>(second_site));
+                        ROTATION<TV> binder2_frame=structure2->frame.orientation;
                         LOG::cout<<"First axis: "<<structure2->frame.orientation.Axis().transpose()<<" angle: "<<structure2->frame.orientation.Angle()<<std::endl;
                         LOG::cout<<"First site: "<<first_site_position.transpose()<<" Second site: "<<second_site_position.transpose()<<std::endl;
                         TV direction=data.Minimum_Offset(first_site_position,second_site_position);
@@ -141,16 +140,16 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                             LOG::cout<<"R1: Axis: "<<binder1_frame.Axis().transpose()<<" angle: "<<binder1_frame.Angle()<<std::endl;
                             T angle_magnitude=std::abs(composed_rotation.Angle());
                             orientation_compatibility=std::max((T)0,1-std::min(angle_magnitude,2*(T)M_PI-angle_magnitude)/interaction_type.bond_orientation_threshold);}
-                        //orientation_compatibility=1;
                         T compatibility=orientation_compatibility*position_compatibility;
                         T association_rate=compatibility/interaction_type.base_association_time;
                         T cumulative_distribution=1-exp(-association_rate*dt);
-                        constraint_active=random.Uniform((T)0,(T)1)<cumulative_distribution;
+                        constraint_active=data.random.Uniform((T)0,(T)1)<cumulative_distribution;
                         LOG::cout<<"Maybe activating constraint: "<<constraint_active<<" compatibility "<<compatibility<<" bond_distance: "<<bond_distance<<" orientation_compatibility: "<<orientation_compatibility<<std::endl;
                         if(constraint_active){
+                            std::cout<<"CONSTRAINT ACTIVATED: "<<s1<<" "<<s2<<" "<<candidate_first<<" "<<candidate_second<<" remembered: "<<remembered.first<<" call count: "<<call_count<<" interaction: "<<i<<" test: "<<std::get<2>(interaction_type.sites[candidate_first])<<" "<<std::get<2>(interaction_type.sites[candidate_second])<<" "<<partners[partnership]<<std::endl;
                             std::get<2>(interaction_type.sites[candidate_first])=true;
                             std::get<2>(interaction_type.sites[candidate_second])=true;
-                            std::cout<<"CONSTRAINT ACTIVATED: "<<s1<<" "<<s2<<" "<<candidate_first<<" "<<candidate_second<<" remembered: "<<remembered.first<<" call count: "<<call_count<<std::endl;
+                            std::cout<<"CONSTRAINT ACTIVATED: "<<s1<<" "<<s2<<" "<<candidate_first<<" "<<candidate_second<<" remembered: "<<remembered.first<<" call count: "<<call_count<<" interaction: "<<i<<" test: "<<std::get<2>(interaction_type.sites[candidate_first])<<" "<<std::get<2>(interaction_type.sites[candidate_second])<<std::endl;
                             partners[partnership]=true;
                         }
                     }

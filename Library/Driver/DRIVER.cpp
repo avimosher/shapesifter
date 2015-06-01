@@ -12,7 +12,7 @@ Initialize()
     if(simulation->restart){
         simulation->current_frame=simulation->restart_frame;
         simulation->output_number=simulation->restart_frame;
-        simulation->Read(simulation->restart_frame);
+        simulation->Read(simulation->restart_frame-1);
     }
     else{simulation->Write("Initial state");}
 }
