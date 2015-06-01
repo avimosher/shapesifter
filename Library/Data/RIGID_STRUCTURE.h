@@ -106,7 +106,7 @@ public:
 
     template<class Archive>
     void serialize(Archive& archive) {
-        archive(name,frame,twist,radius,collision_radius,collision_extent);
+        archive(name,frame,moi,twist,radius,collision_radius,collision_extent);
     }
 
     void Initialize_Inertia(const T eta);

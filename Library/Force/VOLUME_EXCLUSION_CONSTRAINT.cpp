@@ -91,9 +91,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     
     for(int s1=0;s1<rigid_data->structures.size();s1++){
         auto structure1=rigid_data->structures[s1];
-        TEST_INTERSECTOR<TV> intersector(data,bounding_box(structure1));
+        BOX_PROXIMITY_SEARCH<TV> intersector(data,bounding_box(structure1));
         BVIntersect(hierarchy,intersector);
-        //for(int s2=s1+1;s2<rigid_data->structures.size();s2++){
         for(int s2 : intersector.candidates){
             if(s1==s2){continue;}
             auto structure2=rigid_data->structures[s2];
@@ -110,7 +109,6 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 TV x2=structure2->frame.position+offset2;
                 TV object_offset1=structure1->frame.orientation.inverse()*offset1;
                 TV object_offset2=structure2->frame.orientation.inverse()*offset2;
-                //LOG::cout<<"Offset1: "<<offset1<<" offset2: "<<offset2<<" x2-x1: "<<(x2-x1).transpose()<<std::endl;
                 if(remembered.first!=call_count){
                     remembered.second=0;
                 }
@@ -118,26 +116,10 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 CONSTRAINT_VECTOR dC_dA1=RIGID_STRUCTURE_INDEX_MAP<TV>::dC_dA(*structure1,object_offset1,x1,x2,direction);
                 T right_hand_side_force;
                 if(constraint_violation<slack_distance){
-                    //LOG::cout<<"CONSTRAINT IS ON"<<std::endl;
                     right_hand_side_force=remembered.second;
                     terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s2,dC_dA2));
                     terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s1,-dC_dA1));
                     rhs.push_back(-constraint_violation+slack_distance);
-#if 0
-                    Matrix<T,t+d,t+d> force_balance_contribution2=remembered.second*RIGID_STRUCTURE_INDEX_MAP<TV>::dF_dA(*structure2,object_offset2,x1,x2,direction);
-                    Matrix<T,t+d,t+d> force_balance_contribution1=remembered.second*RIGID_STRUCTURE_INDEX_MAP<TV>::dF_dA(*structure1,object_offset1,x1,x2,direction);
-                
-                    for(int j=0;j<t+d;j++){
-                        for(int k=0;k<t+d;k++){
-                            if(fabs(force_balance_contribution1(j,k))>1e-6){
-                                force_terms.push_back(Triplet<T>(s1*(t+d)+j,s1*(t+d)+k,force_balance_contribution1(j,k)));
-                            }
-                            if(fabs(force_balance_contribution2(j,k))>1e-6){
-                                force_terms.push_back(Triplet<T>(s2*(t+d)+j,s2*(t+d)+k,force_balance_contribution2(j,k)));
-                            }
-                        }
-                    }
-#endif
                     constraints.push_back(CONSTRAINT(s1,s2));
                 }
                 else if(remembered.first==call_count){ // exponential falloff
@@ -182,7 +164,6 @@ Viewer(const DATA<TV>& data,osg::Node* node)
         const CONSTRAINT& constraint=constraints[i];
         int body_index1=constraint.first;
         int body_index2=constraint.second;
-        //LOG::cout<<"Between "<<body_index1<<" and "<<body_index2<<std::endl;
         auto rigid_structure1=rigid_data->structures[body_index1];
         auto rigid_structure2=rigid_data->structures[body_index2];
         auto firstAttachment=rigid_structure1->frame.position;
@@ -207,7 +188,6 @@ Viewer(const DATA<TV>& data,osg::Node* node)
     group->addChild(volume_exclusion_group);
 }
 ///////////////////////////////////////////////////////////////////////
-GENERIC_CEREAL_REGISTRATION(VOLUME_EXCLUSION_CONSTRAINT)
 GENERIC_TYPE_DEFINITION(VOLUME_EXCLUSION_CONSTRAINT)
 DEFINE_AND_REGISTER_PARSER(VOLUME_EXCLUSION_CONSTRAINT,void)
 {

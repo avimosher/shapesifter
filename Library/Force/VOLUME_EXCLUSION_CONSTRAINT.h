@@ -14,7 +14,7 @@ template<class TV> class RIGID_STRUCTURE;
 typedef std::pair<int,int> CONSTRAINT;
 
 template<class TV>
-class TEST_INTERSECTOR
+class BOX_PROXIMITY_SEARCH
 {
     typedef typename TV::Scalar T;
 public:
@@ -23,7 +23,7 @@ public:
     AlignedBox<T,d> box;
     std::vector<int> candidates;
 
-    TEST_INTERSECTOR(DATA<TV>& data_input,const AlignedBox<T,d>& input_box)
+    BOX_PROXIMITY_SEARCH(DATA<TV>& data_input,const AlignedBox<T,d>& input_box)
         :data(data_input),box(input_box)
     {}
 
@@ -31,7 +31,6 @@ public:
         TV offset=data.Minimum_Offset(volume.center(),box.center());
         TV abs_offset=offset.cwiseAbs();
         return (abs_offset.array()<=((volume.sizes()+box.sizes())/2).array()).all();
-        //return box.intersects(volume);
     }
 
     bool intersectObject(int structure){
@@ -73,10 +72,8 @@ public:
     {}
     ~VOLUME_EXCLUSION_CONSTRAINT(){}
 
-    template<class Archive>
-    void serialize(Archive& archive)
-    {//archive(constraints,force_memory,call_count);}
-        archive(constraints,call_count);}
+    void Archive(cereal::BinaryOutputArchive& archive){archive(constraints,constant_forces,force_memory,call_count);}
+    void Archive(cereal::BinaryInputArchive& archive){archive(constraints,constant_forces,force_memory,call_count);}
 
     int Force_DOF(){return constraints.size();}
     std::shared_ptr<FORCE_REFERENCE<T>> Create_Stored_Force() const;

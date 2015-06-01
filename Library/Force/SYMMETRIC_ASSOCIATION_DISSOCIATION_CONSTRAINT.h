@@ -96,14 +96,8 @@ public:
     ~SYMMETRIC_ASSOCIATION_DISSOCIATION_CONSTRAINT(){}
 
 
-    void Archive(cereal::BinaryOutputArchive& archive){archive(constraints,call_count);}
-    void Archive(cereal::BinaryInputArchive& archive){archive(constraints,call_count);}
-
-    template<class Archive>
-    void serialize(Archive& archive)
-    {
-        std::cout<<"Serialize has "<<interaction_types.size()<<" types"<<std::endl;
-        archive(constraints,call_count);}
+    void Archive(cereal::BinaryOutputArchive& archive){archive(constraints,force_memory,partners,call_count);}
+    void Archive(cereal::BinaryInputArchive& archive){archive(constraints,force_memory,partners,call_count);}
 
     std::shared_ptr<FORCE_REFERENCE<T>> Create_Stored_Force() const;
     void Pack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information);

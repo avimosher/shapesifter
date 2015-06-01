@@ -44,7 +44,6 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     right_hand_side+=stored_right_hand_side;
 }
 ///////////////////////////////////////////////////////////////////////
-//GENERIC_CEREAL_REGISTRATION(BROWNIAN_FORCE)
 GENERIC_TYPE_DEFINITION(BROWNIAN_FORCE)
 DEFINE_AND_REGISTER_PARSER(BROWNIAN_FORCE,void)
 {
