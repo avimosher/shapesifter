@@ -119,6 +119,7 @@ Viewer(osg::Node* node)
                 unitSphereDrawable->setColor(osg::Vec4(1.0f,1.0f,1.0f,0.5f));
                 basicShapesGeode->addDrawable(unitSphereDrawable);
             }
+#if 0
             auto lineGeometry=new osg::Geometry();
             auto vertices=new osg::Vec3Array(2);
             (*vertices)[0].set(0,0,0);
@@ -140,7 +141,7 @@ Viewer(osg::Node* node)
             lineGeometry->setStateSet(stateset);
             lineGeometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES,0,2));
             basicShapesGeode->addDrawable(lineGeometry);
-            
+#endif            
             /*auto program=new osg::Program;
             auto fragmentShader=new osg::Shader(osg::Shader::FRAGMENT);
             fragmentShader->setShaderSource(

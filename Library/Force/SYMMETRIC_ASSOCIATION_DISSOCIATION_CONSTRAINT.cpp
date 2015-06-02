@@ -115,9 +115,10 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                             std::get<2>(interaction_type.sites[candidate_second])=false;
                             std::cout<<"CONSTRAINT DEACTIVATED: "<<s1<<" "<<s2<<std::endl;
                             partners[partnership]=false;
+                            partner_interactions.erase(partnership);
                         }
                     }
-                    else if(!std::get<2>(first_site) && !std::get<2>(second_site) && !partners[partnership]){ // do not re-bind already bound
+                    else if(!std::get<2>(interaction_type.sites[candidate_first]) && !std::get<2>(second_site) && !partners[partnership]){ // do not re-bind already bound
                         auto structure2=rigid_data->structures[s2];
                         auto second_site_position=structure2->frame*std::get<1>(second_site);
                         ROTATION<TV> binder2_frame=structure2->frame.orientation;
@@ -151,6 +152,11 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                             std::get<2>(interaction_type.sites[candidate_second])=true;
                             std::cout<<"CONSTRAINT ACTIVATED: "<<s1<<" "<<s2<<" "<<candidate_first<<" "<<candidate_second<<" remembered: "<<remembered.first<<" call count: "<<call_count<<" interaction: "<<i<<" test: "<<std::get<2>(interaction_type.sites[candidate_first])<<" "<<std::get<2>(interaction_type.sites[candidate_second])<<std::endl;
                             partners[partnership]=true;
+                            partner_interactions[partnership]=i;
+                            std::cout<<"ACTIVE interactions:"<<std::endl;
+                            for(auto active_pair : partner_interactions){
+                                std::cout<<"pair: "<<active_pair.first.first<<", "<<active_pair.first.second<<" interaction: "<<active_pair.second<<std::endl;
+                            }
                         }
                     }
                     if(constraint_active){constraints.push_back(constraint);}}

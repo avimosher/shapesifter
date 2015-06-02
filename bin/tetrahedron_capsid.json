@@ -14,7 +14,7 @@
          "min": [0,0,0],
          "max": [10,10,10],
          "radius": 1,
-         "bodies": 16,
+         "bodies": 26,
          "tag": "distributed"
         },
         {"type": "TRUST_REGION",
@@ -27,7 +27,7 @@
              {
                  "bond_distance_threshold": 1.5,
                  "bond_orientation_threshold": 1.5,
-                 "base_dissociation_time": 20,
+                 "base_dissociation_time": 200,
                  "base_association_time": 0.001,
                  "site_offset": [1.1,0,0],
                  "binder_orientation": {
@@ -39,7 +39,7 @@
              {
                  "bond_distance_threshold": 1.5,
                  "bond_orientation_threshold": 1.5,
-                 "base_dissociation_time": 20,
+                 "base_dissociation_time": 200,
                  "base_association_time": 0.001,
                  "site_offset": [0.55,0.953,0],
                  "binder_orientation": {
@@ -51,7 +51,7 @@
              {
                  "bond_distance_threshold": 1.5,
                  "bond_orientation_threshold": 1.5,
-                 "base_dissociation_time": 20,
+                 "base_dissociation_time": 200,
                  "base_association_time": 0.001,
                  "site_offset": [0.55,0.318,0.898],
                  "binder_orientation": {

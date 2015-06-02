@@ -77,6 +77,7 @@ public:
     int call_count;
     std::unordered_map<CONSTRAINT,std::pair<int,FORCE_VECTOR>> force_memory;
     std::unordered_map<std::pair<int,int>,bool> partners;
+    std::unordered_map<std::pair<int,int>,int> partner_interactions;
 
     struct INTERACTION_TYPE{
         std::vector<std::tuple<int,TV,bool>> sites; // list of body, object space offset pairs
@@ -97,11 +98,11 @@ public:
 
 
     void Archive(cereal::BinaryOutputArchive& archive){
-        archive(constraints,force_memory,partners,call_count);
+        archive(constraints,force_memory,partners,partner_interactions,call_count);
         for(int i=0;i<interaction_types.size();i++){archive(interaction_types[i].sites);}
     }
     void Archive(cereal::BinaryInputArchive& archive){
-        archive(constraints,force_memory,partners,call_count);
+        archive(constraints,force_memory,partners,partner_interactions,call_count);
         for(int i=0;i<interaction_types.size();i++){archive(interaction_types[i].sites);}
     }
 
