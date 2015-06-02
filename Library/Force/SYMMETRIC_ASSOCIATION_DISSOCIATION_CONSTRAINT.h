@@ -77,15 +77,15 @@ public:
     int call_count;
     std::unordered_map<CONSTRAINT,std::pair<int,FORCE_VECTOR>> force_memory;
     std::unordered_map<std::pair<int,int>,bool> partners;
-    std::unordered_map<std::pair<int,int>,int> partner_interactions;
 
     struct INTERACTION_TYPE{
-        std::vector<std::tuple<int,TV,bool>> sites; // list of body, object space offset pairs
+        std::vector<std::vector<std::pair<int,bool>>> sites; // list of lists of body, active pairs
+        std::vector<TV> site_offsets;
+        TV site_offset;
         T bond_distance_threshold;
         T bond_orientation_threshold;
         T base_association_time;
         T base_dissociation_time;
-        
         ROTATION<TV> relative_orientation;
     };
     std::vector<INTERACTION_TYPE> interaction_types;
@@ -98,11 +98,11 @@ public:
 
 
     void Archive(cereal::BinaryOutputArchive& archive){
-        archive(constraints,force_memory,partners,partner_interactions,call_count);
+        archive(constraints,force_memory,partners,call_count);
         for(int i=0;i<interaction_types.size();i++){archive(interaction_types[i].sites);}
     }
     void Archive(cereal::BinaryInputArchive& archive){
-        archive(constraints,force_memory,partners,partner_interactions,call_count);
+        archive(constraints,force_memory,partners,call_count);
         for(int i=0;i<interaction_types.size();i++){archive(interaction_types[i].sites);}
     }
 
@@ -111,6 +111,7 @@ public:
     void Unpack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_reference);
     void Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_reference,int increment);
     ROTATION<TV> Find_Appropriate_Rotation(const ROTATION<TV>& rotation1,const ROTATION<TV>& rotation2);
+    void Interaction_Candidates(DATA<TV>& data,int type_index,int type1,int type2);
     void Linearize(DATA<TV>& data,const T dt,const T time,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic);
     void Viewer(const DATA<TV>& data,osg::Node* node);
     DEFINE_TYPE_NAME("SYMMETRIC_ASSOCIATION_DISSOCIATION_CONSTRAINT")
