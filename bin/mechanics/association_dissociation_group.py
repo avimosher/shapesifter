@@ -10,16 +10,15 @@ def association_dissociation_group(node,structure_nodes,force_nodes):
                      'bond_orientation_threshold': interaction_type['bond_orientation_threshold'],
                      'base_dissociation_time': interaction_type['base_dissociation_time'],
                      'base_association_time': interaction_type['base_association_time'],
-                     'binder_orientation': interaction_type['binder_orientation'],
-                     'first_site_offset': interaction_type['first_site_offset'],
-                     'second_site_offset': interaction_type['second_site_offset']
+                     'binder_orientation': interaction_type['binder_orientation']
                  }
-        first_site_tag=interaction_type['first_site']['tag']
-        first_site_offset=interaction_type['first_site']['site']
-        second_site_tag=interaction_type['second_site']['tag']
-        second_site_offset=interaction_type['second_site']['site']
-        interaction['first_sites']=[{'name': x['name'],'site': first_site_offset} for x in filter(lambda x: 'tag' in x and x['tag']==first_site_tag,structure_nodes.values())]
-        interaction['second_sites']=[{'name': x['name'],'site': second_site_offset} for x in filter(lambda x: 'tag' in x and x['tag']==second_site_tag,structure_nodes.values())]
+        interaction['sites']=[]
+        for site in interaction_type['sites']:
+            site_tag=site['tag']
+            site_type={}
+            site_type['site_offset']=site['site_offset']
+            site_type['bodies']=[body['name'] for body in filter(lambda x: 'tag' in x and x['tag']==site_tag,structure_nodes.values())]
+            interaction['sites'].append(site_type)
         interactions.append(interaction)
     constraint={'type': 'ASSOCIATION_DISSOCIATION_CONSTRAINT', 'interactions': interactions}
     force_nodes.append(constraint)

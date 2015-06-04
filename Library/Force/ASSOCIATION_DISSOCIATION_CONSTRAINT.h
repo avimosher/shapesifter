@@ -26,19 +26,15 @@ public:
     {}
 
     bool intersectVolume(const AlignedBox<T,d>& volume){
-        //LOG::cout<<"Intersecting volume "<<volume.center().transpose()<<" distance: "<<(volume.center()-point).norm()<<" point: "<<point.transpose()<<std::endl;
         TV half_edge_length=volume.sizes()/2;
         TV offset=data.Minimum_Offset(volume.center(),point);
         TV abs_offset=offset.cwiseAbs();
         TV difference=abs_offset-half_edge_length;
-        return (difference.array()<=proximity).all();
-        //return data.Minimum_Offset(volume.center(),point).squaredNorm()<=proximity_squared;//volume.contains(point);
-    }
+        return (difference.array()<=proximity).all();}
 
     bool intersectObject(int binder){
         candidates.push_back(binder);
-        return false;
-    }
+        return false;}
 };
 
 template<class TV>
@@ -81,14 +77,13 @@ public:
     std::unordered_map<std::pair<int,int>,bool> partners;
 
     struct INTERACTION_TYPE{
-        std::vector<std::tuple<int,TV,bool>> first_sites; // list of body, object space offset pairs
-        std::vector<std::tuple<int,TV,bool>> second_sites;
+        std::vector<std::vector<std::pair<int,bool>>> sites; // list of lists of body, active pairs
+        std::vector<TV> site_offsets;
+        TV site_offset;
         T bond_distance_threshold;
         T bond_orientation_threshold;
-
         T base_association_time;
         T base_dissociation_time;
-        
         ROTATION<TV> relative_orientation;
     };
     std::vector<INTERACTION_TYPE> interaction_types;
@@ -100,20 +95,21 @@ public:
     ~ASSOCIATION_DISSOCIATION_CONSTRAINT(){}
 
 
-    void Archive(cereal::BinaryOutputArchive& archive){archive(constraints,call_count);}
-    void Archive(cereal::BinaryInputArchive& archive){archive(constraints,call_count);}
-
-    template<class Archive>
-    void serialize(Archive& archive)
-    {
-        std::cout<<"Serialize has "<<interaction_types.size()<<" types"<<std::endl;
-        archive(constraints,call_count);}
+    void Archive(cereal::BinaryOutputArchive& archive){
+        archive(constraints,force_memory,partners,call_count);
+        for(int i=0;i<interaction_types.size();i++){archive(interaction_types[i].sites);}
+    }
+    void Archive(cereal::BinaryInputArchive& archive){
+        archive(constraints,force_memory,partners,call_count);
+        for(int i=0;i<interaction_types.size();i++){archive(interaction_types[i].sites);}
+    }
 
     std::shared_ptr<FORCE_REFERENCE<T>> Create_Stored_Force() const;
     void Pack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information);
     void Unpack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_reference);
     void Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_reference,int increment);
     ROTATION<TV> Find_Appropriate_Rotation(const ROTATION<TV>& rotation1,const ROTATION<TV>& rotation2);
+    void Interaction_Candidates(DATA<TV>& data,const T dt,int type_index,int type1,int type2);
     void Linearize(DATA<TV>& data,const T dt,const T time,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic);
     void Viewer(const DATA<TV>& data,osg::Node* node);
     DEFINE_TYPE_NAME("ASSOCIATION_DISSOCIATION_CONSTRAINT")

@@ -22,7 +22,7 @@
         {"type": "BROWNIAN_FORCE",
          "temperature": 900},
         {"type": "VOLUME_EXCLUSION_CONSTRAINT"},
-        {"type": "SYMMETRIC_ASSOCIATION_DISSOCIATION_GROUP",
+        {"type": "ASSOCIATION_DISSOCIATION_GROUP",
          "interactions": [
              {
                  "bond_distance_threshold": 1.5,

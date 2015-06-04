@@ -4,7 +4,6 @@ import sys
 import string
 from mechanics.flexible_linker import *
 from mechanics.association_dissociation_group import *
-from mechanics.symmetric_association_dissociation_group import *
 from mechanics.distribute_bodies import *
 
 data=json.load(sys.stdin)
@@ -29,7 +28,6 @@ handle_node={'FLEXIBLE_LINKER': flexible_linker,
              'DISTRIBUTE_BODIES': distribute_bodies,
              'ASSOCIATION_DISSOCIATION_CONSTRAINT': force,
              'ASSOCIATION_DISSOCIATION_GROUP': association_dissociation_group,
-             'SYMMETRIC_ASSOCIATION_DISSOCIATION_GROUP': symmetric_association_dissociation_group,
              'RIGID_STRUCTURE': rigid_structure,
              'RELATIVE_POSITION_CONSTRAINT': force,
              'ABSOLUTE_POSITION_CONSTRAINT': force}
