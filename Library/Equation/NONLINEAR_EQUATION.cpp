@@ -1,12 +1,10 @@
 #include <Data/DATA.h>
 #include <Driver/SIMULATION.h>
-#include <Equation/EQUATION_STEP.h>
 #include <Equation/NONLINEAR_EQUATION.h>
 #include <Evolution/EVOLUTION.h>
 #include <Evolution/QUALITY.h>
 #include <Force/FORCE.h>
 #include <Force/FORCE_TYPE.h>
-#include <Parsing/PARSER_REGISTRY.h>
 #include <Utilities/EIGEN_HELPERS.h>
 #include <Utilities/LOG.h>
 #include <iostream>
@@ -73,12 +71,6 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> typename TV::Scalar NONLINEAR_EQUATION<TV>::
-Sufficient_Descent_Factor(const Matrix<T,Dynamic,1>& direction)
-{
-    return -direction.dot(matrix*right_hand_side);
-}
-///////////////////////////////////////////////////////////////////////
-template<class TV> typename TV::Scalar NONLINEAR_EQUATION<TV>::
 Evaluate()
 {
     return right_hand_side.squaredNorm()/2;
@@ -103,10 +95,3 @@ System_Size()
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(NONLINEAR_EQUATION)
-DEFINE_AND_REGISTER_PARSER(NONLINEAR_EQUATION,void)
-{
-    auto evolution_step=std::make_shared<EQUATION_STEP<TV>>();
-    evolution_step->equation=new NONLINEAR_EQUATION<TV>();
-    simulation.evolution.push_back(evolution_step);
-    return 0;
-}

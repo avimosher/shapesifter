@@ -30,9 +30,7 @@ DEFINE_AND_REGISTER_PARSER(ANALYTE,void)
     Json::Value prerequisites=node["prerequisites"];
     if(!prerequisites.isNull()){
         for(Json::ValueIterator it=prerequisites.begin();it!=prerequisites.end();it++){
-            analyte->prerequisites.push_back((*it).asString());
-        }
-    }
+            analyte->prerequisites.push_back((*it).asString());}}
     simulation.evolution.push_back(analyte);
     return 0;
 }

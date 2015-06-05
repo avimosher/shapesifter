@@ -1,10 +1,11 @@
 #include <Equation/LINE_SEARCH.h>
+#include <Equation/NONLINEAR_EQUATION.h>
+#include <Parsing/PARSER_REGISTRY.h>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> LINE_SEARCH<TV>::
 LINE_SEARCH()
 {
-
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void LINE_SEARCH<TV>::
@@ -84,9 +85,8 @@ GENERIC_TYPE_DEFINITION(LINE_SEARCH)
 DEFINE_AND_REGISTER_PARSER(LINE_SEARCH,void)
 {
     auto step=std::make_shared<LINE_SEARCH<TV>>();
-    step->equation=new NONLINEAR_EQUATION<TV>();
+    step->equation=std::make_shared<NONLINEAR_EQUATION<TV>>();
     Parse_String(node["name"],step->name);
-    Parse_Scalar(node["precision"],step->precision,step->precision);
     simulation.evolution.push_back(step);
     return 0;
 }

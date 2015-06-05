@@ -4,10 +4,6 @@
 #include <Utilities/TYPE_UTILITIES.h>
 #include <osg/Node>
 
-/*namespace cereal{
-class BinaryOutputArchive;
-};*/
-
 namespace Mechanics{
 template<class TV> class DATA;
 

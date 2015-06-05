@@ -12,8 +12,7 @@ Initialize_Inertia(const T eta)
     T linear_drag=6*M_PI*eta*radius;
     if(!collision_extent){
         moi.translation=TV::Constant(linear_drag);
-        moi.rotation=T_SPIN::Constant(rotational_drag);
-    }
+        moi.rotation=T_SPIN::Constant(rotational_drag);}
     else{
         T p=collision_extent/collision_radius+1;
         T E=sqrt(fabs(p*p-1))/p;
@@ -25,9 +24,7 @@ Initialize_Inertia(const T eta)
         moi.translation=TV::Constant(2*std::pow(p,2.0f/3.0f)/S*equivalent_linear_drag);
         moi.rotation(2)=4.0f/3.0f*E*E/(2-S/(p*p))*rotational_drag;
         for(int spin=0;spin<2;spin++){
-            moi.rotation(spin)=4.0f/3.0f*(1/(p*p)-p*p)/(2-S*(2-1/(p*p)))*rotational_drag;
-        }
-    }
+            moi.rotation(spin)=4.0f/3.0f*(1/(p*p)-p*p)/(2-S*(2-1/(p*p)))*rotational_drag;}}
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_CEREAL_REGISTRATION(RIGID_STRUCTURE)

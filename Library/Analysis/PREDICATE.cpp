@@ -139,11 +139,7 @@ Scalar(const SIMULATION<TV>& simulation)
             for(int s1=-1;s1<=1;s1+=2){
                 distance_factor+=Sample_Point(central_point,s1*TV::Unit(0)*root_two_thirds*contact_disk_radius,simulation.data,receptor,*occluder,height,one_over_distance_limit_squared)/8;
                 for(int s2=-1;s2<=1;s2+=2){
-                    distance_factor+=Sample_Point(central_point,contact_disk_radius*(s1*TV::Unit(0)*one_over_root_six+s2*TV::Unit(2)*one_over_root_two),simulation.data,receptor,*occluder,height,one_over_distance_limit_squared)/8;
-                }
-            }
-        }
-    }
+                    distance_factor+=Sample_Point(central_point,contact_disk_radius*(s1*TV::Unit(0)*one_over_root_six+s2*TV::Unit(2)*one_over_root_two),simulation.data,receptor,*occluder,height,one_over_distance_limit_squared)/8;}}}}
 
     T vertical_angle=Angle_Between(target_bond_orientation,binder_frame.orientation*binder_bond_vector);
     if(fabs(vertical_angle)>out_of_bond_angle_limit){return 0;}

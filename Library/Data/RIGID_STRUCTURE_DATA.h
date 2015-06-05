@@ -51,8 +51,7 @@ public:
     {archive(structures);}
 
     int Structure_Index(const std::string& name) {
-        for(int i=0;i<structures.size();i++){
-            if(structures[i]->name==name){return i;}}
+        for(int i=0;i<structures.size();i++){if(structures[i]->name==name){return i;}}
         return -1;
     }
     
@@ -72,12 +71,6 @@ public:
 
     DEFINE_TYPE_NAME("RIGID_STRUCTURE_DATA")
 };
-}
-
-namespace Eigen{
-namespace internal{
-template<class T,int d> AlignedBox<T,d> bounding_box(const std::shared_ptr<Mechanics::RIGID_STRUCTURE<Matrix<T,d,1>>> structure);
-}
 }
 
 #endif

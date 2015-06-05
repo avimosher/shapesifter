@@ -19,8 +19,6 @@ public:
 
     virtual void Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool stochastic)=0;
     virtual void Linearize_Around(const Vector& x){};
-    virtual Matrix<T,Dynamic,1> Solve()=0;
-    virtual T Sufficient_Descent_Factor(const Matrix<T,Dynamic,1>& direction)=0;
     virtual T Evaluate()=0;
     virtual Matrix<T,Dynamic,1> Gradient()=0;
     virtual SparseMatrix<T> Hessian()=0;

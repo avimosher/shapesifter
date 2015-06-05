@@ -16,7 +16,6 @@ class TWIST
     typedef typename ROTATION<TV>::SPIN T_SPIN;
 public:
     enum DEFINITIONS{STATIC_SIZE=TV::SizeAtCompileTime+T_SPIN::SizeAtCompileTime};
-    //enum DEFINITIONS{STATIC_SIZE=TV::SizeAtCompileTime};
     TV linear;
     T_SPIN angular;
 
@@ -38,10 +37,7 @@ public:
     }
 
     template<class Archive>
-    void serialize(Archive& archive) {
-        archive(linear,angular);
-        //archive(linear);
-    }
+    void serialize(Archive& archive) {archive(linear,angular);}
 };
 }
 #endif

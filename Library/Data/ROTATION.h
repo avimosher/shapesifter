@@ -2,13 +2,9 @@
 #define __ROTATION__
 
 #include <Utilities/EIGEN_HELPERS.h>
+#include <Utilities/MATH.h>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
-
-// TODO: move to math Utilities header
-template <typename T> int sgn(T val) {
-    return (T(0) < val) - (val < T(0));
-}
 
 namespace Mechanics{
 
@@ -110,19 +106,13 @@ class ROTATION<Eigen::Matrix<T,3,1>>:public Eigen::Quaternion<T>
 
     static ROTATION From_Rotated_Vector_Around_Axis(const TV& initial_vector,const TV& final_vector,const TV& axis_direction){
         TV axis_normalized=axis_direction.normalized();
-        T v0_projection=initial_vector.dot(axis_normalized);
-        TV v0_base=initial_vector-v0_projection*axis_normalized;
-        T v1_projection=final_vector.dot(axis_normalized);
-        TV v1_base=final_vector-v1_projection*axis_normalized;
-        TV v0=v0_base.normalized();
-        TV v1=v1_base.normalized();
-        
+        TV v0=(initial_vector-initial_vector.dot(axis_normalized)*axis_normalized).normalized();
+        TV v1=(final_vector-final_vector.dot(axis_normalized)*axis_normalized).normalized();
         TV axis=v0.cross(v1);
         Eigen::Quaternion<T> q;
         q.w()=1+v0.dot(v1);
         q.vec()=axis;
-        q.normalize();
-        return q;
+        return q.normalized();
     }
 };
 

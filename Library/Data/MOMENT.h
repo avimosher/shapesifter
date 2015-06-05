@@ -22,9 +22,7 @@ public:
     ~MOMENT(){}
 
     template<class Archive>
-    void serialize(Archive& archive) {
-        archive(translation,rotation);
-    }
+    void serialize(Archive& archive) {archive(translation,rotation);}
 };
 }
 #endif

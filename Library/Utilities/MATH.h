@@ -3,6 +3,9 @@
 
 #include <cmath>
 
+template <typename T> int sgn(T val) {
+    return (T(0) < val) - (val < T(0));
+}
 template<class T> inline T sqr(T x){return x*x;}
 template<class T> inline T cube(T x){return x*x*x;}
 

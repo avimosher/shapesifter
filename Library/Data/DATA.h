@@ -42,8 +42,7 @@ public:
         if(found==this->end()){
             auto data=std::make_shared<SUBTYPE>();
             this->push_back(data);
-            return data;
-        }
+            return data;}
         return std::static_pointer_cast<SUBTYPE>(*found);
     }
 
@@ -61,7 +60,6 @@ public:
     void Unpack_Positions(const Matrix<T,Dynamic,1>& positions);
     void Step();
     void Viewer(osg::Group*& root);
-
     DEFINE_TYPE_NAME("DATA")
 };
 }

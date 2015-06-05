@@ -104,10 +104,14 @@ public:
         return inertia.asDiagonal();
     }
 
-    template<class Archive>
-    void serialize(Archive& archive) {
-        archive(name,frame,moi,twist,radius,collision_radius,collision_extent);
+    AlignedBox<T,3> Bounding_Box(){
+        TV minimum=frame*(-TV::Unit(2)*collision_extent);
+        TV maximum=frame*(TV::Unit(2)*collision_extent);
+        return AlignedBox<T,3>(minimum.cwiseMin(maximum)-TV::Constant(radius),minimum.cwiseMax(maximum)+TV::Constant(radius));
     }
+
+    template<class Archive>
+    void serialize(Archive& archive) {archive(name,frame,moi,twist,radius,collision_radius,collision_extent);}
 
     void Initialize_Inertia(const T eta);
     DEFINE_TYPE_NAME("RIGID_STRUCTURE")

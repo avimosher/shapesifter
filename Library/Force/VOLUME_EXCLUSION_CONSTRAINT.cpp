@@ -84,14 +84,14 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     std::vector<int> index_list(rigid_data->Size());
     for(int s=0;s<rigid_data->Size();s++){
         auto structure=rigid_data->structures[s];
-        bounding_list[s]=bounding_box(structure);
+        bounding_list[s]=structure->Bounding_Box();
         index_list[s]=s;
     }
     KdBVH<T,3,int> hierarchy(index_list.begin(),index_list.end(),bounding_list.begin(),bounding_list.end());
     
     for(int s1=0;s1<rigid_data->structures.size();s1++){
         auto structure1=rigid_data->structures[s1];
-        BOX_PROXIMITY_SEARCH<TV> intersector(data,bounding_box(structure1));
+        BOX_PROXIMITY_SEARCH<TV> intersector(data,structure1->Bounding_Box());
         BVIntersect(hierarchy,intersector);
         for(int s2 : intersector.candidates){
             if(s1==s2){continue;}
