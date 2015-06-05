@@ -16,15 +16,10 @@ Pack_Forces(STORED_FORCE<T>& stored_force) const
 {
     if(stored_force.Size()!=(*this).size()){
         stored_force.Resize((*this).size());
-        for(int i=0;i<(*this).size();i++){
-            stored_force[i]=(*this)[i]->Create_Stored_Force();
-        }
-    }
-    //stored_force.Resize((*this).size());
+        for(int i=0;i<(*this).size();i++){stored_force[i]=(*this)[i]->Create_Stored_Force();}}
     for(int i=0;i<this->size();i++){
         auto force_type=(*this)[i];
-        force_type->Pack_Forces(stored_force[i]);
-    }
+        force_type->Pack_Forces(stored_force[i]);}
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void FORCE<TV>::
@@ -32,8 +27,7 @@ Unpack_Forces(const STORED_FORCE<T>& stored_force)
 {
     for(int i=0;i<this->size();i++){
         auto force_type=(*this)[i];
-        force_type->Unpack_Forces(stored_force[i]);
-    }
+        force_type->Unpack_Forces(stored_force[i]);}
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void FORCE<TV>::
@@ -41,8 +35,7 @@ Increment_Forces(const STORED_FORCE<T>& stored_force,T ratio)
 {
     for(int i=0;i<this->size();i++){
         auto force_type=(*this)[i];
-        force_type->Increment_Forces(stored_force[i],ratio);
-     }
+        force_type->Increment_Forces(stored_force[i],ratio);}
 }
 /////////////////////////////////////////////////////////////////////// 
 template<class TV> void FORCE<TV>::

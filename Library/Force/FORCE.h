@@ -30,16 +30,13 @@ public:
         if(found==this->end()){
             auto force=std::make_shared<SUBTYPE>();
             this->push_back(force);
-            return force;
-        }
+            return force;}
         return std::static_pointer_cast<SUBTYPE>(*found);
     }
 
     template<class Archive>
     void serialize(Archive& archive)
-    {
-        for(int i=0;i<(*this).size();i++){(*this)[i]->Archive(archive);}
-    }
+    {for(int i=0;i<(*this).size();i++){(*this)[i]->Archive(archive);}}
 
     T Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T target_time);
     int Force_DOF() const;

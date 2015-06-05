@@ -72,42 +72,6 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     //LOG::cout<<"RHS rows: "<<right_hand_side.rows()<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
-template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>::
-Solve()
-{
-    const int solve_iterations=200;
-    //MINRES<SparseMatrix<T>,Lower,RowPreconditioner<T>> solver;
-    //MINRES<SparseMatrix<T>> solver;
-    GMRES<SparseMatrix<T>,IdentityPreconditioner> solver;
-    solver.compute(matrix);
-    //solver.preconditioner().SetDiagonal(conditioner);
-    solver.setMaxIterations(solve_iterations);
-    Matrix<T,Dynamic,1> solution=solver.solve(right_hand_side);
-    LOG::cout<<"Iterations: "<<solver.iterations()<<std::endl;
-    LOG::cout<<"Solution: "<<solution.transpose()<<std::endl;
-    LOG::cout<<"Solve RHS: "<<right_hand_side.transpose()<<std::endl;
-    //LOG::cout<<"A*x: "<<(matrix*solution).transpose()<<std::endl;
-    return solution;
-}
-///////////////////////////////////////////////////////////////////////
-template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>::
-Solve_Trust_Region()
-{
-    const int solve_iterations=200;
-    //MINRES<SparseMatrix<T>,Lower,RowPreconditioner<T>> solver;
-    //MINRES<SparseMatrix<T>> solver;
-    GMRES<SparseMatrix<T>,IdentityPreconditioner> solver;
-    solver.compute(matrix);
-    //solver.preconditioner().SetDiagonal(conditioner);
-    solver.setMaxIterations(solve_iterations);
-    Matrix<T,Dynamic,1> solution=solver.solve(right_hand_side);
-    LOG::cout<<"Iterations: "<<solver.iterations()<<std::endl;
-    LOG::cout<<"Solution: "<<solution.transpose()<<std::endl;
-    LOG::cout<<"Solve RHS: "<<right_hand_side.transpose()<<std::endl;
-    //LOG::cout<<"A*x: "<<(matrix*solution).transpose()<<std::endl;
-    return solution;
-}
-///////////////////////////////////////////////////////////////////////
 template<class TV> typename TV::Scalar NONLINEAR_EQUATION<TV>::
 Sufficient_Descent_Factor(const Matrix<T,Dynamic,1>& direction)
 {

@@ -37,8 +37,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         right_hand_side.template block<d,1>(constraint.s*(t+d),0)-=constraint.direction*stored_forces[i];
         CONSTRAINT_VECTOR constraint_vector;constraint_vector.setZero();
         constraint_vector.template block<1,d>(0,0)=constraint.direction.transpose();
-        terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,constraint.s,constraint_vector));
-    }
+        terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,constraint.s,constraint_vector));}
     for(int i=0;i<angular_constraints.size();i++){
         const ANGULAR_CONSTRAINT& constraint=angular_constraints[i];
         auto structure=rigid_data->structures[constraint.s];
@@ -56,10 +55,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             int index=linear_constraints.size()+i*t+j;
             terms.push_back(Triplet<CONSTRAINT_VECTOR>(index,constraint.s,constraint_vector));
             constraint_rhs[index]=-rotation_error_vector[j];
-            stored_torque[j]=stored_forces[index];
-        }
-        right_hand_side.template block<t,1>(constraint.s*(t+d)+d,0)-=dCdR.transpose()*stored_torque;
-    }
+            stored_torque[j]=stored_forces[index];}
+        right_hand_side.template block<t,1>(constraint.s*(t+d)+d,0)-=dCdR.transpose()*stored_torque;}
     constraint_terms.resize(Size(),rigid_data->Velocity_DOF());
     Flatten_Matrix(terms,constraint_terms);
     stored_forces.resize(Size());

@@ -18,13 +18,11 @@ public:
     RIGID_STRUCTURE_INDEX_MAP(){}
     ~RIGID_STRUCTURE_INDEX_MAP(){}
 
-    static Matrix<T,TV::RowsAtCompileTime,STATIC_SIZE> Velocity_Map(const RIGID_STRUCTURE<TV>& structure,const TV& offset){
-        return Velocity_Map(structure.frame.orientation*offset);
+    static Matrix<T,TV::RowsAtCompileTime,STATIC_SIZE> Map_Twist_To_Velocity(const RIGID_STRUCTURE<TV>& structure,const TV& offset){
+        return Map_Twist_To_Velocity(structure.frame.orientation*offset);
     }
 
-    static Matrix<T,TV::RowsAtCompileTime,STATIC_SIZE> Velocity_Map(const TV& offset){
-        // map to TV
-        // D rows, T+R columns.  D part is identity
+    static Matrix<T,TV::RowsAtCompileTime,STATIC_SIZE> Map_Twist_To_Velocity(const TV& offset){
         Matrix<T,TV::RowsAtCompileTime,STATIC_SIZE> unknown_map;
         unknown_map.template block<d,d>(0,0).setIdentity();
         unknown_map.template block<d,ROTATION<TV>::TwistSize>(0,d)=Cross_Product_Matrix(offset).transpose();

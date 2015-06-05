@@ -5,7 +5,7 @@
 #include <Force/STORED_FORCE.h>
 
 namespace Mechanics{
-    template<class TV> class EQUATION;
+template<class TV> class EQUATION;
     
 template<class TV>
 class TRUST_REGION:public EVOLUTION_STEP<TV>

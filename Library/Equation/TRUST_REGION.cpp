@@ -342,14 +342,12 @@ Get_Norm_Sk(const Preconditioner& X)
 template<class TV> void TRUST_REGION<TV>::
 Get_F(const Vector& x,T& f)
 {
-    //equation->Linearize_Around(x);
     f=equation->Evaluate();
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
 Get_Gradient(const Vector& x,Vector& g)
 {
-    //equation->Linearize_Around(x);
     g=equation->Gradient();
 }
 ///////////////////////////////////////////////////////////////////////

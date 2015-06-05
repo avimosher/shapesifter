@@ -1,16 +1,16 @@
-#include <Data/DATA.h>
-#include <Driver/SIMULATION.h>
-#include <Equation/EQUATION.h>
-#include <Equation/EQUATION_STEP.h>
-#include <Equation/NONLINEAR_EQUATION.h>
-#include <Evolution/QUALITY.h>
-#include <Force/FORCE.h>
-#include <Force/STORED_FORCE.h>
+#include <Equation/LINE_SEARCH.h>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
-template<class TV> void EQUATION_STEP<TV>::
+template<class TV> LINE_SEARCH<TV>::
+LINE_SEARCH()
+{
+
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void LINE_SEARCH<TV>::
 Step(SIMULATION<TV>& simulation,const T dt,const T time)
 {
+/*
     Matrix<T,Dynamic,1> positions;
     Matrix<T,Dynamic,1> current_velocities;
     Matrix<T,Dynamic,1> current_forces;
@@ -39,15 +39,11 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     T c1=.5,c2=.9;
     T last_ratio=.5;
     while(last_norm>epsilon){
-        //std::cout<<"\n\n\n*****LOOP "<<count<<" *******"<<std::endl;
         auto solve_vector=equation->Solve();
-        //auto solve_vector=real_solve_vector.norm()*equation->Gradient().normalized();
-        //std::cout<<"Solve vector: "<<solve_vector.transpose()<<std::endl;
         solve_velocities=solve_vector.block(0,0,data.Velocity_DOF(),1);
         solve_forces.Set(solve_vector.block(data.Velocity_DOF(),0,solve_vector.rows()-data.Velocity_DOF(),1));
 
         T sufficient_descent_factor=equation->Sufficient_Descent_Factor(solve_vector);
-        //std::cout<<"Sufficient descent: "<<sufficient_descent_factor<<std::endl;
         T ratio=2*last_ratio,norm;
         int i=0;
 
@@ -65,7 +61,6 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
             norm=equation->Evaluate();
             std::cout<<"Norm with ratio "<<ratio<<" is "<<norm<<" ("<<last_norm<<")"<<std::endl;
             //T curvature_factor=equation->Sufficient_Descent_Factor(solve_vector);
-            //std::cout<<"Curvature factor: "<<curvature_factor<<std::endl;
             if(norm<=last_norm+c1*sufficient_descent_factor*ratio){// && curvature_factor<0 && std::abs(curvature_factor)<=std::abs(c2*sufficient_descent_factor)){ //TODO: properly implement "sufficient reduction" criterion
                 break;
             }
@@ -80,9 +75,19 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
         force.Pack_Forces(solve_forces); // this resizes the forces correctly
 
         count++;
-        //count++;if(count>35){exit(0);}
     }
     std::cout<<"Steps: "<<count<<std::endl;
+*/
 }
 ///////////////////////////////////////////////////////////////////////
-GENERIC_TYPE_DEFINITION(EQUATION_STEP)
+GENERIC_TYPE_DEFINITION(LINE_SEARCH)
+DEFINE_AND_REGISTER_PARSER(LINE_SEARCH,void)
+{
+    auto step=std::make_shared<LINE_SEARCH<TV>>();
+    step->equation=new NONLINEAR_EQUATION<TV>();
+    Parse_String(node["name"],step->name);
+    Parse_Scalar(node["precision"],step->precision,step->precision);
+    simulation.evolution.push_back(step);
+    return 0;
+}
+
