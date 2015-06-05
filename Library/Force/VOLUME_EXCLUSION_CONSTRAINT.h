@@ -30,13 +30,11 @@ public:
     bool intersectVolume(const AlignedBox<T,d>& volume){
         TV offset=data.Minimum_Offset(volume.center(),box.center());
         TV abs_offset=offset.cwiseAbs();
-        return (abs_offset.array()<=((volume.sizes()+box.sizes())/2).array()).all();
-    }
+        return (abs_offset.array()<=((volume.sizes()+box.sizes())/2).array()).all();}
 
     bool intersectObject(int structure){
         candidates.push_back(structure);
-        return false;
-    }
+        return false;}
 };
 
 template<class T>

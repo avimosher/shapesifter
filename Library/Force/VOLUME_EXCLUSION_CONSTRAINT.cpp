@@ -30,9 +30,7 @@ Pack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information)
     information->constraints=constraints;
     information->value.resize(constraints.size());
     for(int i=0;i<information->constraints.size();i++){
-        std::pair<int,T> memory=force_memory[information->constraints[i]];
-        information->value[i]=memory.second;
-    }
+        information->value[i]=force_memory[information->constraints[i]].second;}
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
@@ -40,8 +38,7 @@ Unpack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information)
 {
     auto information=std::static_pointer_cast<const STORED_VOLUME_EXCLUSION_CONSTRAINT<T>>(force_information);
     for(int i=0;i<information->constraints.size();i++){
-        force_memory[information->constraints[i]]=std::pair<int,T>(call_count,information->value[i]);
-    }
+        force_memory[information->constraints[i]]=std::pair<int,T>(call_count,information->value[i]);}
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
@@ -53,16 +50,11 @@ Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,int incre
         if(force_memory.count(information->constraints[i])){// this could be compressed if I could be sure that the force would be initialized properly
             auto& memory=force_memory[information->constraints[i]];
             memory.first=call_count;
-            memory.second+=increment*information->value[i];
-        }
+            memory.second+=increment*information->value[i];}
         else{
-            force_memory[information->constraints[i]]=std::pair<int,T>(call_count,increment*information->value[i]);
-        }
-    }
+            force_memory[information->constraints[i]]=std::pair<int,T>(call_count,increment*information->value[i]);}}
     for(int i=0;i<constant_forces.size();i++){
-        auto& memory=force_memory[constant_forces[i]];
-        memory.first=call_count;
-    }
+        force_memory[constant_forces[i]].first=call_count;}
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
@@ -72,21 +64,16 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     typedef Matrix<T,1,RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE> CONSTRAINT_VECTOR;
     std::vector<Triplet<CONSTRAINT_VECTOR>> terms;
     std::vector<T> rhs;
-    RIGID_STRUCTURE_INDEX_MAP<TV> index_map;
     constraints.clear();
     constant_forces.clear();
-    if(stochastic){
-        for(auto memory : force_memory){memory.second.second=(T)0;}}
+    if(stochastic){for(auto memory : force_memory){memory.second.second=(T)0;}}
 
-    // let's say I rebuild the hierarchy every solve step
-    // pass in list of indices and pre-built volumes    
     std::vector<AlignedBox<T,d>> bounding_list(rigid_data->Size());
     std::vector<int> index_list(rigid_data->Size());
     for(int s=0;s<rigid_data->Size();s++){
         auto structure=rigid_data->structures[s];
         bounding_list[s]=structure->Bounding_Box();
-        index_list[s]=s;
-    }
+        index_list[s]=s;}
     KdBVH<T,3,int> hierarchy(index_list.begin(),index_list.end(),bounding_list.begin(),bounding_list.end());
     
     for(int s1=0;s1<rigid_data->structures.size();s1++){
@@ -103,15 +90,12 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             T slack_distance=-.005;
             T distance_condition=-.001;
             std::pair<int,T>& remembered=force_memory[CONSTRAINT(s1,s2)];
-            //LOG::cout<<"Constraint between "<<s1<<" and "<<s2<<" remembered force "<<remembered.second<<" count "<<remembered.first<<" "<<call_count<<" violation "<<constraint_violation<<" direction "<<direction.transpose()<<std::endl;
             if(constraint_violation<0){
                 TV x1=structure1->frame.position+offset1;
                 TV x2=structure2->frame.position+offset2;
                 TV object_offset1=structure1->frame.orientation.inverse()*offset1;
                 TV object_offset2=structure2->frame.orientation.inverse()*offset2;
-                if(remembered.first!=call_count){
-                    remembered.second=0;
-                }
+                if(remembered.first!=call_count){remembered.second=0;}
                 CONSTRAINT_VECTOR dC_dA2=RIGID_STRUCTURE_INDEX_MAP<TV>::dC_dA(*structure2,object_offset2,x1,x2,direction);
                 CONSTRAINT_VECTOR dC_dA1=RIGID_STRUCTURE_INDEX_MAP<TV>::dC_dA(*structure1,object_offset1,x1,x2,direction);
                 T right_hand_side_force;
@@ -120,8 +104,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                     terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s2,dC_dA2));
                     terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s1,-dC_dA1));
                     rhs.push_back(-constraint_violation+slack_distance);
-                    constraints.push_back(CONSTRAINT(s1,s2));
-                }
+                    constraints.push_back(CONSTRAINT(s1,s2));}
                 else if(remembered.first==call_count){ // exponential falloff
                     T exponent=-1/(1-sqr(constraint_violation/slack_distance-1));
                     right_hand_side_force=remembered.second*std::exp(1+exponent);
@@ -137,13 +120,9 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                     Flatten_Matrix_Term(s1,s1,dA1dx1,force_terms);
                     Flatten_Matrix_Term(s1,s2,dA1dx2,force_terms);
                     Flatten_Matrix_Term(s2,s1,dA2dx1,force_terms);
-                    Flatten_Matrix_Term(s2,s2,dA2dx2,force_terms);
-                }
+                    Flatten_Matrix_Term(s2,s2,dA2dx2,force_terms);}
                 right_hand_side.template block<t+d,1>(s1*(t+d),0)+=dC_dA1.transpose()*right_hand_side_force;
-                right_hand_side.template block<t+d,1>(s2*(t+d),0)-=dC_dA2.transpose()*right_hand_side_force;
-            }
-        }
-    }
+                right_hand_side.template block<t+d,1>(s2*(t+d),0)-=dC_dA2.transpose()*right_hand_side_force;}}}
     constraint_terms.resize(constraints.size(),rigid_data->Velocity_DOF());
     constraint_rhs.resize(rhs.size(),1);
     for(int i=0;i<rhs.size();i++){constraint_rhs(i,0)=rhs[i];}
@@ -183,8 +162,7 @@ Viewer(const DATA<TV>& data,osg::Node* node)
         lineGeometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES,0,2));
         auto lineGeode=new osg::Geode();
         lineGeode->addDrawable(lineGeometry);
-        volume_exclusion_group->addChild(lineGeode);
-    }
+        volume_exclusion_group->addChild(lineGeode);}
     group->addChild(volume_exclusion_group);
 }
 ///////////////////////////////////////////////////////////////////////
