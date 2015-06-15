@@ -96,8 +96,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 TV object_offset1=structure1->frame.orientation.inverse()*offset1;
                 TV object_offset2=structure2->frame.orientation.inverse()*offset2;
                 if(remembered.first!=call_count){remembered.second=0;}
-                CONSTRAINT_VECTOR dC_dA2=RIGID_STRUCTURE_INDEX_MAP<TV>::dC_dA(*structure2,object_offset2,x1,x2,direction);
-                CONSTRAINT_VECTOR dC_dA1=RIGID_STRUCTURE_INDEX_MAP<TV>::dC_dA(*structure1,object_offset1,x1,x2,direction);
+                CONSTRAINT_VECTOR dC_dA2=RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(*structure2,object_offset2,x1,x2,direction);
+                CONSTRAINT_VECTOR dC_dA1=RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(*structure1,object_offset1,x1,x2,direction);
                 T right_hand_side_force;
                 if(constraint_violation<slack_distance){
                     right_hand_side_force=remembered.second;

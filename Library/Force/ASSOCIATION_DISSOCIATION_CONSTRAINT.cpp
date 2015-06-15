@@ -28,7 +28,7 @@ Pack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information)
     for(int i=0;i<information->constraints.size();i++){
         FORCE_VECTOR& value=force_memory[information->constraints[i]].second;
         information->value.template block<d,1>(d*i,0)=value.template block<d,1>(0,0);;
-        information->value.template block<t,1>(d*information->constraints.size()+t*i,0)=value.template block<t,1>(d,0);;}
+        information->value.template block<t,1>(d*information->constraints.size()+t*i,0)=value.template block<t,1>(d,0);}
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::
@@ -116,6 +116,7 @@ Interaction_Candidates(DATA<TV>& data,const T dt,int type_index,int type1,int ty
                 T cumulative_distribution=1-exp(-association_rate*dt);
                 constraint_active=data.random.Uniform((T)0,(T)1)<cumulative_distribution;
                 if(constraint_active){
+                    std::cout<<"CONSTRAINT ACTIVATED: "<<s1<<" "<<s2<<std::endl;
                     //std::cout<<"CONSTRAINT ACTIVATED: "<<s1<<" "<<s2<<" "<<candidate_first<<" "<<candidate_second<<" remembered: "<<remembered.first<<" call count: "<<call_count<<" interaction: "<<i<<" test: "<<std::get<1>(interaction_type.sites[candidate_first])<<" "<<std::get<1>(interaction_type.sites[candidate_second])<<" "<<partners[partnership]<<std::endl;
                     std::get<1>(first_site)=true;
                     std::get<1>(second_site)=true;
@@ -166,8 +167,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         ROTATION<TV> RC=Find_Appropriate_Rotation(R1_current*R1_base,R2_current*R2_base);
         T_SPIN first_rotation_error_vector,second_rotation_error_vector;
         
-        ANGULAR_CONSTRAINT_MATRIX dC_dA1=RIGID_STRUCTURE_INDEX_MAP<TV>::Construct_Constraint_Matrix(R1_current,R1_base*RC,first_rotation_error_vector)*angular_to_constraint;
-        ANGULAR_CONSTRAINT_MATRIX dC_dA2=RIGID_STRUCTURE_INDEX_MAP<TV>::Construct_Constraint_Matrix(R2_current,R2_base*RC,second_rotation_error_vector)*angular_to_constraint;
+        ANGULAR_CONSTRAINT_MATRIX dC_dA1=RIGID_STRUCTURE_INDEX_MAP<TV>::Orientation_Constraint_Matrix(R1_current,R1_base*RC,first_rotation_error_vector)*angular_to_constraint;
+        ANGULAR_CONSTRAINT_MATRIX dC_dA2=RIGID_STRUCTURE_INDEX_MAP<TV>::Orientation_Constraint_Matrix(R2_current,R2_base*RC,second_rotation_error_vector)*angular_to_constraint;
         angular_terms.push_back(Triplet<ANGULAR_CONSTRAINT_MATRIX>(i,s2,dC_dA2.eval()));
         angular_terms.push_back(Triplet<ANGULAR_CONSTRAINT_MATRIX>(i,s1,-dC_dA1.eval()));
         ROTATION<TV> composed_rotation(relative_orientation_inverse*(structure2->frame.orientation*RC).inverse()*(structure1->frame.orientation*RC));

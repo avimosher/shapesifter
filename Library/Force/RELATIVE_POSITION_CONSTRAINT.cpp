@@ -34,25 +34,19 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         FRAME<TV> frame2=structure2->frame;
         TV direction=data.Minimum_Offset(frame1*constraint.v1,frame2*constraint.v2);
         T distance=direction.norm();
-        /*LOG::cout<<"S1 position: "<<frame1.position.transpose()<<" constraint point: "<<(frame1*constraint.v1).transpose()<<std::endl;
-          LOG::cout<<"S2 position: "<<frame2.position.transpose()<<" constraint point: "<<(frame2*constraint.v2).transpose()<<std::endl;*/
-        //LOG::cout<<"Constraint distance: "<<distance<<" between "<<structure1->name<<" and "<<structure2->name<<" direction "<<direction.transpose()<<" force "<<stored_forces(i)<<std::endl;
-        LOG::cout<<"Constraint distance: "<<distance<<" between "<<body_index1<<" and "<<body_index2<<" direction "<<direction.transpose()<<" force "<<stored_forces(i)<<" v1: "<<constraint.v1.transpose()<<" v2: "<<constraint.v2.transpose()<<std::endl;
-        LOG::cout<<structure1->name<<" and "<<structure2->name<<std::endl;
         TV x1=frame1*constraint.v1;
         TV x2=frame2*constraint.v2;
-        CONSTRAINT_VECTOR dC_dA2=RIGID_STRUCTURE_INDEX_MAP<TV>::dC_dA(*structure2,constraint.v2,x1,x2,direction);
-        CONSTRAINT_VECTOR dC_dA1=RIGID_STRUCTURE_INDEX_MAP<TV>::dC_dA(*structure1,constraint.v1,x1,x2,direction);
+        CONSTRAINT_VECTOR dC_dA2=RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(*structure2,constraint.v2,x1,x2,direction);
+        CONSTRAINT_VECTOR dC_dA1=RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(*structure1,constraint.v1,x1,x2,direction);
         terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index2,dC_dA2));
         terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index1,-dC_dA1));
-        Matrix<T,t+d,t+d> force_balance_contribution2=stored_forces(i)*RIGID_STRUCTURE_INDEX_MAP<TV>::dF_dA(*structure2,constraint.v2,x1,x2,direction);
-        Matrix<T,t+d,t+d> force_balance_contribution1=stored_forces(i)*RIGID_STRUCTURE_INDEX_MAP<TV>::dF_dA(*structure1,constraint.v1,x1,x2,direction); // the two negatives
+        Matrix<T,t+d,t+d> force_balance_contribution2=stored_forces(i)*RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dTwist(*structure2,constraint.v2,x1,x2,direction);
+        Matrix<T,t+d,t+d> force_balance_contribution1=stored_forces(i)*RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dTwist(*structure1,constraint.v1,x1,x2,direction); // the two negatives
                                                                                                                                                                // actually cancel out.  No
                                                                                                                                                                // net negative sign
         TV offset1=frame1.orientation*constraint.v1;
         TV offset2=frame2.orientation*constraint.v2;
         constraint_rhs[i]=(constraint.target_distance-distance);
-        //LOG::cout<<"F_i: "<<constraint_rhs[i]<<std::endl;
 #if 1
         for(int j=0;j<t+d;j++){
             for(int k=0;k<t+d;k++){
@@ -66,7 +60,6 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         }
 #endif
         // contribution to force-balance RHS
-        //LOG::cout<<"REL RHS contribution: "<<(DC_DA1.transpose()*stored_forces[i]).transpose()<<std::endl;
         right_hand_side.template block<t+d,1>(body_index1*(t+d),0)+=dC_dA1.transpose()*stored_forces[i];
         right_hand_side.template block<t+d,1>(body_index2*(t+d),0)-=dC_dA2.transpose()*stored_forces[i];
     }

@@ -46,7 +46,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         ROTATION<TV> base(current.inverse()*frame.orientation);
         ROTATION<TV> RC=Find_Appropriate_Rotation(frame.orientation,constraint.orientation);
         T_SPIN rotation_error_vector;
-        Matrix<T,t,t> dCdR=RIGID_STRUCTURE_INDEX_MAP<TV>::Construct_Constraint_Matrix(current,base*RC,constraint.orientation*RC,rotation_error_vector);
+        Matrix<T,t,t> dCdR=RIGID_STRUCTURE_INDEX_MAP<TV>::Relative_Orientation_Constraint_Matrix(current,base*RC,constraint.orientation*RC,rotation_error_vector);
         LOG::cout<<"dCdR: "<<dCdR<<std::endl;
         T_SPIN stored_torque;
         for(int j=0;j<d;j++){
