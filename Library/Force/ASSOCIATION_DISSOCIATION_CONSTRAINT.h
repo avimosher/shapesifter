@@ -79,7 +79,6 @@ public:
     struct INTERACTION_TYPE{
         std::vector<std::vector<std::pair<int,bool>>> sites; // list of lists of body, active pairs
         std::vector<TV> site_offsets;
-        TV site_offset;
         T bond_distance_threshold;
         T bond_orientation_threshold;
         T base_association_time;

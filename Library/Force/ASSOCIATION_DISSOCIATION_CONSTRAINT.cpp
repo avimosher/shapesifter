@@ -81,7 +81,7 @@ Interaction_Candidates(DATA<TV>& data,const T dt,int type_index,int type1,int ty
         auto& first_site=first_sites[candidate_first];
         int s1=std::get<0>(first_site);
         auto structure1_frame=rigid_data->structures[s1]->frame;
-        auto first_site_position=structure1_frame*interaction_type.site_offset;
+        auto first_site_position=structure1_frame*interaction_type.site_offsets[type1];
         PROXIMITY_SEARCH<TV> proximity_search(data,first_site_position,interaction_type.bond_distance_threshold);
         BVIntersect(hierarchy_second_site,proximity_search);
         for(auto candidate_second : proximity_search.candidates){
@@ -104,14 +104,15 @@ Interaction_Candidates(DATA<TV>& data,const T dt,int type_index,int type1,int ty
                     std::cout<<"CONSTRAINT DEACTIVATED: "<<s1<<" "<<s2<<std::endl;}}
             else if(!std::get<1>(first_site) && !std::get<1>(second_site) && !partners[partnership]){ // do not re-bind already bound
                 auto structure2_frame=rigid_data->structures[s2]->frame;
-                auto second_site_position=structure2_frame*interaction_type.site_offset;
+                auto second_site_position=structure2_frame*interaction_type.site_offsets[type2];
                 T bond_distance=data.Minimum_Offset(first_site_position,second_site_position).norm();
                 T orientation_compatibility=T(),position_compatibility=T();
                 if(bond_distance<interaction_type.bond_distance_threshold){
                     position_compatibility=1-bond_distance/interaction_type.bond_distance_threshold;
                     ROTATION<TV> composed_rotation(structure2_frame.orientation.inverse()*structure1_frame.orientation*interaction_type.relative_orientation.inverse());
                     T angle_magnitude=std::abs(composed_rotation.Angle());
-                    orientation_compatibility=std::max((T)0,1-std::min(angle_magnitude,2*(T)M_PI-angle_magnitude)/interaction_type.bond_orientation_threshold);}
+                    orientation_compatibility=std::max((T)0,1-std::min(angle_magnitude,2*(T)M_PI-angle_magnitude)/interaction_type.bond_orientation_threshold);
+                }
                 T association_rate=orientation_compatibility*position_compatibility/interaction_type.base_association_time;
                 T cumulative_distribution=1-exp(-association_rate*dt);
                 constraint_active=data.random.Uniform((T)0,(T)1)<cumulative_distribution;
