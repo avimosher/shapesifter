@@ -13,15 +13,13 @@ class TRUST_REGION:public EVOLUTION_STEP<TV>
     typedef typename TV::Scalar T;
     typedef Matrix<T,Dynamic,1> Vector;
     typedef SimplicialLLT<SparseMatrix<T>> Preconditioner;
-    //typedef SparseLU<SparseMatrix<T>> Preconditioner;
 public:
     enum STATUS{UNKNOWN,CONTINUE,SUCCESS,EMAXITER,ETOLG,MOVED,EXPAND,CONTRACT,FAILEDCG,ENEGMOVE,NEGRATIO};
     EQUATION<TV>* equation;
-    SparseMatrix<T> Bk;
+    SparseMatrix<T> hessian;
     Preconditioner PrecondLLt;
     Vector xk;
     Vector gk;
-    Vector yk;
     Vector sk;
     Vector try_x;
     Vector try_g;
@@ -32,9 +30,8 @@ public:
     Vector yj;
     Vector wd;
     Vector wz;
-    T try_f,gs;
     T f;
-    T norm_gk,ared,pred,sBs,ap,norm_sk_scaled;
+    T norm_gk;
     
     T radius;
     T min_radius;
@@ -45,7 +42,6 @@ public:
     T contract_threshold;
     T expand_threshold_ap;
     T expand_threshold_rad;
-    T function_scale_factor;
     int preconditioner_refresh_frequency;
     int max_iterations,num_CG_iterations,trust_iterations;
     int nvars;
@@ -75,7 +71,6 @@ public:
     void Get_Gradient(const Vector& x,Vector& g);
     void UPz(const Preconditioner& X,const Vector& v,Vector& out);
     T Find_Tau(const Vector& z,const Vector& d);
-    void Get_FDF(const Vector& x,T& f,Vector& g);
     DEFINE_TYPE_NAME("TRUST_REGION")
 };
 }
