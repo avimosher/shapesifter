@@ -8,7 +8,7 @@ cd External_Libraries
 
 if [ ! -d cereal ]
 then
-    wget https://github.com/USCiLab/cereal/archive/v1.1.1.tar.gz
+    wget https://github.com/USCiLab/cereal/archive/v1.1.2.tar.gz
     tar -xvf v1.1.2.tar.gz
     mv cereal-1.1.2 cereal
 fi
@@ -36,9 +36,10 @@ cd ..
 
 if [ ! -d osg ]
 then
-    wget http://www.openscenegraph.org/downloads/stable_releases/OpenSceneGraph-3.0/source/OpenSceneGraph-3.0.0.zip
-    unzip OpenSceneGraph-3.0.0.zip
-    mv OpenSceneGraph-3.0.0 osg
+    wget http://www.openscenegraph.org/downloads/stable_releases/OpenSceneGraph-3.0/source/OpenSceneGraph-3.2.1.zip
+    wget http://www.openscenegraph.org/downloads/developer_releases/OpenSceneGraph-3.2.1.zip
+    unzip OpenSceneGraph-3.2.1.zip
+    mv OpenSceneGraph-3.2.1 osg
 fi
 
 cd osg
