@@ -11,6 +11,8 @@ then
     wget https://github.com/USCiLab/cereal/archive/v1.1.2.tar.gz
     tar -xvf v1.1.2.tar.gz
     mv cereal-1.1.2 cereal
+    patch cereal/include/types/polymorphic.hpp patches/cereal/polymorphic.patch
+    patch cereal/include/details/polymorphic_impl.hpp patches/cereal/polymorphic_impl.patch
 fi
 
 if [ ! -d eigen ]

@@ -1,0 +1,23 @@
+--- cereal-1.1.2/include/cereal/types/polymorphic.hpp	2015-06-08 14:13:21.000000000 -0400
++++ cereal/include/cereal/types/polymorphic.hpp	2015-06-27 17:18:44.112000000 -0400
+@@ -79,16 +79,16 @@
+ 
+     Polymorphic support in cereal requires RTTI to be
+     enabled */
+-#define CEREAL_REGISTER_TYPE(T)                         \
++#define CEREAL_REGISTER_TYPE(...)                         \
+   namespace cereal {                                    \
+   namespace detail {                                    \
+   template <>                                           \
+-  struct binding_name<T>                                \
++  struct binding_name<__VA_ARGS__>                                \
+   {                                                     \
+-    STATIC_CONSTEXPR char const * name() { return #T; } \
++    STATIC_CONSTEXPR char const * name() { return #__VA_ARGS__; } \
+   };                                                    \
+   } } /* end namespaces */                              \
+-  CEREAL_BIND_TO_ARCHIVES(T)
++  CEREAL_BIND_TO_ARCHIVES(__VA_ARGS__)
+ 
+ //! Registers a polymorphic type with cereal, giving it a
+ //! user defined name
