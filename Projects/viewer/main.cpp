@@ -98,7 +98,7 @@ public:
         if(simulation.Read(frame+increment)){frame+=increment;}
         if(writing){
           std::stringstream stream;
-          stream<<"test/test."<<std::setw(5)<<std::setfill('0')<<frame<<".png";
+          stream<<simulation.output_directory+"/image."<<std::setw(5)<<std::setfill('0')<<frame<<".png";
           capture->setFrame(stream.str());}
         simulation.Viewer(root);
     }
