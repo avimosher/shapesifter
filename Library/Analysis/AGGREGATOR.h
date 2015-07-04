@@ -65,5 +65,47 @@ public:
     DEFINE_TYPE_NAME("sum")
 };
 
+template<class TV>
+class HISTOGRAM_AGGREGATOR:public AGGREGATOR<TV>
+{
+    typedef typename TV::Scalar T;
+public:
+    int number_of_bins;
+    T minimum_value;
+    T maximum_value;
+    T bin_width;
+    std::vector<int> bins;
+    HISTOGRAM_AGGREGATOR();
+
+    virtual void Aggregate_Subtype(const T aggregate)
+    {int bin_index=clamp((int)((aggregate-minimum_value)/bin_width),0,number_of_bins-1);
+    bins[bin_index]++;}
+
+    virtual void Aggregate_Subtype(const TV& aggregate)
+    {}
+
+    virtual void Print_Report(std::ostream& out);
+    DEFINE_TYPE_NAME("histogram")
+};
+
+template<class TV>
+class RECORD_AGGREGATOR:public AGGREGATOR<TV>
+{
+    typedef typename TV::Scalar T;
+public:
+    std::vector<T> scalar_record;
+    std::vector<TV> vector_record;
+    RECORD_AGGREGATOR();
+
+    virtual void Aggregate_Subtype(const T aggregate)
+    {scalar_record.push_back(aggregate);}
+
+    virtual void Aggregate_Subtype(const TV& aggregate)
+    {vector_record.push_back(aggregate);}
+
+    virtual void Print_Report(std::ostream& out);
+    DEFINE_TYPE_NAME("record")
+};
+
 }
 #endif

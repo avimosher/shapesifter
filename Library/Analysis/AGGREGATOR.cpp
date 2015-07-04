@@ -62,3 +62,46 @@ DEFINE_AND_REGISTER_TEMPLATE_PARSER(SUM_AGGREGATOR,AGGREGATOR)
 }
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
+template<class TV> HISTOGRAM_AGGREGATOR<TV>::
+HISTOGRAM_AGGREGATOR()
+{}
+//////////////////////////////////////////////////////////////////////
+template<class TV> void HISTOGRAM_AGGREGATOR<TV>::
+Print_Report(std::ostream& out)
+{
+    std::cout<<bins[1];
+    for(int i=1;i<number_of_bins;i++) std::cout<<"\t"<<bins[i]<<std::endl;
+}
+//////////////////////////////////////////////////////////////////////
+GENERIC_TYPE_DEFINITION(HISTOGRAM_AGGREGATOR)
+DEFINE_AND_REGISTER_TEMPLATE_PARSER(HISTOGRAM_AGGREGATOR,AGGREGATOR)
+{
+    auto aggregator=std::make_shared<HISTOGRAM_AGGREGATOR<TV>>();
+    Parse_Scalar(node["bins"],aggregator->number_of_bins);
+    Parse_Scalar(node["min"],aggregator->minimum_value);
+    Parse_Scalar(node["max"],aggregator->maximum_value);
+    aggregator->bins.resize(aggregator->number_of_bins);
+    aggregator->bin_width=(aggregator->maximum_value-aggregator->minimum_value)/aggregator->number_of_bins;
+    return aggregator;
+}
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+template<class TV> RECORD_AGGREGATOR<TV>::
+RECORD_AGGREGATOR()
+{}
+//////////////////////////////////////////////////////////////////////
+template<class TV> void RECORD_AGGREGATOR<TV>::
+Print_Report(std::ostream& out)
+{
+    for(int i=0;i<scalar_record.size();i++){std::cout<<scalar_record[i]<<std::endl;}
+    for(int i=0;i<vector_record.size();i++){std::cout<<vector_record[i]<<std::endl;}
+}
+//////////////////////////////////////////////////////////////////////
+GENERIC_TYPE_DEFINITION(RECORD_AGGREGATOR)
+DEFINE_AND_REGISTER_TEMPLATE_PARSER(RECORD_AGGREGATOR,AGGREGATOR)
+{
+    auto aggregator=std::make_shared<RECORD_AGGREGATOR<TV>>();
+    return aggregator;
+}
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////

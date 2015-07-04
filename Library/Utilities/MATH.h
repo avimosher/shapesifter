@@ -18,4 +18,7 @@ template<class T> inline T finite(const T x)
 template<class T> inline T minmag(T a,T b)
 {if(std::abs(a)<std::abs(b)){return a;} return b;}
 
+template<class T> T clamp(T a,T minimum,T maximum)
+{if(a<minimum){return minimum;}if(a>maximum){return maximum;}return a;}
+
 #endif

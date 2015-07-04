@@ -17,10 +17,18 @@
         {"type": "ANALYTE",
          "prerequisites": ["evolution"],
          "predicate": {
-             "type": "rigid_structure_position",
-             "name": "object",
-             "offset": [0,0,0]},
-         "aggregator": {"type": "average"}
+             "type": "distance",
+             "first": {
+                 "type": "rigid_structure_position",
+                 "name": "object",
+                 "offset": [0,0,0]},
+             "second": {
+                 "type": "vector",
+                 "vector": [1,1,1]}},
+         "aggregator": {"type": "record",
+                       "min": 0,
+                       "max": 2,
+                       "bins": 10}
         }
     ]
 }
