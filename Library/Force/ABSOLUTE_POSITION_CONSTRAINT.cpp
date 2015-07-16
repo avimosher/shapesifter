@@ -57,6 +57,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             constraint_rhs[index]=-rotation_error_vector[j];
             stored_torque[j]=stored_forces[index];}
         right_hand_side.template block<t,1>(constraint.s*(t+d)+d,0)-=dCdR.transpose()*stored_torque;}
+    LOG::cout<<"ABSOLUTE POSITION CONSTRAINT RHS"<<std::endl;
+    LOG::cout<<constraint_rhs.transpose()<<std::endl;
     constraint_terms.resize(Size(),rigid_data->Velocity_DOF());
     Flatten_Matrix(terms,constraint_terms);
     stored_forces.resize(Size());

@@ -151,7 +151,7 @@ Viewer(const DATA<TV>& data,osg::Node* node)
         (*vertices)[1].set(secondAttachment(0),secondAttachment(1),secondAttachment(2));
         lineGeometry->setVertexArray(vertices);
         auto colors=new osg::Vec4Array;
-        colors->push_back(osg::Vec4(0.0f,0.0f,1.0f,1.0f));
+        colors->push_back(osg::Vec4(1.0f,0.0f,0.0f,1.0f));
         lineGeometry->setColorArray(colors);
         lineGeometry->setColorBinding(osg::Geometry::BIND_OVERALL);
         auto normals=new osg::Vec3Array;
@@ -160,6 +160,11 @@ Viewer(const DATA<TV>& data,osg::Node* node)
         lineGeometry->setNormalBinding(osg::Geometry::BIND_OVERALL);
         
         lineGeometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES,0,2));
+
+        osg::StateSet* stateset=new osg::StateSet;
+        stateset->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
+        lineGeometry->setStateSet(stateset);
+
         auto lineGeode=new osg::Geode();
         lineGeode->addDrawable(lineGeometry);
         volume_exclusion_group->addChild(lineGeode);}

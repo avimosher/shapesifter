@@ -127,7 +127,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
         iteration++;
         status=Update_One_Step();
         LOG::cout<<"norm_gk: "<<norm_gk<<" norm_gk/sqrt(nvars): "<<norm_gk/sqrt(T(nvars))<<std::endl;
-        if(norm_gk/sqrt(T(nvars))<=precision){status=SUCCESS;}
+        if(norm_gk/sqrt(T(nvars))<=precision && f<=precision){status=SUCCESS;}
         if(iteration>=max_iterations){status=EMAXITER;}
         if(radius<=min_radius){ // trust region collapse
             status=ETOLG;
@@ -183,10 +183,10 @@ Update_One_Step()
             predicted_reduction=-(gs+sBs/2);
             if(predicted_reduction<0){step_status=ENEGMOVE;}
             step_quality=actual_reduction/predicted_reduction;
-            LOG::cout<<"AP: "<<step_quality<<" ared: "<<actual_reduction<<" pred: "<<predicted_reduction<<" radius: "<<radius<<" gs: "<<gs<<" sBs: "<<sBs<<std::endl;
-            LOG::cout<<"Gk: "<<gk.transpose()<<std::endl;
-            LOG::cout<<"Sk: "<<sk.transpose()<<std::endl;
-            LOG::cout<<"Sk./Gk: "<<sk.cwiseQuotient(gk).transpose()<<std::endl;
+            LOG::cout<<"AP: "<<step_quality<<" ared: "<<actual_reduction<<" pred: "<<predicted_reduction<<" radius: "<<radius<<" gs: "<<gs<<" sBs: "<<sBs<<" norm_sk_scaled: "<<norm_sk_scaled<<std::endl;
+            //LOG::cout<<"Gk: "<<gk.transpose()<<std::endl;
+            //LOG::cout<<"Sk: "<<sk.transpose()<<std::endl;
+            //LOG::cout<<"Sk./Gk: "<<sk.cwiseQuotient(gk).transpose()<<std::endl;
         }
         else{step_status=FAILEDCG;}
     }

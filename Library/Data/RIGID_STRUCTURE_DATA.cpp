@@ -110,7 +110,7 @@ Viewer(osg::Node* node)
                 unitSphereDrawable->setColor(color);
                 basicShapesGeode->addDrawable(unitSphereDrawable);
             }
-#if 0
+#if 1
             auto lineGeometry=new osg::Geometry();
             auto vertices=new osg::Vec3Array(2);
             (*vertices)[0].set(0,0,0);

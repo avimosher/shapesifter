@@ -9,6 +9,7 @@
         {"type": "RIGID_STRUCTURE",
          "name": "left",
          "position": [3.5, 2, 1],
+         "collision_extent": 1,
          "radius": 1
         },
         {"type": "BROWNIAN_FORCE",

@@ -47,7 +47,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         TV offset1=frame1.orientation*constraint.v1;
         TV offset2=frame2.orientation*constraint.v2;
         constraint_rhs[i]=(constraint.target_distance-distance);
-#if 1
+#if 0
         for(int j=0;j<t+d;j++){
             for(int k=0;k<t+d;k++){
                 if(fabs(force_balance_contribution1(j,k))>1e-6){
@@ -59,6 +59,13 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             }
         }
 #endif
+
+        for(int j=0;j<2;j++){
+            for(int k=0;k<2;j++){
+                for(int t1=0;t1<2;t1++){
+                    for(int t2=0;t2<2;t2++){
+                        // we're in one sub-block of the matrix here
+                        Set_Block(force_terms,body_index1,body_index2,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dTwist(structures[j],j,k,t1,t2,positions,direction));}}}}
         // contribution to force-balance RHS
         right_hand_side.template block<t+d,1>(body_index1*(t+d),0)+=dC_dA1.transpose()*stored_forces[i];
         right_hand_side.template block<t+d,1>(body_index2*(t+d),0)-=dC_dA2.transpose()*stored_forces[i];
@@ -90,6 +97,11 @@ Viewer(const DATA<TV>& data,osg::Node* node)
             lineGeometry->setNormalBinding(osg::Geometry::BIND_OVERALL);
 
             lineGeometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES,0,2));
+
+            osg::StateSet* stateset=new osg::StateSet;
+            stateset->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
+            lineGeometry->setStateSet(stateset);
+
             auto lineGeode=new osg::Geode();
             lineGeode->addDrawable(lineGeometry);
             relative_position_group->addChild(lineGeode);
