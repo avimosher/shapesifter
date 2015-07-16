@@ -60,12 +60,15 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         }
 #endif
 
-        for(int j=0;j<2;j++){
-            for(int k=0;k<2;j++){
-                for(int t1=0;t1<2;t1++){
-                    for(int t2=0;t2<2;t2++){
-                        // we're in one sub-block of the matrix here
-                        Set_Block(force_terms,body_index1,body_index2,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dTwist(structures[j],j,k,t1,t2,positions,direction));}}}}
+        for(int s1=0;s1<2;s1++){ // 
+            for(int s2=0;s2<2;s2++){ // structure we're taking derivative with respect to
+                RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dTwist(structures[s2],s1,s2,p1,p2,positions,position_offset);
+                Set_Block(force_terms,indices[s1],indices[s2],0,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dVelocity(relative_position,s1,s2));
+                Set_Block(force_terms,indices[s1],indices[s2],0,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dSpin());
+                Set_Block(force_terms,indices[s1],indices[s2],1,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dVelocity());
+                Set_Block(force_terms,indices[s1],indices[s2],1,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dSpin());
+                // we're in one sub-block of the matrix here
+            }}
         // contribution to force-balance RHS
         right_hand_side.template block<t+d,1>(body_index1*(t+d),0)+=dC_dA1.transpose()*stored_forces[i];
         right_hand_side.template block<t+d,1>(body_index2*(t+d),0)-=dC_dA2.transpose()*stored_forces[i];

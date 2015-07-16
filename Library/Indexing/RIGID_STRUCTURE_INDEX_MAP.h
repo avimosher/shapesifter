@@ -88,8 +88,25 @@ public:
         return final;
     }
 
-    static Matrix<T,3,3> dForce_dTwist(){
+    static Matrix<T,d,d> dForce_dVelocity(const TV& relative_position,int s1,int s2){
+        T distance=std::max((T)1e-3,relative_position.norm());
+        int sign=s1==s2?1:-1;
+        return sign*(Matrix<T,d,d>::Identity()/distance-relative_position/cube(distance)*relative_position.transpose());
+    }
 
+    static Matrix<T,d,d> dForce_dSpin(){
+        auto dR_dS=dRotation_dVelocity();
+        int sign=s1==s2?1:-1;
+        return sign*(Matrix<T,d,d>::Identity()/distance-relative_position/cube(distance)*relative_position.transpose())*dR_dS;
+    }
+
+    static Matrix<T,d,d> dTorque_dVelocity(){
+        
+    }
+    
+    static Matrix<T,3,3> dForce_dTwist(){
+        
+        
         
     }
 
