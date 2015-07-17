@@ -70,10 +70,17 @@ void Flatten_Matrix_Term(int row,int col,const Eigen::Matrix<T,rows,cols>& term,
 {
     for(int i=0;i<rows;i++){
         for(int j=0;j<cols;j++){
-            flat_terms.push_back(Eigen::Triplet<T>(row*rows+i,col*cols+j,term(i,j)));
-        }
-    }
+            flat_terms.push_back(Eigen::Triplet<T>(row*rows+i,col*cols+j,term(i,j)));}}
 }
+
+template<class T,int rows,int cols,int rows_per_block,int cols_per_block>
+void Flatten_Matrix_Term(int row,int col,int block_row,int block_col,const Eigen::Matrix<T,rows,cols>& term,std::vector<Eigen::Triplet<T>>& flat_terms)
+{
+    for(int i=0;i<rows;i++){
+        for(int j=0;j<cols;j++){
+            flat_terms.push_back(Eigen::Triplet<T>(rows_per_block*block_row+rows*row+i,cols_per_block*block_col+cols*col+j,term(i,j);}}
+}
+
 
 template<class T,int rows,int cols>
 void Flatten_Matrix(const std::vector<Eigen::Triplet<Eigen::Matrix<T,rows,cols>>>& block_terms,Eigen::SparseMatrix<T>& flat_matrix)

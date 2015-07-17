@@ -62,11 +62,10 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
 
         for(int s1=0;s1<2;s1++){ // 
             for(int s2=0;s2<2;s2++){ // structure we're taking derivative with respect to
-                RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dTwist(structures[s2],s1,s2,p1,p2,positions,position_offset);
-                Set_Block(force_terms,indices[s1],indices[s2],0,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dVelocity(relative_position,s1,s2));
-                Set_Block(force_terms,indices[s1],indices[s2],0,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dSpin());
-                Set_Block(force_terms,indices[s1],indices[s2],1,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dVelocity());
-                Set_Block(force_terms,indices[s1],indices[s2],1,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dSpin());
+                Flatten_Matrix_Term<T,d,d,t+d,t+d>(indices[s1],indices[s2],0,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dVelocity(relative_position,s1,s2),force_terms);
+                Flatten_Matrix_Term<T,d,t,t+d,t+d>(indices[s1],indices[s2],0,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dSpin(),force_terms);
+                Flatten_Matrix_Term<T,t,d,t+d,t+d>(indices[s1],indices[s2],1,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dVelocity(),force_terms);
+                Flatten_Matrix_Term<T,t,t,t+d,t+d>(indices[s1],indices[s2],1,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dSpin(),force_terms);
                 // we're in one sub-block of the matrix here
             }}
         // contribution to force-balance RHS
