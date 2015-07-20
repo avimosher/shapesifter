@@ -78,7 +78,7 @@ void Flatten_Matrix_Term(int row,int col,int block_row,int block_col,const Eigen
 {
     for(int i=0;i<rows;i++){
         for(int j=0;j<cols;j++){
-            flat_terms.push_back(Eigen::Triplet<T>(rows_per_block*block_row+rows*row+i,cols_per_block*block_col+cols*col+j,term(i,j);}}
+            flat_terms.push_back(Eigen::Triplet<T>(rows_per_block*block_row+rows*row+i,cols_per_block*block_col+cols*col+j,term(i,j)));}}
 }
 
 

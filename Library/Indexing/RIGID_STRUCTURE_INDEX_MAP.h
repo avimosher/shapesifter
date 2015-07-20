@@ -101,10 +101,14 @@ public:
     static Matrix<T,t,d> dTorque_dVelocity(const TV& relative_position,int s1,int s2,const TV& rotated_offset){
         return Cross_Product_Matrix(rotated_offset)*dForce_dVelocity(relative_position,s1,s2);
     }
-    
-    static Matrix<T,t,t> dTorque_dSpin(const TV& relative_position,int s1,int s2,const T_SPIN& spin,const TV& rotated_offset){
-        T distance=std::max((T)1e-3,relative_position.norm());        
-        return Cross_Product_Matrix(dRotatedOffset_dSpin(spin,rotated_offset))*relative_position/distance+Cross_Product_Matrix(rotated_offset)*dForce_dSpin(relative_position,s1,s2,spin,rotated_offset);
+
+    // TODO: sign?
+    static Matrix<T,t,t> dTorque_dSpin(const TV& relative_position,int s1,int s2,const T_SPIN& spin,const std::vector<TV>& rotated_offsets){
+        T distance=std::max((T)1e-3,relative_position.norm());
+        Matrix<T,t,t> first_term=Cross_Product_Matrix(rotated_offsets[s1])*dForce_dSpin(relative_position,s1,s2,spin,rotated_offsets[s2]);
+        if(s1==s2){
+            return -Cross_Product_Matrix(relative_position)*dRotatedOffset_dSpin(spin,rotated_offsets[s2])/distance+first_term;}
+        return first_term;
     }
 
     static Matrix<T,3,3> Compute_Orientation_Constraint_Matrix(const ROTATION<TV>& rotation,const ROTATION<TV>& relative_rotation,const int composed_rotation_sign)
