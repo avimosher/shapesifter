@@ -1,0 +1,40 @@
+{
+    "output_directory": "sphere_sphere_mwe",
+    "dt": 0.1,
+    "last_time": 100,
+    "root": [
+        {"type": "DATA",
+         "eta": 3.5},
+        {"type": "RIGID_STRUCTURE_DATA"},
+        {"type": "RIGID_STRUCTURE",
+         "position": [0, 0, 0],
+         "radius": 1,
+         "name": "left"
+        },
+        {"type": "RIGID_STRUCTURE",
+         "position": [1.5, 0, 0],
+         "radius": 1,
+         "name": "right"
+        },
+        {"type": "TRUST_REGION",
+         "name": "evolution"},
+        {"type": "RELATIVE_POSITION_CONSTRAINT",
+         "constraints": [
+             {
+                 "structure1": "left",
+                 "offset1": [-0.707,0.707,0],
+                 "structure2": "right",
+                 "offset2": [0.707,0.707,0],
+                 "distance": 1
+             },
+             {
+                 "structure1": "left",
+                 "offset1": [0.707,0.707,0],
+                 "structure2": "right",
+                 "offset2": [-0.707,0.707,0],
+                 "distance": 0
+             }
+         ]
+        }
+    ]
+}
