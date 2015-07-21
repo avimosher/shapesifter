@@ -8,7 +8,7 @@
         {"type": "RIGID_STRUCTURE_DATA"},
         {"type": "RIGID_STRUCTURE",
          "name": "left",
-         "position": [0, 2, 1],
+         "position": [0, 1, 1],
          "radius": 1
         },
         {"type": "RIGID_STRUCTURE",
@@ -18,11 +18,9 @@
         },
         {"type": "RIGID_STRUCTURE",
          "name": "third",
-         "position": [10, 2, 1],
+         "position": [10, 1, 1],
          "radius": 1
         },
-        {"type": "BROWNIAN_FORCE",
-         "temperature": 300},
         {"type": "RELATIVE_POSITION_CONSTRAINT",
          "constraints": [
              {"structure1": "left",

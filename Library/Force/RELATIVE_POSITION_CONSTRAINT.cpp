@@ -47,10 +47,11 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
 
         for(int s1=0;s1<2;s1++){ // structure of the force term
             for(int s2=0;s2<2;s2++){ // structure we're taking derivative with respect to
-                Flatten_Matrix_Term<T,d,d,t+d,t+d>(indices[s1],indices[s2],0,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dVelocity(relative_position,s1,s2)*stored_forces[i],force_terms);
-                Flatten_Matrix_Term<T,d,t,t+d,t+d>(indices[s1],indices[s2],0,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets[s2])*stored_forces[i],force_terms);
-                Flatten_Matrix_Term<T,t,d,t+d,t+d>(indices[s1],indices[s2],1,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dVelocity(relative_position,s1,s2,rotated_offsets[s1])*stored_forces[i],force_terms);
-                Flatten_Matrix_Term<T,t,t,t+d,t+d>(indices[s1],indices[s2],1,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets)*stored_forces[i],force_terms);
+                int term_sign=s1==0?1:-1;
+                Flatten_Matrix_Term<T,d,d,t+d,t+d>(indices[s1],indices[s2],0,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dVelocity(relative_position,s1,s2)*stored_forces[i]*term_sign,force_terms);
+                Flatten_Matrix_Term<T,d,t,t+d,t+d>(indices[s1],indices[s2],0,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets[s2])*stored_forces[i]*term_sign,force_terms);
+                Flatten_Matrix_Term<T,t,d,t+d,t+d>(indices[s1],indices[s2],1,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dVelocity(relative_position,s1,s2,rotated_offsets[s1])*stored_forces[i]*term_sign,force_terms);
+                Flatten_Matrix_Term<T,t,t,t+d,t+d>(indices[s1],indices[s2],1,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets)*stored_forces[i]*term_sign,force_terms);
             }}
         // contribution to force-balance RHS
         right_hand_side.template block<t+d,1>(body_index1*(t+d),0)+=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(rotated_offsets[0]).transpose()*direction*stored_forces[i];
