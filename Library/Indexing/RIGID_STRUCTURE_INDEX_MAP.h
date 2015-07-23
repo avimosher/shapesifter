@@ -109,9 +109,12 @@ public:
     static Matrix<T,t,t> dTorque_dSpin(const TV& relative_position,int s1,int s2,const T_SPIN& spin,const std::vector<TV>& rotated_offsets){
         T distance=std::max((T)1e-3,relative_position.norm());
         Matrix<T,t,t> first_term=Cross_Product_Matrix(rotated_offsets[s1])*dForce_dSpin(relative_position,s1,s2,spin,rotated_offsets[s2]);
+        //LOG::cout<<"dTorque dSpin for "<<s1<<" "<<s2<<std::endl;
         if(s1==s2){
+            //LOG::cout<<-Cross_Product_Matrix(relative_position)*dRotatedOffset_dSpin(spin,ROTATION<TV>::From_Rotation_Vector(spin).inverse()*rotated_offsets[s2])/distance+first_term<<std::endl;
             return -Cross_Product_Matrix(relative_position)*dRotatedOffset_dSpin(spin,ROTATION<TV>::From_Rotation_Vector(spin).inverse()*rotated_offsets[s2])/distance+first_term;}
 //            return -Cross_Product_Matrix(relative_position)*dRotatedOffset_dSpin(spin,rotated_offsets[s2])/distance+first_term;}
+        //LOG::cout<<first_term<<std::endl;
         return first_term;
     }
 

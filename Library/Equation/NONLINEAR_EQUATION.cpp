@@ -56,9 +56,11 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     // scale the jacobian and rhs according to scaling factor on f.  Can't vary with x.  Make it 1/inertia diagonal for force balance, 1 for constraints
     
     Merge_Block_Matrices(full_matrix,jacobian);
+    // TODO: this MAY BE able to scale just the mass matrix terms; the forces are free to be rescaled.  HOWEVER this may mess up the accumulation.
     inverse_inertia.resize(running_index,running_index);
     inverse_inertia.setFromTriplets(inverse_inertia_terms.begin(),inverse_inertia_terms.end());
     Merge_Block_Vectors(full_right_hand_side,right_hand_side);
+    LOG::cout<<"Jacobian before inertia: "<<std::endl<<jacobian<<std::endl;
     jacobian=inverse_inertia*jacobian;
     //LOG::cout<<"RHS before inertia: "<<right_hand_side.transpose()<<std::endl;
     right_hand_side=inverse_inertia*right_hand_side;

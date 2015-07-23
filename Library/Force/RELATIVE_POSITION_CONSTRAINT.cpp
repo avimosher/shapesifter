@@ -48,10 +48,14 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         for(int s1=0;s1<2;s1++){ // structure of the force term
             for(int s2=0;s2<2;s2++){ // structure we're taking derivative with respect to
                 int term_sign=s1==0?1:-1;
-                Flatten_Matrix_Term<T,d,d,t+d,t+d>(indices[s1],indices[s2],0,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dVelocity(relative_position,s1,s2)*stored_forces[i]*term_sign,force_terms);
-                Flatten_Matrix_Term<T,d,t,t+d,t+d>(indices[s1],indices[s2],0,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets[s2])*stored_forces[i]*term_sign,force_terms);
-                Flatten_Matrix_Term<T,t,d,t+d,t+d>(indices[s1],indices[s2],1,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dVelocity(relative_position,s1,s2,rotated_offsets[s1])*stored_forces[i]*term_sign,force_terms);
-                Flatten_Matrix_Term<T,t,t,t+d,t+d>(indices[s1],indices[s2],1,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets)*stored_forces[i]*term_sign,force_terms);
+                Flatten_Matrix_Term<T,t+d,t+d,d,d>(indices[s1],indices[s2],0,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dVelocity(relative_position,s1,s2)*stored_forces[i]*term_sign,force_terms);
+                LOG::cout<<"dForce_dSpin for "<<s1<<" "<<s2<<std::endl;
+                LOG::cout<<RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets[s2])*stored_forces[i]*term_sign<<std::endl;
+                Flatten_Matrix_Term<T,t+d,t+d,d,t>(indices[s1],indices[s2],0,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets[s2])*stored_forces[i]*term_sign,force_terms);
+                Flatten_Matrix_Term<T,t+d,t+d,t,d>(indices[s1],indices[s2],1,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dVelocity(relative_position,s1,s2,rotated_offsets[s1])*stored_forces[i]*term_sign,force_terms);
+                Flatten_Matrix_Term<T,t+d,t+d,t,t>(indices[s1],indices[s2],1,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets)*stored_forces[i]*term_sign,force_terms);
+                LOG::cout<<"dTorque_dSpin for "<<s1<<" "<<s2<<std::endl;
+                LOG::cout<<RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets)*stored_forces[i]*term_sign<<std::endl;
             }}
         // contribution to force-balance RHS
         right_hand_side.template block<t+d,1>(body_index1*(t+d),0)+=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(rotated_offsets[0]).transpose()*direction*stored_forces[i];
@@ -123,8 +127,10 @@ DEFINE_AND_REGISTER_PARSER(RELATIVE_POSITION_CONSTRAINT,void)
     for(Json::ValueIterator it=constraints.begin();it!=constraints.end();it++){
         typename RELATIVE_POSITION_CONSTRAINT<TV>::CONSTRAINT constraint;
         constraint.s1=rigid_data->Structure_Index((*it)["structure1"].asString());
+        LOG::cout<<(*it)["structure1"]<<" index is "<<constraint.s1<<std::endl;
         Parse_Vector((*it)["offset1"],constraint.v1);
         constraint.s2=rigid_data->Structure_Index((*it)["structure2"].asString());
+        LOG::cout<<(*it)["structure2"]<<" index is "<<constraint.s2<<std::endl;
         Parse_Vector((*it)["offset2"],constraint.v2);
         constraint.target_distance=(*it)["distance"].asDouble();
         relative_position_constraint->constraints.push_back(constraint);
