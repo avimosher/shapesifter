@@ -86,7 +86,8 @@ public:
         auto distance=std::max((T)1e-3,relative_position.norm());
         TV normalized_relative_position=relative_position.normalized();
         auto dd_da=dx_da/distance-normalized_relative_position/distance*normalized_relative_position.transpose()*dx_da;
-        Matrix<T,1,t+d> final=relative_position.transpose()*dd_da+normalized_relative_position.transpose()*(dx_da);
+        //Matrix<T,1,t+d> final=relative_position.transpose()*dd_da+normalized_relative_position.transpose()*(dx_da);
+        Matrix<T,1,t+d> final=normalized_relative_position.transpose()*(dx_da);
         return final;
     }
 
