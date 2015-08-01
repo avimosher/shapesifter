@@ -41,8 +41,9 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     int running_index=data[0]->Velocity_DOF();
     for(int i=0;i<force.size();i++){
         // TODO: force_terms needs to be properly handled when there are multiple data types
-        force[i]->Linearize(data,dt,time,hessian_terms,force_terms[0],full_matrix(i+1,0),full_right_hand_side[0],full_right_hand_side[i+1],stochastic);
-        full_matrix(0,i+1)=full_matrix(i+1,0).transpose();
+        force[i]->Linearize(data,dt,time,hessian_terms,force_terms[0],full_matrix(i+1,0),full_matrix(0,i+1),full_right_hand_side[0],full_right_hand_side[i+1],stochastic);
+        //full_matrix(0,i+1)=full_matrix(i+1,0).transpose();
+        //full_matrix(i+1,0).setZero();
         int force_size=full_right_hand_side[i+data.size()].size();
         for(int j=0;j<force_size;j++){
             inverse_inertia_terms.push_back(Triplet<T>(running_index+j,running_index+j,1));
@@ -60,13 +61,13 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     inverse_inertia.resize(running_index,running_index);
     inverse_inertia.setFromTriplets(inverse_inertia_terms.begin(),inverse_inertia_terms.end());
     Merge_Block_Vectors(full_right_hand_side,right_hand_side);
-    LOG::cout<<"Jacobian before inertia: "<<std::endl<<jacobian<<std::endl;
+    //LOG::cout<<"Jacobian before inertia: "<<std::endl<<jacobian<<std::endl;
     jacobian=inverse_inertia*jacobian;
     //LOG::cout<<"RHS before inertia: "<<right_hand_side.transpose()<<std::endl;
+    LOG::cout<<"RHS: "<<right_hand_side.transpose()<<std::endl;
     right_hand_side=inverse_inertia*right_hand_side;
-    //LOG::cout<<"RHS: "<<right_hand_side.transpose()<<std::endl;
     //LOG::cout<<"Gradient: "<<(-jacobian.adjoint()*right_hand_side).transpose()<<std::endl;
-    LOG::cout<<"Jacobian: "<<std::endl<<jacobian<<std::endl;
+    //LOG::cout<<"Jacobian: "<<std::endl<<jacobian<<std::endl;
     //LOG::cout<<"Jacobian adjoint: "<<std::endl<<jacobian.adjoint()<<std::endl;
     //LOG::cout<<"Rows: "<<jacobian.rows()<<" cols: "<<jacobian.cols()<<std::endl;
     //LOG::cout<<"RHS rows: "<<right_hand_side.rows()<<std::endl;

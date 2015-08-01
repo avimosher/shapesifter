@@ -17,11 +17,13 @@
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::
-Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
+Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,SparseMatrix<T>& constraint_forces,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
 {
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
     typedef Matrix<T,1,RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE> CONSTRAINT_VECTOR;
+    typedef Matrix<T,RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE,1> FORCE_VECTOR;
     std::vector<Triplet<CONSTRAINT_VECTOR>> terms;
+    std::vector<Triplet<FORCE_VECTOR>> forces;
     RIGID_STRUCTURE_INDEX_MAP<TV> index_map;
     constraint_rhs.resize(constraints.size(),1);
     for(int i=0;i<constraints.size();i++){
@@ -49,20 +51,28 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             for(int s2=0;s2<2;s2++){ // structure we're taking derivative with respect to
                 int term_sign=s1==0?1:-1;
                 Flatten_Matrix_Term<T,t+d,t+d,d,d>(indices[s1],indices[s2],0,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dVelocity(relative_position,s1,s2)*stored_forces[i]*term_sign,force_terms);
-                LOG::cout<<"dForce_dSpin for "<<s1<<" "<<s2<<std::endl;
-                LOG::cout<<RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets[s2])*stored_forces[i]*term_sign<<std::endl;
+                //LOG::cout<<"dForce_dSpin for "<<s1<<" "<<s2<<std::endl;
+                //LOG::cout<<RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets[s2])*stored_forces[i]*term_sign<<std::endl;
                 Flatten_Matrix_Term<T,t+d,t+d,d,t>(indices[s1],indices[s2],0,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets[s2])*stored_forces[i]*term_sign,force_terms);
                 Flatten_Matrix_Term<T,t+d,t+d,t,d>(indices[s1],indices[s2],1,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dVelocity(relative_position,s1,s2,rotated_offsets[s1])*stored_forces[i]*term_sign,force_terms);
                 Flatten_Matrix_Term<T,t+d,t+d,t,t>(indices[s1],indices[s2],1,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets)*stored_forces[i]*term_sign,force_terms);
-                LOG::cout<<"dTorque_dSpin for "<<s1<<" "<<s2<<std::endl;
-                LOG::cout<<RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets)*stored_forces[i]*term_sign<<std::endl;
+                //LOG::cout<<"dTorque_dSpin for "<<s1<<" "<<s2<<std::endl;
+                //LOG::cout<<RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets)*stored_forces[i]*term_sign<<std::endl;
             }}
         // contribution to force-balance RHS
-        right_hand_side.template block<t+d,1>(body_index1*(t+d),0)+=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(rotated_offsets[0]).transpose()*direction*stored_forces[i];
-        right_hand_side.template block<t+d,1>(body_index2*(t+d),0)-=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(rotated_offsets[1]).transpose()*direction*stored_forces[i];
+        FORCE_VECTOR force_direction1=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(rotated_offsets[0]).transpose()*direction;
+        FORCE_VECTOR force_direction2=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(rotated_offsets[1]).transpose()*direction;
+        right_hand_side.template block<t+d,1>(body_index1*(t+d),0)+=force_direction1*stored_forces[i];
+        right_hand_side.template block<t+d,1>(body_index2*(t+d),0)-=force_direction2*stored_forces[i];
+
+        forces.push_back(Triplet<FORCE_VECTOR>(body_index2,i,force_direction2));
+        forces.push_back(Triplet<FORCE_VECTOR>(body_index1,i,-force_direction1));
+
     }
     constraint_terms.resize(constraints.size(),rigid_data->Velocity_DOF());
     Flatten_Matrix(terms,constraint_terms);
+    constraint_forces.resize(rigid_data->Velocity_DOF(),constraints.size());
+    Flatten_Matrix(forces,constraint_forces);
     stored_forces.resize(constraints.size());
 }
 ///////////////////////////////////////////////////////////////////////

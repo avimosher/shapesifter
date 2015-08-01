@@ -16,7 +16,7 @@ TRUST_REGION()
     precision=1e-6;
     contract_factor=.25;
     expand_factor=2.5;
-    contract_threshold=.25;
+    contract_threshold=.4;
     expand_threshold_ap=.8;
     expand_threshold_rad=.8;
     trust_iterations=200;
