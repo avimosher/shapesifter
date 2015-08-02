@@ -29,77 +29,37 @@ public:
         return unknown_map;
     }
 
-    static Matrix<T,d,t> dRotatedOffset_dSpin(const T_SPIN& spin,const TV& offset){
+    static Matrix<T,d,t> dRotatedOffset_dSpin(const T_SPIN& spin,const TV& spun_offset){
         static const T eps=1e-8;
+        TV offset=ROTATION<TV>::From_Rotation_Vector(spin).inverse()*spun_offset;
         T norm_spin=spin.norm();
         TV_T dw_dspin=-sinc(norm_spin/2)/4*spin.transpose();        
         TV spin_normspin=(norm_spin>eps)?(TV)(spin/norm_spin):TV::UnitX();
         Matrix<T,3,3> dq_dspin=cos(norm_spin/2)/2*spin_normspin*spin_normspin.transpose()+sinc(norm_spin/2)/2*(Matrix<T,t,t>::Identity()-spin_normspin*spin_normspin.transpose());
         T w=cos(norm_spin/2);
         TV q=sinc(norm_spin/2)*spin/2;
-        //return -2*Cross_Product_Matrix(offset)*(q*dw_dspin+w*dq_dspin);
         return 2*q.cross(offset)*dw_dspin-2*w*Cross_Product_Matrix(offset)*dq_dspin+4*w*offset*dw_dspin+
             4*q.dot(offset)*dq_dspin;
     }
 
-    static Matrix<T,1,t+d> dXN_dA(const RIGID_STRUCTURE<TV>& structure,const TV& object_offset,const TV& relative_position){
-        // loosely, (x2-x1)^T/|x2-x1|*(dx2/dx-dx1/dx)
-        // should be t+d columns, one row
+    static Matrix<T,1,t+d> dConstraint_dTwist(const TV& spin,const TV& offset,const TV& relative_position){
         static const T eps=1e-8;
-        ROTATION<TV> orientation=ROTATION<TV>::From_Rotation_Vector(structure.twist.angular).inverse()*structure.frame.orientation;
-
-        Matrix<T,d,t+d> dx_da; // identity for translation parts, zero for rotation
-        dx_da.template block<d,d>(0,0).setIdentity();
-        dx_da.template block<d,t>(0,d)=dRotatedOffset_dSpin(structure.twist.angular,orientation*object_offset);//-2*Cross_Product_Matrix(offset)*(q*dw_da+w*dq_da);
         T relative_position_norm=relative_position.norm();
-        TV relative_position_over_norm=(relative_position_norm>eps?(TV)(relative_position/relative_position_norm):TV::UnitX());
-        return relative_position_over_norm.transpose()*dx_da;
-    }
-
-    static Matrix<T,t+d,t+d> dForce_dTwist(const RIGID_STRUCTURE<TV>& structure,const TV& object_offset,const TV& relative_position){
-        TV current_offset=structure.frame.orientation*object_offset;
-        ROTATION<TV> delta_orientation=ROTATION<TV>::From_Rotation_Vector(structure.twist.angular).inverse();
-        Matrix<T,d,t+d> dx_da; // identity for translation parts, zero for rotation
-        dx_da.template block<d,d>(0,0).setIdentity();
-        dx_da.template block<d,t>(0,d)=dRotatedOffset_dSpin(structure.twist.angular,delta_orientation*current_offset);
-
-        T distance=std::max((T)1e-3,relative_position.norm());
-        Matrix<T,d,t+d> dd_da=dx_da/distance-relative_position/cube(distance)*relative_position.transpose()*dx_da;
-
-        TV d_n=relative_position.normalized();
-        Matrix<T,d,t+d> dr_da;
-        dr_da.template block<d,d>(0,0).setZero();
-        dr_da.template block<d,t>(0,d)=dRotatedOffset_dSpin(structure.twist.angular,delta_orientation*current_offset);
-
-        Matrix<T,t+d,t+d> dF_da;
-        dF_da.template block<d,t+d>(0,0)=dd_da;
-        dF_da.template block<t,t+d>(d,0)=-Cross_Product_Matrix(d_n)*dr_da+Cross_Product_Matrix(current_offset)*dd_da;
-        return dF_da;
-    }
-
-    static Matrix<T,1,t+d> dConstraint_dTwist(const RIGID_STRUCTURE<TV>& structure,const TV& object_offset,const TV& relative_position){
-        ROTATION<TV> orientation=ROTATION<TV>::From_Rotation_Vector(structure.twist.angular).inverse()*structure.frame.orientation;
-        Matrix<T,d,t+d> dx_da; // identity for translation parts, zero for rotation
-        dx_da.template block<d,d>(0,0).setIdentity();
-        dx_da.template block<d,t>(0,d)=dRotatedOffset_dSpin(structure.twist.angular,orientation*object_offset);
-        //dx_da.template block<d,t>(0,d)=dRotatedOffset_dSpin(structure.twist.angular,structure.frame.orientation*object_offset);
-        auto distance=std::max((T)1e-3,relative_position.norm());
-        TV normalized_relative_position=relative_position.normalized();
-        auto dd_da=dx_da/distance-normalized_relative_position/distance*normalized_relative_position.transpose()*dx_da;
-        //Matrix<T,1,t+d> final=relative_position.transpose()*dd_da+normalized_relative_position.transpose()*(dx_da);
-        Matrix<T,1,t+d> final=normalized_relative_position.transpose()*(dx_da);
+        TV normalized_relative_position=(relative_position_norm>eps?(TV)(relative_position/relative_position_norm):TV::UnitX());
+        Matrix<T,1,t+d> final;
+        final.template block<1,d>(0,0)=normalized_relative_position.transpose();
+        final.template block<1,t>(0,d)=normalized_relative_position.transpose()*dRotatedOffset_dSpin(spin,offset);
         return final;
     }
 
     static Matrix<T,d,d> dForce_dVelocity(const TV& relative_position,int s1,int s2){
         T distance=std::max((T)1e-3,relative_position.norm());
-        int sign=s1==s2?1:-1;
+        int sign=1;//s1==s2?1:-1;
         return sign*(Matrix<T,d,d>::Identity()/distance-relative_position/cube(distance)*relative_position.transpose());
     }
 
     static Matrix<T,d,d> dForce_dSpin(const TV& relative_position,int s1,int s2,const T_SPIN& spin,const TV& rotated_offset){
-        return dForce_dVelocity(relative_position,s1,s2)*dRotatedOffset_dSpin(spin,ROTATION<TV>::From_Rotation_Vector(spin).inverse()*rotated_offset);
-        //return dForce_dVelocity(relative_position,s1,s2)*dRotatedOffset_dSpin(spin,rotated_offset);
+        return dForce_dVelocity(relative_position,s1,s2)*dRotatedOffset_dSpin(spin,rotated_offset);
     }
 
     static Matrix<T,t,d> dTorque_dVelocity(const TV& relative_position,int s1,int s2,const TV& rotated_offset){
@@ -112,7 +72,7 @@ public:
         Matrix<T,t,t> first_term=Cross_Product_Matrix(rotated_offsets[s1])*dForce_dSpin(relative_position,s1,s2,spin,rotated_offsets[s2]);
         //LOG::cout<<"dTorque dSpin for "<<s1<<" "<<s2<<std::endl;
         if(s1==s2){
-            return -Cross_Product_Matrix(relative_position)*dRotatedOffset_dSpin(spin,ROTATION<TV>::From_Rotation_Vector(spin).inverse()*rotated_offsets[s2])/distance+first_term;}
+            return -Cross_Product_Matrix(relative_position)*dRotatedOffset_dSpin(spin,rotated_offsets[s2])/distance+first_term;}
         return first_term;
     }
 

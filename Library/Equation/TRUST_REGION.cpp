@@ -170,6 +170,7 @@ Update_One_Step()
     auto step_status=UNKNOWN;
     T try_f,step_quality,predicted_reduction;
     Solve_Trust_CG(sk);
+    LOG::cout<<sk.transpose()<<std::endl;
     T norm_sk_scaled=Get_Norm_Sk(PrecondLLt);
     if(!finite(norm_sk_scaled)){step_status=FAILEDCG;}
     else{
@@ -184,9 +185,9 @@ Update_One_Step()
             if(predicted_reduction<0){step_status=ENEGMOVE;}
             step_quality=actual_reduction/predicted_reduction;
             LOG::cout<<"AP: "<<step_quality<<" ared: "<<actual_reduction<<" pred: "<<predicted_reduction<<" radius: "<<radius<<" gs: "<<gs<<" sBs: "<<sBs<<" norm_sk_scaled: "<<norm_sk_scaled<<std::endl;
-            //LOG::cout<<"Gk: "<<gk.transpose()<<std::endl;
+            LOG::cout<<"Gk: "<<gk.transpose()<<std::endl;
             //LOG::cout<<"Sk: "<<sk.transpose()<<std::endl;
-            //LOG::cout<<"Sk./Gk: "<<sk.cwiseQuotient(gk).transpose()<<std::endl;
+            LOG::cout<<"Sk./Gk: "<<sk.cwiseQuotient(gk).transpose()<<std::endl;
         }
         else{step_status=FAILEDCG;}
     }

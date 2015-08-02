@@ -21,7 +21,7 @@
              {"structure1": "left",
               "offset1": [0, -1, 0],
               "structure2": "right",
-              "offset2": [-1, 0, 0],
+              "offset2": [0, 0, 0],
               "distance": 10}
          ]
         },

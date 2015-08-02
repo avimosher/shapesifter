@@ -99,8 +99,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 TV object_offset1=structure1->frame.orientation.inverse()*offset1;
                 TV object_offset2=structure2->frame.orientation.inverse()*offset2;
                 if(remembered.first!=call_count){remembered.second=0;}
-                CONSTRAINT_VECTOR dC_dA2=RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(*structure2,object_offset2,relative_position);
-                CONSTRAINT_VECTOR dC_dA1=RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(*structure1,object_offset1,relative_position);
+                CONSTRAINT_VECTOR dC_dA2=RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(structure2->twist.angular,offset2,relative_position);
+                CONSTRAINT_VECTOR dC_dA1=RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(structure1->twist.angular,offset1,relative_position);
                 T right_hand_side_force;
                 FORCE_VECTOR force_direction1=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(offset1).transpose()*direction;
                 FORCE_VECTOR force_direction2=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(offset2).transpose()*direction;
@@ -118,8 +118,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                     constant_forces.push_back(CONSTRAINT(s1,s2));
 
                     T constant_part=-2*right_hand_side_force*sqr(exponent)*(constraint_violation/slack_distance-1)/slack_distance;
-                    auto dc_dx1=RIGID_STRUCTURE_INDEX_MAP<TV>::dXN_dA(*structure1,object_offset1,relative_position);
-                    auto dc_dx2=RIGID_STRUCTURE_INDEX_MAP<TV>::dXN_dA(*structure2,object_offset2,relative_position);
+                    Matrix<T,1,t+d> dc_dx1=RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(structure1->twist.angular,offset1,relative_position);
+                    Matrix<T,1,t+d> dc_dx2=RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(structure2->twist.angular,offset2,relative_position);
                     Matrix<T,t+d,t+d> dA1dx1=dC_dA1.transpose()*constant_part*dc_dx1;
                     Matrix<T,t+d,t+d> dA1dx2=-dC_dA1.transpose()*constant_part*dc_dx2;
                     Matrix<T,t+d,t+d> dA2dx1=-dC_dA2.transpose()*constant_part*dc_dx1;
