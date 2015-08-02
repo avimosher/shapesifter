@@ -22,7 +22,7 @@
               "offset1": [0, -1, 0],
               "structure2": "right",
               "offset2": [0, 0, 0],
-              "distance": 10}
+              "distance": 4}
          ]
         },
         {"type": "TRUST_REGION"}

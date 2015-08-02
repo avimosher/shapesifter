@@ -28,26 +28,19 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     constraint_rhs.resize(constraints.size(),1);
     for(int i=0;i<constraints.size();i++){
         const CONSTRAINT& constraint=constraints[i];
-        int body_index1=constraint.s1;
-        int body_index2=constraint.s2;
-        std::vector<int> indices={body_index1,body_index2};
-        auto structure1=rigid_data->structures[body_index1];
-        auto structure2=rigid_data->structures[body_index2];
+        std::vector<int> indices={constraint.s1,constraint.s2};
+        auto structure1=rigid_data->structures[indices[0]];
+        auto structure2=rigid_data->structures[indices[1]];
         FRAME<TV> frame1=structure1->frame;
         FRAME<TV> frame2=structure2->frame;
-        LOG::cout<<"Frame1 rotation: "<<frame1.orientation<<std::endl;
-        LOG::cout<<"Frame2 rotation: "<<frame2.orientation<<std::endl;
-        LOG::cout<<"Frame 1 twist rotation: "<<ROTATION<TV>::From_Rotation_Vector(structure1->twist.angular)<<std::endl;
-        LOG::cout<<"Frame 2 twist rotation: "<<ROTATION<TV>::From_Rotation_Vector(structure2->twist.angular)<<std::endl;
         TV relative_position=data.Minimum_Offset(frame1*constraint.v1,frame2*constraint.v2);
         T distance=relative_position.norm();
-        TV direction=relative_position.normalized();
+        TV direction=relative_position.normalized(); // TODO: may be problematic for distance=0
         std::vector<TV> rotated_offsets={frame1.orientation*constraint.v1,frame2.orientation*constraint.v2};
         std::vector<T_SPIN> spins={structure1->twist.angular,structure2->twist.angular};
-        CONSTRAINT_VECTOR dC_dA2=RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(spins[1],rotated_offsets[1],relative_position);
-        CONSTRAINT_VECTOR dC_dA1=RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(spins[0],rotated_offsets[0],relative_position);
-        terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index2,dC_dA2));
-        terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,body_index1,-dC_dA1));
+
+        terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,indices[1],RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(spins[1],rotated_offsets[1],relative_position)));
+        terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,indices[0],-RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(spins[0],rotated_offsets[0],relative_position)));
         constraint_rhs[i]=(constraint.target_distance-distance);
 
         for(int s1=0;s1<2;s1++){ // structure of the force term
@@ -61,11 +54,11 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         // contribution to force-balance RHS
         FORCE_VECTOR force_direction1=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(rotated_offsets[0]).transpose()*direction;
         FORCE_VECTOR force_direction2=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(rotated_offsets[1]).transpose()*direction;
-        right_hand_side.template block<t+d,1>(body_index1*(t+d),0)+=force_direction1*stored_forces[i];
-        right_hand_side.template block<t+d,1>(body_index2*(t+d),0)-=force_direction2*stored_forces[i];
+        right_hand_side.template block<t+d,1>(indices[0]*(t+d),0)+=force_direction1*stored_forces[i];
+        right_hand_side.template block<t+d,1>(indices[1]*(t+d),0)-=force_direction2*stored_forces[i];
 
-        forces.push_back(Triplet<FORCE_VECTOR>(body_index2,i,force_direction2));
-        forces.push_back(Triplet<FORCE_VECTOR>(body_index1,i,-force_direction1));
+        forces.push_back(Triplet<FORCE_VECTOR>(indices[1],i,force_direction2));
+        forces.push_back(Triplet<FORCE_VECTOR>(indices[0],i,-force_direction1));
 
     }
     constraint_terms.resize(constraints.size(),rigid_data->Velocity_DOF());
