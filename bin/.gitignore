@@ -1,2 +1,8 @@
 */
 *.json
+simulate
+viewer
+libMechanics.so
+hello
+unit_test
+libjsoncpp.so

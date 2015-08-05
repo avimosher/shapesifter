@@ -1,6 +1,6 @@
 {
     "output_directory": "relative_position",
-    "dt": 0.1,
+    "dt": 1,
     "last_time": 10,
     "root": [
         {"type": "DATA",
@@ -8,7 +8,7 @@
         {"type": "RIGID_STRUCTURE_DATA"},
         {"type": "RIGID_STRUCTURE",
          "name": "left",
-         "position": [0, 2, 1],
+         "position": [0, 1, 1],
          "radius": 1
         },
         {"type": "RIGID_STRUCTURE",
@@ -22,7 +22,7 @@
               "offset1": [0, -1, 0],
               "structure2": "right",
               "offset2": [0, 0, 0],
-              "distance": 4}
+              "distance": 10}
          ]
         },
         {"type": "TRUST_REGION"}

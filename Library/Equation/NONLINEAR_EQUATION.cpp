@@ -42,8 +42,6 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     for(int i=0;i<force.size();i++){
         // TODO: force_terms needs to be properly handled when there are multiple data types
         force[i]->Linearize(data,dt,time,hessian_terms,force_terms[0],full_matrix(i+1,0),full_matrix(0,i+1),full_right_hand_side[0],full_right_hand_side[i+1],stochastic);
-        //full_matrix(0,i+1)=full_matrix(i+1,0).transpose();
-        //full_matrix(i+1,0).setZero();
         int force_size=full_right_hand_side[i+data.size()].size();
         for(int j=0;j<force_size;j++){
             inverse_inertia_terms.push_back(Triplet<T>(running_index+j,running_index+j,1));

@@ -52,24 +52,24 @@ public:
         return final;
     }
 
-    static Matrix<T,d,d> dForce_dVelocity(const TV& relative_position,int s1,int s2){
+    static Matrix<T,d,d> dForce_dVelocity(const TV& relative_position){
         T distance=std::max((T)1e-3,relative_position.norm());
         return Matrix<T,d,d>::Identity()/distance-relative_position/cube(distance)*relative_position.transpose();
     }
 
-    static Matrix<T,d,d> dForce_dSpin(const TV& relative_position,int s1,int s2,const T_SPIN& spin,const TV& rotated_offset){
-        return dForce_dVelocity(relative_position,s1,s2)*dRotatedOffset_dSpin(spin,rotated_offset);
+    static Matrix<T,d,d> dForce_dSpin(const TV& relative_position,const T_SPIN& spin,const TV& rotated_offset){
+        return dForce_dVelocity(relative_position)*dRotatedOffset_dSpin(spin,rotated_offset);
     }
 
-    static Matrix<T,t,d> dTorque_dVelocity(const TV& relative_position,int s1,int s2,const TV& rotated_offset){
-        return Cross_Product_Matrix(rotated_offset)*dForce_dVelocity(relative_position,s1,s2);
+    static Matrix<T,t,d> dTorque_dVelocity(const TV& relative_position,const TV& rotated_offset){
+        return Cross_Product_Matrix(rotated_offset)*dForce_dVelocity(relative_position);
     }
 
     static Matrix<T,t,t> dTorque_dSpin(const TV& relative_position,int s1,int s2,const T_SPIN& spin,const std::vector<TV>& rotated_offsets){
         T distance=std::max((T)1e-3,relative_position.norm());
-        Matrix<T,t,t> first_term=Cross_Product_Matrix(rotated_offsets[s1])*dForce_dSpin(relative_position,s1,s2,spin,rotated_offsets[s2]);
+        Matrix<T,t,t> first_term=Cross_Product_Matrix(rotated_offsets[s1])*dForce_dSpin(relative_position,spin,rotated_offsets[s2]);
         if(s1==s2){
-            return -Cross_Product_Matrix(relative_position)*dRotatedOffset_dSpin(spin,rotated_offsets[s2])/distance+first_term;}
+            return (s1==0?1:-1)*Cross_Product_Matrix(relative_position)*dRotatedOffset_dSpin(spin,rotated_offsets[s2])/distance+first_term;}
         return first_term;
     }
 

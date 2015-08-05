@@ -170,7 +170,7 @@ Update_One_Step()
     auto step_status=UNKNOWN;
     T try_f,step_quality,predicted_reduction;
     Solve_Trust_CG(sk);
-    LOG::cout<<sk.transpose()<<std::endl;
+    LOG::cout<<"sk: "<<sk.transpose()<<std::endl;
     T norm_sk_scaled=Get_Norm_Sk(PrecondLLt);
     if(!finite(norm_sk_scaled)){step_status=FAILEDCG;}
     else{
@@ -181,6 +181,7 @@ Update_One_Step()
             T actual_reduction=f-try_f;
             T gs=gk.dot(sk);
             T sBs=sk.dot(hessian.template selfadjointView<Lower>()*sk);
+            //LOG::cout<<"Expected leverage: "<<(-(gk+hessian.template selfadjointView<Lower>()*sk/2)).transpose()<<std::endl;
             predicted_reduction=-(gs+sBs/2);
             if(predicted_reduction<0){step_status=ENEGMOVE;}
             step_quality=actual_reduction/predicted_reduction;
