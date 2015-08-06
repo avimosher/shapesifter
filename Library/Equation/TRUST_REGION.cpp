@@ -72,8 +72,9 @@ Linearize_Around()
     DATA<TV>& data=stored_simulation->data;
     FORCE<TV>& force=stored_simulation->force;
     // sk is solve_vector
-    Vector solve_velocities=sk.block(0,0,data.Velocity_DOF(),1);
-    solve_forces.Set(sk.block(data.Velocity_DOF(),0,sk.rows()-data.Velocity_DOF(),1));
+    int velocity_dof=data.Velocity_DOF();
+    Vector solve_velocities=sk.block(0,0,velocity_dof,1);
+    solve_forces.Set(sk.block(velocity_dof,0,sk.rows()-velocity_dof,1));
     data.Unpack_Positions(positions);
     force.Increment_Forces(solve_forces,1);
     data.Unpack_Velocities(current_velocities+solve_velocities);
@@ -89,8 +90,9 @@ Increment_X()
     DATA<TV>& data=stored_simulation->data;
     FORCE<TV>& force=stored_simulation->force;
     // sk is solve_vector
-    Vector solve_velocities=sk.block(0,0,data.Velocity_DOF(),1);
-    solve_forces.Set(sk.block(data.Velocity_DOF(),0,sk.rows()-data.Velocity_DOF(),1));
+    int velocity_dof=data.Velocity_DOF();
+    Vector solve_velocities=sk.block(0,0,velocity_dof,1);
+    solve_forces.Set(sk.block(velocity_dof,0,sk.rows()-velocity_dof,1));
     force.Increment_Forces(solve_forces,1);
     force.Pack_Forces(solve_forces);
     current_velocities+=solve_velocities;
@@ -150,12 +152,14 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
 template<class TV> void TRUST_REGION<TV>::
 Update_Preconditioner()
 {
-    nvars=hessian.rows();
-    Vector TT(nvars);
-    SparseMatrix<T> BB(nvars,nvars);
-    BB.setIdentity();
-    PrecondLLt.analyzePattern(BB);
-    PrecondLLt.factorize(BB);
+    //nvars=hessian.rows();
+    //Vector TT(nvars);
+    //SparseMatrix<T> BB(nvars,nvars);
+    //BB.setIdentity();
+    //PrecondLLt.analyzePattern(BB);
+    //PrecondLLt.factorize(BB);
+    PrecondLLt.analyzePattern(hessian);
+    PrecondLLt.factorize(hessian);
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::

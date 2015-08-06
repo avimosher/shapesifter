@@ -103,22 +103,12 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 FORCE_VECTOR force_direction1=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(offsets[0]).transpose()*direction;
                 FORCE_VECTOR force_direction2=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(offsets[1]).transpose()*direction;
                 if(constraint_violation<slack_distance){
-                    LOG::cout<<"Constraint"<<std::endl;
                     right_hand_side_force=remembered.second;
                     terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s2,dC_dA2));
                     terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s1,-dC_dA1));
                     forces.push_back(Triplet<FORCE_VECTOR>(s2,constraints.size(),force_direction2));
                     forces.push_back(Triplet<FORCE_VECTOR>(s1,constraints.size(),-force_direction1));
                     rhs.push_back(-constraint_violation+slack_distance);
-                    /*std::vector<int> indices={s1,s2};
-                    for(int s1=0;s1<2;s1++){
-                        for(int s2=0;s2<2;s2++){
-                            int term_sign=s1==s2?1:-1;
-                            Flatten_Matrix_Term<T,t+d,t+d,d,d>(indices[s1],indices[s2],0,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dVelocity(relative_position)*remembered.second*term_sign,force_terms);
-                            Flatten_Matrix_Term<T,t+d,t+d,d,t>(indices[s1],indices[s2],0,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dSpin(relative_position,spins[s2],offsets[s2])*remembered.second*term_sign,force_terms);
-                            Flatten_Matrix_Term<T,t+d,t+d,t,d>(indices[s1],indices[s2],1,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dVelocity(relative_position,offsets[s1])*remembered.second*term_sign,force_terms);
-                            Flatten_Matrix_Term<T,t+d,t+d,t,t>(indices[s1],indices[s2],1,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dSpin(relative_position,s1,s2,spins[s2],offsets)*remembered.second*term_sign,force_terms);
-                            }}*/
                     constraints.push_back(CONSTRAINT(s1,s2));}
                 else if(remembered.first==call_count){ // exponential falloff
                     LOG::cout<<"Force"<<std::endl;
@@ -127,6 +117,16 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                     constant_forces.push_back(CONSTRAINT(s1,s2));
 
                     T constant_part=-2*right_hand_side_force*sqr(exponent)*(constraint_violation/slack_distance-1)/slack_distance;
+                    /*std::vector<int> indices={s1,s2};
+                    for(int s1=0;s1<2;s1++){
+                        for(int s2=0;s2<2;s2++){
+                            int term_sign=s1==s2?1:-1;
+                            Flatten_Matrix_Term<T,t+d,t+d,d,d>(indices[s1],indices[s2],0,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dVelocity(relative_position)*constant_part*term_sign,force_terms);
+                            Flatten_Matrix_Term<T,t+d,t+d,d,t>(indices[s1],indices[s2],0,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dSpin(relative_position,spins[s2],offsets[s2])*constant_part*term_sign,force_terms);
+                            Flatten_Matrix_Term<T,t+d,t+d,t,d>(indices[s1],indices[s2],1,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dVelocity(relative_position,offsets[s1])*constant_part*term_sign,force_terms);
+                            Flatten_Matrix_Term<T,t+d,t+d,t,t>(indices[s1],indices[s2],1,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dSpin(relative_position,s1,s2,spins[s2],offsets)*constant_part*term_sign,force_terms);
+                            }}*/
+
                     // TODO: these derivatives are probably wrong.
                     Matrix<T,t+d,t+d> dA1dx1=dC_dA1.transpose()*constant_part*dC_dA1;
                     Matrix<T,t+d,t+d> dA1dx2=-dC_dA1.transpose()*constant_part*dC_dA2;
