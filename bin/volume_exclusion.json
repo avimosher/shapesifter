@@ -8,8 +8,9 @@
         {"type": "RIGID_STRUCTURE_DATA"},
         {"type": "RIGID_STRUCTURE",
          "name": "left",
-         "position": [1, 1, 1],
-         "radius": 1
+         "position": [2, 1, 0],
+         "radius": 1,
+         "collision_extent": 1
         },
         {"type": "RIGID_STRUCTURE",
          "name": "right",

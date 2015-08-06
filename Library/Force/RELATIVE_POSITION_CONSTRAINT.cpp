@@ -49,10 +49,6 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 Flatten_Matrix_Term<T,t+d,t+d,d,d>(indices[s1],indices[s2],0,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dVelocity(relative_position)*stored_forces[i]*term_sign,force_terms);
                 Flatten_Matrix_Term<T,t+d,t+d,d,t>(indices[s1],indices[s2],0,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dSpin(relative_position,spins[s2],rotated_offsets[s2])*stored_forces[i]*term_sign,force_terms);
                 Flatten_Matrix_Term<T,t+d,t+d,t,d>(indices[s1],indices[s2],1,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dVelocity(relative_position,rotated_offsets[s1])*stored_forces[i]*term_sign,force_terms);
-                if(indices[s2]==0&&s1==s2){
-                    LOG::cout<<"dTorque_dSpin for "<<s1<<std::endl<<RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets)*stored_forces[i]*term_sign<<std::endl;
-                    LOG::cout<<"Relative position mag: "<<relative_position.norm()<<" direction: "<<relative_position.normalized().transpose()<<" current offset: "<<rotated_offsets[0].transpose()<<" base offset: "<<(ROTATION<TV>::From_Rotation_Vector(spins[s2]).inverse()*rotated_offsets[0]).transpose()<<" spin: "<<spins[s2].transpose()<<std::endl;
-                    }
                 Flatten_Matrix_Term<T,t+d,t+d,t,t>(indices[s1],indices[s2],1,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets)*stored_forces[i]*term_sign,force_terms);
             }}
         // contribution to force-balance RHS

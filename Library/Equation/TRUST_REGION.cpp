@@ -181,7 +181,7 @@ Update_One_Step()
             T actual_reduction=f-try_f;
             T gs=gk.dot(sk);
             T sBs=sk.dot(hessian.template selfadjointView<Lower>()*sk);
-            //LOG::cout<<"Expected leverage: "<<(-(gk+hessian.template selfadjointView<Lower>()*sk/2)).transpose()<<std::endl;
+            LOG::cout<<"Expected leverage: "<<(-(gk+hessian.template selfadjointView<Lower>()*sk/2)).transpose()<<std::endl;
             predicted_reduction=-(gs+sBs/2);
             if(predicted_reduction<0){step_status=ENEGMOVE;}
             step_quality=actual_reduction/predicted_reduction;
