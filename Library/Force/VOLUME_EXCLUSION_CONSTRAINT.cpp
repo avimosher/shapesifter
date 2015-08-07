@@ -90,7 +90,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             T distance=relative_position.norm();
             TV direction=relative_position.normalized();
             T constraint_violation=distance-structure1->collision_radius-structure2->collision_radius;
-            LOG::cout<<"Relative position: "<<relative_position.transpose()<<" normalized: "<<direction.transpose()<<" offset 1: "<<offsets[0].transpose()<<" offset 2: "<<offsets[1].transpose()<<std::endl;
+            //LOG::cout<<"Relative position: "<<relative_position.transpose()<<" normalized: "<<direction.transpose()<<" offset 1: "<<offsets[0].transpose()<<" offset 2: "<<offsets[1].transpose()<<std::endl;
             T slack_distance=-.005;
             T distance_condition=-.001;
             std::pair<int,T>& remembered=force_memory[CONSTRAINT(s1,s2)];

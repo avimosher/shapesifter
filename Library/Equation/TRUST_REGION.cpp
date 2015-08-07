@@ -152,14 +152,18 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
 template<class TV> void TRUST_REGION<TV>::
 Update_Preconditioner()
 {
-    //nvars=hessian.rows();
-    //Vector TT(nvars);
-    //SparseMatrix<T> BB(nvars,nvars);
-    //BB.setIdentity();
-    //PrecondLLt.analyzePattern(BB);
-    //PrecondLLt.factorize(BB);
+    nvars=hessian.rows();
+#if 1
+    Vector TT(nvars);
+    SparseMatrix<T> BB(nvars,nvars);
+    BB.setIdentity();
+    PrecondLLt.analyzePattern(BB);
+    PrecondLLt.factorize(BB);
+#else
     PrecondLLt.analyzePattern(hessian);
     PrecondLLt.factorize(hessian);
+    LOG::cout<<"Success: "<<(PrecondLLt.info()==Eigen::ComputationInfo::Success)<<std::endl;
+#endif
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
@@ -212,10 +216,12 @@ Update_One_Step()
         else if(step_quality<0){step_status=NEGRATIO;}
         else{step_status=CONTRACT;}}
 
+    LOG::cout<<"Step status: "<<step_status<<std::endl;
     switch(step_status){
         case NEGRATIO:{
             T gksk=gk.dot(sk);
             T gamma_bad=(1-contract_threshold)*gksk/((1-contract_threshold)*(f+gksk+contract_threshold*(f-predicted_reduction)-try_f));
+            LOG::cout<<"gamma bad: "<<gamma_bad<<" gksk: "<<gksk<<std::endl;
             radius=std::min(contract_factor*norm_sk_scaled,std::max((T)0.0625,gamma_bad)*radius);
             step_status=CONTRACT;
             break;}
