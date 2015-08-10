@@ -51,7 +51,7 @@
          "offset1": [-1.015,0,1.355],
          "structure2": "interferon",
          "offset2": [0,0,1.43],
-         "links": 2,
+         "links": 5,
          "link_radius": 0.2,
          "link_offset": [1.2,0,0]
         },

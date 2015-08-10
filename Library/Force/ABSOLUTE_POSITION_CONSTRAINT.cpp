@@ -22,22 +22,24 @@ template<class T> ROTATION<Matrix<T,3,1>> Find_Appropriate_Rotation(const ROTATI
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void ABSOLUTE_POSITION_CONSTRAINT<TV>::
-Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
+Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,SparseMatrix<T>& constraint_forces,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
 {
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
     typedef Matrix<T,1,RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE> CONSTRAINT_VECTOR;
+    typedef Matrix<T,RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE,1> FORCE_VECTOR;
     std::vector<Triplet<CONSTRAINT_VECTOR>> terms;
+    std::vector<Triplet<FORCE_VECTOR>> forces;
     constraint_rhs.resize(Size());
     for(int i=0;i<linear_constraints.size();i++){
         const LINEAR_CONSTRAINT& constraint=linear_constraints[i];
         auto structure=rigid_data->structures[constraint.s];
-        FRAME<TV> frame=structure->frame;
-        constraint_rhs[i]=constraint.magnitude-constraint.direction.dot(frame.position);
-        LOG::cout<<"absolute constraint: "<<constraint.direction.transpose()<<" rhs: "<<constraint_rhs[i]<<std::endl;
+        constraint_rhs[i]=constraint.magnitude-constraint.direction.dot(structure->frame.position);
         right_hand_side.template block<d,1>(constraint.s*(t+d),0)-=constraint.direction*stored_forces[i];
         CONSTRAINT_VECTOR constraint_vector;constraint_vector.setZero();
         constraint_vector.template block<1,d>(0,0)=constraint.direction.transpose();
-        terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,constraint.s,constraint_vector));}
+        terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,constraint.s,constraint_vector));
+        forces.push_back(Triplet<FORCE_VECTOR>(constraint.s,i,constraint_vector.transpose()));
+    }
     for(int i=0;i<angular_constraints.size();i++){
         const ANGULAR_CONSTRAINT& constraint=angular_constraints[i];
         auto structure=rigid_data->structures[constraint.s];
@@ -47,20 +49,22 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         ROTATION<TV> RC=Find_Appropriate_Rotation(frame.orientation,constraint.orientation);
         T_SPIN rotation_error_vector;
         Matrix<T,t,t> dCdR=RIGID_STRUCTURE_INDEX_MAP<TV>::Relative_Orientation_Constraint_Matrix(current,base*RC,constraint.orientation*RC,rotation_error_vector);
-        LOG::cout<<"dCdR: "<<dCdR<<std::endl;
         T_SPIN stored_torque;
-        for(int j=0;j<d;j++){
+        for(int j=0;j<t;j++){
             CONSTRAINT_VECTOR constraint_vector;constraint_vector.setZero();
             constraint_vector.template block<1,t>(0,d)=dCdR.template block<1,t>(j,0);
             int index=linear_constraints.size()+i*t+j;
             terms.push_back(Triplet<CONSTRAINT_VECTOR>(index,constraint.s,constraint_vector));
+            forces.push_back(Triplet<FORCE_VECTOR>(constraint.s,index,FORCE_VECTOR::Unit(d+j)));
             constraint_rhs[index]=-rotation_error_vector[j];
             stored_torque[j]=stored_forces[index];}
-        right_hand_side.template block<t,1>(constraint.s*(t+d)+d,0)-=dCdR.transpose()*stored_torque;}
+        right_hand_side.template block<t,1>(constraint.s*(t+d)+d,0)-=stored_torque;}
     LOG::cout<<"ABSOLUTE POSITION CONSTRAINT RHS"<<std::endl;
     LOG::cout<<constraint_rhs.transpose()<<std::endl;
     constraint_terms.resize(Size(),rigid_data->Velocity_DOF());
     Flatten_Matrix(terms,constraint_terms);
+    constraint_forces.resize(rigid_data->Velocity_DOF(),Size());
+    Flatten_Matrix(forces,constraint_forces);
     stored_forces.resize(Size());
 }
 ///////////////////////////////////////////////////////////////////////

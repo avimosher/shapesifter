@@ -70,8 +70,8 @@ inline osg::Vec4 colorMap(int index)
         osg::Vec4(0.902,0.478,0.376,1),
         osg::Vec4(1,0.78,0.729,1),
         osg::Vec4(1,0.647,0.565,1),
-        osg::Vec4(0.776,0.333,0.227,1),
-        osg::Vec4(0.635,0.212,0.11,1)};
+        osg::Vec4(0.776,0.333,0.227,1)};
+//        osg::Vec4(0.635,0.212,0.11,1)};
     return colors[std::hash<int>()(index)%colors.size()];
 }
 

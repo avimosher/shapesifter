@@ -1,12 +1,14 @@
 {
     "output_directory": "volume_exclusion",
+    "dt": 0.1,
+    "last_time": 10,
     "root": [
         {"type": "DATA",
          "eta": 3.5},
         {"type": "RIGID_STRUCTURE_DATA"},
         {"type": "RIGID_STRUCTURE",
          "name": "left",
-         "position": [1, 1, 1],
+         "position": [2, 1, 1],
          "radius": 1
         },
         {"type": "RIGID_STRUCTURE",
@@ -14,18 +16,7 @@
          "position": [2.5, 1, 1],
          "radius": 1
         },
-        {"type": "BROWNIAN_FORCE",
-         "temperature": 300},
-        {"type": "RELATIVE_POSITION_CONSTRAINT",
-         "constraints": [
-             {"structure1": "left",
-              "offset1": [0, 1, 0],
-              "structure2": "right",
-              "offset2": [0, 1, 0],
-              "distance": 1.5}
-         ]
-         },
-        {"type": "NONLINEAR_EQUATION"},
+        {"type": "TRUST_REGION"},
         {"type": "VOLUME_EXCLUSION_CONSTRAINT"}
     ]
 }

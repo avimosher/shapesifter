@@ -28,7 +28,7 @@ public:
     virtual void Pack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information){force_information->value=stored_forces;};
     virtual void Unpack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information){stored_forces=force_information->value;};
     virtual void Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,int increment){stored_forces+=increment*force_information->value;};
-    virtual void Linearize(DATA<TV>& data,const T dt,const T time,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)=0;
+    virtual void Linearize(DATA<TV>& data,const T dt,const T time,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,SparseMatrix<T>& constraint_forces,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)=0;
     virtual void Special(DATA<TV>& data,const T dt,const T time){};
     virtual void Archive(cereal::BinaryOutputArchive& archive){};
     virtual void Archive(cereal::BinaryInputArchive& archive){};

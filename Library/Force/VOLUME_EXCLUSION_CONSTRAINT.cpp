@@ -58,11 +58,13 @@ Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,int incre
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
-Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
+Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,SparseMatrix<T>& constraint_forces,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
 {
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
     typedef Matrix<T,1,RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE> CONSTRAINT_VECTOR;
+    typedef Matrix<T,RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE,1> FORCE_VECTOR;
     std::vector<Triplet<CONSTRAINT_VECTOR>> terms;
+    std::vector<Triplet<FORCE_VECTOR>> forces;
     std::vector<T> rhs;
     constraints.clear();
     constant_forces.clear();
@@ -81,52 +83,67 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         BOX_PROXIMITY_SEARCH<TV> intersector(data,structure1->Bounding_Box());
         BVIntersect(hierarchy,intersector);
         for(int s2 : intersector.candidates){
-            if(s1==s2){continue;}
+            if(s1>=s2){continue;}
             auto structure2=rigid_data->structures[s2];
-            TV offset1,offset2;
-            TV relative_position=structure1->Displacement(data,*structure2,offset1,offset2);
+            std::vector<TV> offsets(2);
+            TV relative_position=structure1->Displacement(data,*structure2,offsets[0],offsets[1]);
             T distance=relative_position.norm();
+            TV direction=relative_position.normalized();
             T constraint_violation=distance-structure1->collision_radius-structure2->collision_radius;
+            //LOG::cout<<"Relative position: "<<relative_position.transpose()<<" normalized: "<<direction.transpose()<<" offset 1: "<<offsets[0].transpose()<<" offset 2: "<<offsets[1].transpose()<<std::endl;
             T slack_distance=-.005;
             T distance_condition=-.001;
             std::pair<int,T>& remembered=force_memory[CONSTRAINT(s1,s2)];
             if(constraint_violation<0){
-                TV x1=structure1->frame.position+offset1;
-                TV x2=structure2->frame.position+offset2;
-                TV object_offset1=structure1->frame.orientation.inverse()*offset1;
-                TV object_offset2=structure2->frame.orientation.inverse()*offset2;
+                std::vector<T_SPIN> spins={structure1->twist.angular,structure2->twist.angular};
                 if(remembered.first!=call_count){remembered.second=0;}
-                CONSTRAINT_VECTOR dC_dA2=RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(*structure2,object_offset2,relative_position);
-                CONSTRAINT_VECTOR dC_dA1=RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(*structure1,object_offset1,relative_position);
+                CONSTRAINT_VECTOR dC_dA2=RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(spins[1],offsets[1],relative_position);
+                CONSTRAINT_VECTOR dC_dA1=RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(spins[0],offsets[0],relative_position);
                 T right_hand_side_force;
+                FORCE_VECTOR force_direction1=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(offsets[0]).transpose()*direction;
+                FORCE_VECTOR force_direction2=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(offsets[1]).transpose()*direction;
                 if(constraint_violation<slack_distance){
                     right_hand_side_force=remembered.second;
                     terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s2,dC_dA2));
                     terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s1,-dC_dA1));
+                    forces.push_back(Triplet<FORCE_VECTOR>(s2,constraints.size(),force_direction2));
+                    forces.push_back(Triplet<FORCE_VECTOR>(s1,constraints.size(),-force_direction1));
                     rhs.push_back(-constraint_violation+slack_distance);
                     constraints.push_back(CONSTRAINT(s1,s2));}
                 else if(remembered.first==call_count){ // exponential falloff
+                    LOG::cout<<"Force"<<std::endl;
                     T exponent=-1/(1-sqr(constraint_violation/slack_distance-1));
                     right_hand_side_force=remembered.second*std::exp(1+exponent);
                     constant_forces.push_back(CONSTRAINT(s1,s2));
 
                     T constant_part=-2*right_hand_side_force*sqr(exponent)*(constraint_violation/slack_distance-1)/slack_distance;
-                    auto dc_dx1=RIGID_STRUCTURE_INDEX_MAP<TV>::dXN_dA(*structure1,object_offset1,relative_position);
-                    auto dc_dx2=RIGID_STRUCTURE_INDEX_MAP<TV>::dXN_dA(*structure2,object_offset2,relative_position);
-                    Matrix<T,t+d,t+d> dA1dx1=dC_dA1.transpose()*constant_part*dc_dx1;
-                    Matrix<T,t+d,t+d> dA1dx2=-dC_dA1.transpose()*constant_part*dc_dx2;
-                    Matrix<T,t+d,t+d> dA2dx1=-dC_dA2.transpose()*constant_part*dc_dx1;
-                    Matrix<T,t+d,t+d> dA2dx2=dC_dA2.transpose()*constant_part*dc_dx2;
+                    /*std::vector<int> indices={s1,s2};
+                    for(int s1=0;s1<2;s1++){
+                        for(int s2=0;s2<2;s2++){
+                            int term_sign=s1==s2?1:-1;
+                            Flatten_Matrix_Term<T,t+d,t+d,d,d>(indices[s1],indices[s2],0,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dVelocity(relative_position)*constant_part*term_sign,force_terms);
+                            Flatten_Matrix_Term<T,t+d,t+d,d,t>(indices[s1],indices[s2],0,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dSpin(relative_position,spins[s2],offsets[s2])*constant_part*term_sign,force_terms);
+                            Flatten_Matrix_Term<T,t+d,t+d,t,d>(indices[s1],indices[s2],1,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dVelocity(relative_position,offsets[s1])*constant_part*term_sign,force_terms);
+                            Flatten_Matrix_Term<T,t+d,t+d,t,t>(indices[s1],indices[s2],1,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dSpin(relative_position,s1,s2,spins[s2],offsets)*constant_part*term_sign,force_terms);
+                            }}*/
+
+                    // TODO: these derivatives are probably wrong.
+                    Matrix<T,t+d,t+d> dA1dx1=dC_dA1.transpose()*constant_part*dC_dA1;
+                    Matrix<T,t+d,t+d> dA1dx2=-dC_dA1.transpose()*constant_part*dC_dA2;
+                    Matrix<T,t+d,t+d> dA2dx1=-dC_dA2.transpose()*constant_part*dC_dA1;
+                    Matrix<T,t+d,t+d> dA2dx2=dC_dA2.transpose()*constant_part*dC_dA2;
                     Flatten_Matrix_Term(s1,s1,dA1dx1,force_terms);
                     Flatten_Matrix_Term(s1,s2,dA1dx2,force_terms);
                     Flatten_Matrix_Term(s2,s1,dA2dx1,force_terms);
                     Flatten_Matrix_Term(s2,s2,dA2dx2,force_terms);}
-                right_hand_side.template block<t+d,1>(s1*(t+d),0)+=dC_dA1.transpose()*right_hand_side_force;
-                right_hand_side.template block<t+d,1>(s2*(t+d),0)-=dC_dA2.transpose()*right_hand_side_force;}}}
-    constraint_terms.resize(constraints.size(),rigid_data->Velocity_DOF());
+                right_hand_side.template block<t+d,1>(s1*(t+d),0)+=force_direction1*right_hand_side_force;
+                right_hand_side.template block<t+d,1>(s2*(t+d),0)-=force_direction2*right_hand_side_force;}}}
     constraint_rhs.resize(rhs.size(),1);
     for(int i=0;i<rhs.size();i++){constraint_rhs(i,0)=rhs[i];}
+    constraint_terms.resize(constraints.size(),rigid_data->Velocity_DOF());
     Flatten_Matrix(terms,constraint_terms);
+    constraint_forces.resize(rigid_data->Velocity_DOF(),constraints.size());
+    Flatten_Matrix(forces,constraint_forces);
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::

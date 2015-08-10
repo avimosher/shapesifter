@@ -13,7 +13,7 @@
          "radius": 1
         },
         {"type": "BROWNIAN_FORCE",
-         "temperature": 300},
+         "temperature": 3000},
         {"type": "ABSOLUTE_POSITION_CONSTRAINT",
          "constraints": [
              {"structure": "left",
