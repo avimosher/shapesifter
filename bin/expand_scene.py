@@ -5,6 +5,7 @@ import string
 from mechanics.flexible_linker import *
 from mechanics.association_dissociation_group import *
 from mechanics.distribute_bodies import *
+from mechanics.make_subunits import *
 
 data=json.load(sys.stdin)
 
@@ -24,7 +25,8 @@ def force(node,structure_nodes,force_nodes):
     force_nodes.append(node)
 
 
-handle_node={'FLEXIBLE_LINKER': flexible_linker,
+handle_node={'MAKE_SUBUNITS': make_subunits,
+	     'FLEXIBLE_LINKER': flexible_linker,
              'DISTRIBUTE_BODIES': distribute_bodies,
              'ASSOCIATION_DISSOCIATION_CONSTRAINT': force,
              'ASSOCIATION_DISSOCIATION_GROUP': association_dissociation_group,
