@@ -21,6 +21,7 @@ public:
     virtual void Linearize_Around(const Vector& x){};
     virtual T Evaluate()=0;
     virtual Matrix<T,Dynamic,1> Gradient()=0;
+    virtual Matrix<T,Dynamic,1> RHS()=0;
     virtual SparseMatrix<T> Hessian()=0;
     virtual int System_Size()=0;
 };

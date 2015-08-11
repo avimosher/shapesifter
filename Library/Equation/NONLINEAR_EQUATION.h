@@ -28,6 +28,7 @@ public:
     void Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool stochastic);
     T Evaluate();
     Matrix<T,Dynamic,1> Gradient();
+    Matrix<T,Dynamic,1> RHS();
     SparseMatrix<T> Hessian();
     int System_Size();
     DEFINE_TYPE_NAME("NONLINEAR_EQUATION")

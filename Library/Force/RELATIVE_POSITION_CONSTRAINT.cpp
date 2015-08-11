@@ -54,6 +54,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         // contribution to force-balance RHS
         FORCE_VECTOR force_direction1=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(rotated_offsets[0]).transpose()*direction;
         FORCE_VECTOR force_direction2=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(rotated_offsets[1]).transpose()*direction;
+        LOG::cout<<"Force applied to body "<<indices[0]<<": "<<(force_direction1*stored_forces[i]).transpose()<<std::endl;
+        LOG::cout<<"Force applied to body "<<indices[1]<<": "<<-(force_direction2*stored_forces[i]).transpose()<<std::endl;
         right_hand_side.template block<t+d,1>(indices[0]*(t+d),0)+=force_direction1*stored_forces[i];
         right_hand_side.template block<t+d,1>(indices[1]*(t+d),0)-=force_direction2*stored_forces[i];
 

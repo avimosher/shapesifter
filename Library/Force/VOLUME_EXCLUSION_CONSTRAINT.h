@@ -64,6 +64,7 @@ public:
     std::vector<CONSTRAINT> constant_forces;
     int call_count;
     std::unordered_map<CONSTRAINT,std::pair<int,T>> force_memory;
+    std::unordered_map<CONSTRAINT,std::tuple<int,T,T,T,T>> constant_force_memory;
 
     VOLUME_EXCLUSION_CONSTRAINT()
         :call_count(0)

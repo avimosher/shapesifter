@@ -6,6 +6,7 @@ from mechanics.flexible_linker import *
 from mechanics.association_dissociation_group import *
 from mechanics.distribute_bodies import *
 from mechanics.make_subunits import *
+from mechanics.two_domain_construct import *
 
 data=json.load(sys.stdin)
 
@@ -28,6 +29,7 @@ def force(node,structure_nodes,force_nodes):
 handle_node={'MAKE_SUBUNITS': make_subunits,
 	     'FLEXIBLE_LINKER': flexible_linker,
              'DISTRIBUTE_BODIES': distribute_bodies,
+             'TWO_DOMAIN_CONSTRUCT': two_domain_construct,
              'ASSOCIATION_DISSOCIATION_CONSTRAINT': force,
              'ASSOCIATION_DISSOCIATION_GROUP': association_dissociation_group,
              'RIGID_STRUCTURE': rigid_structure,

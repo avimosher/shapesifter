@@ -30,6 +30,7 @@ public:
     Vector yj;
     Vector wd;
     Vector wz;
+    Vector last_good_rhs;
     T f;
     T norm_gk;
     

@@ -62,6 +62,7 @@ Linearize(SIMULATION<TV>& simulation,const T dt,const T time)
     data.Pack_Positions(positions);
 
     equation->Linearize(data,force,dt,time,true);
+    last_good_rhs=equation->RHS();
     force.Pack_Forces(solve_forces);
 }
 ///////////////////////////////////////////////////////////////////////
@@ -80,6 +81,9 @@ Linearize_Around()
     data.Unpack_Velocities(current_velocities+solve_velocities);
     data.Step();
     equation->Linearize(data,force,dt,time,false);
+    if(last_good_rhs.rows()==equation->RHS().rows()){
+        LOG::cout<<"Delta RHS: "<<std::endl<<(equation->RHS()-last_good_rhs).transpose()<<std::endl;
+    }
     force.Increment_Forces(solve_forces,-1);
 }
 ///////////////////////////////////////////////////////////////////////
@@ -96,6 +100,7 @@ Increment_X()
     force.Increment_Forces(solve_forces,1);
     force.Pack_Forces(solve_forces);
     current_velocities+=solve_velocities;
+    last_good_rhs=equation->RHS();
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
@@ -153,7 +158,7 @@ template<class TV> void TRUST_REGION<TV>::
 Update_Preconditioner()
 {
     nvars=hessian.rows();
-#if 0
+#if 1
     Vector TT(nvars);
     SparseMatrix<T> BB(nvars,nvars);
     BB.setIdentity();
@@ -189,13 +194,17 @@ Update_One_Step()
             T actual_reduction=f-try_f;
             T gs=gk.dot(sk);
             T sBs=sk.dot(hessian.template selfadjointView<Lower>()*sk);
-            LOG::cout<<"Expected leverage: "<<(-(gk+hessian.template selfadjointView<Lower>()*sk/2)).transpose()<<std::endl;
+            //LOG::cout<<"Expected leverage: "<<(-(gk+hessian.template selfadjointView<Lower>()*sk/2)).transpose()<<std::endl;
             predicted_reduction=-(gs+sBs/2);
             if(predicted_reduction<0){step_status=ENEGMOVE;}
             step_quality=actual_reduction/predicted_reduction;
             LOG::cout<<"AP: "<<step_quality<<" ared: "<<actual_reduction<<" pred: "<<predicted_reduction<<" radius: "<<radius<<" gs: "<<gs<<" sBs: "<<sBs<<" norm_sk_scaled: "<<norm_sk_scaled<<std::endl;
             LOG::cout<<"Gk: "<<gk.transpose()<<std::endl;
-            //LOG::cout<<"Sk: "<<sk.transpose()<<std::endl;
+            LOG::cout<<"Sk: "<<sk.transpose()<<std::endl;
+            int index;
+            LOG::cout<<"Min value at index "<<index<<" is "<<sk.minCoeff(&index)<<std::endl;
+            LOG::cout<<"Max value at index "<<index<<" is "<<sk.maxCoeff(&index)<<std::endl;
+
             LOG::cout<<"Sk./Gk: "<<sk.cwiseQuotient(gk).transpose()<<std::endl;
         }
         else{step_status=FAILEDCG;}
