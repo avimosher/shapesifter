@@ -36,10 +36,18 @@ g++ -o dist/jsoncpp.os -c -fPIC -Idist dist/jsoncpp.cpp
 g++ -o ../../bin/libjsoncpp.so -shared dist/jsoncpp.os
 cd ..
 
+if [ ! -d catch ]
+then
+    mkdir catch
+    cd catch
+    wget https://raw.github.com/philsquared/Catch/master/single_include/catch.hpp
+    cd ..
+end
+
+
 if [ ! -d osg ]
 then
-    wget http://www.openscenegraph.org/downloads/stable_releases/OpenSceneGraph-3.0/source/OpenSceneGraph-3.2.1.zip
-    wget http://www.openscenegraph.org/downloads/developer_releases/OpenSceneGraph-3.2.1.zip
+    wget http://trac.openscenegraph.org/downloads/developer_releases/OpenSceneGraph-3.2.1.zip
     unzip OpenSceneGraph-3.2.1.zip
     mv OpenSceneGraph-3.2.1 osg
 fi

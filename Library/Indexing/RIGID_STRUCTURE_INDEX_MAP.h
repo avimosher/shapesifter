@@ -53,7 +53,7 @@ public:
     }
 
     static Matrix<T,d,d> dForce_dVelocity(const TV& relative_position){
-        T distance=std::max((T)1e-3,relative_position.norm());
+        T distance=std::max((T)1e-8,relative_position.norm());
         return Matrix<T,d,d>::Identity()/distance-relative_position/cube(distance)*relative_position.transpose();
     }
 
@@ -66,7 +66,7 @@ public:
     }
 
     static Matrix<T,t,t> dTorque_dSpin(const TV& relative_position,int s1,int s2,const T_SPIN& spin,const std::vector<TV>& rotated_offsets){
-        T distance=std::max((T)1e-3,relative_position.norm());
+        T distance=std::max((T)1e-8,relative_position.norm());
         Matrix<T,t,t> first_term=Cross_Product_Matrix(rotated_offsets[s1])*dForce_dSpin(relative_position,spin,rotated_offsets[s2]);
         if(s1==s2){
             return (s1==0?1:-1)*Cross_Product_Matrix(relative_position)*dRotatedOffset_dSpin(spin,rotated_offsets[s2])/distance+first_term;}
@@ -75,8 +75,8 @@ public:
 
     static Matrix<T,3,3> Compute_Orientation_Constraint_Matrix(const ROTATION<TV>& rotation,const ROTATION<TV>& relative_rotation,const int composed_rotation_sign)
     {
-        auto orientation=rotation.Rotation_Vector();
-        auto angle=orientation.norm();TV axis=(fabs(angle)>1e-8?orientation.normalized():TV::UnitX());
+        TV orientation=rotation.Rotation_Vector();
+        T angle=orientation.norm();TV axis=(fabs(angle)>1e-8?orientation.normalized():TV::UnitX());
         T s=sin(angle/2);T s_over_angle=sinc(angle/2)/2,c=cos(angle/2);
         ROTATION<TV> composed_rotation=rotation*relative_rotation;
     

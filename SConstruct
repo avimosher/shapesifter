@@ -8,6 +8,7 @@ options.AddOptions(EnumOption('TYPE','Type of build','release',allowed_values=('
 
 external_libraries_dir="#External_Libraries/"
 external_libraries={
+    'catch': {'default': 1, 'libs':[''], 'cpppath':[external_libraries_dir+'catch']},
     'cereal': {'default': 1, 'libs':[''],'cpppath':[external_libraries_dir+'cereal/include']},
     'eigen': {'default': 1, 'libs':[''],'cpppath':[external_libraries_dir+'eigen',external_libraries_dir+'eigen/unsupported']},
     'json': {'default': 1,'cpppath':[external_libraries_dir+'jsoncpp/dist'],'libs':['jsoncpp'],'libpath':[external_libraries_dir+'jsoncpp/dist']},

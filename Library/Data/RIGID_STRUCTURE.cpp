@@ -11,8 +11,14 @@ Initialize_Inertia(const T eta)
     T rotational_drag=8*M_PI*eta*std::pow(radius,3);
     T linear_drag=6*M_PI*eta*radius;
     if(!collision_extent){
+#if 1
+        moi.translation=TV::Constant(1);
+        moi.rotation=T_SPIN::Constant(1);
+#else
         moi.translation=TV::Constant(linear_drag);
-        moi.rotation=T_SPIN::Constant(rotational_drag);}
+        moi.rotation=T_SPIN::Constant(rotational_drag);
+#endif
+    }
     else{
         T p=collision_extent/collision_radius+1;
         T E=sqrt(fabs(p*p-1))/p;

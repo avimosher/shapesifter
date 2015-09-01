@@ -82,7 +82,11 @@ Linearize_Around()
     data.Step();
     equation->Linearize(data,force,dt,time,false);
     if(last_good_rhs.rows()==equation->RHS().rows()){
-        LOG::cout<<"Delta RHS: "<<std::endl<<(equation->RHS()-last_good_rhs).transpose()<<std::endl;
+        Vector delta_rhs=(equation->RHS()-last_good_rhs);
+        LOG::cout<<"Delta RHS: "<<std::endl<<delta_rhs.transpose()<<std::endl;
+        int index;
+        LOG::cout<<"Min value at index "<<index<<" is "<<delta_rhs.minCoeff(&index)<<std::endl;
+        LOG::cout<<"Max value at index "<<index<<" is "<<delta_rhs.maxCoeff(&index)<<std::endl;
     }
     force.Increment_Forces(solve_forces,-1);
 }
@@ -194,7 +198,7 @@ Update_One_Step()
             T actual_reduction=f-try_f;
             T gs=gk.dot(sk);
             T sBs=sk.dot(hessian.template selfadjointView<Lower>()*sk);
-            //LOG::cout<<"Expected leverage: "<<(-(gk+hessian.template selfadjointView<Lower>()*sk/2)).transpose()<<std::endl;
+            LOG::cout<<"Expected leverage: "<<(-(gk+hessian.template selfadjointView<Lower>()*sk/2)).transpose()<<std::endl;
             predicted_reduction=-(gs+sBs/2);
             if(predicted_reduction<0){step_status=ENEGMOVE;}
             step_quality=actual_reduction/predicted_reduction;
