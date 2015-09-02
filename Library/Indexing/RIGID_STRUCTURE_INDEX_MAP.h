@@ -38,8 +38,9 @@ public:
         Matrix<T,3,3> dq_dspin=cos(norm_spin/2)/2*spin_normspin*spin_normspin.transpose()+sinc(norm_spin/2)/2*(Matrix<T,t,t>::Identity()-spin_normspin*spin_normspin.transpose());
         T w=cos(norm_spin/2);
         TV q=sinc(norm_spin/2)*spin/2;
-        return 2*q.cross(offset)*dw_dspin-2*w*Cross_Product_Matrix(offset)*dq_dspin+4*w*offset*dw_dspin+
-            4*q.dot(offset)*dq_dspin;
+        //return 2*q.cross(offset)*dw_dspin-2*w*Cross_Product_Matrix(offset)*dq_dspin+4*w*offset*dw_dspin+
+        //    4*q.dot(offset)*dq_dspin;
+        return 2*q.cross(offset)*dw_dspin-2*(Cross_Product_Matrix(offset)*w+Cross_Product_Matrix(q.cross(offset))+Cross_Product_Matrix(q)*Cross_Product_Matrix(offset))*dq_dspin;
     }
 
     static Matrix<T,1,t+d> dConstraint_dTwist(const TV& spin,const TV& offset,const TV& relative_position){
