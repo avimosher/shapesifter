@@ -106,7 +106,7 @@ TEST_CASE("Derivatives","[derivatives]"){
             TV direction=relative_position.normalized();
             T epsilon=1e-8;
             for(int s1=0;s1<2;s1++){
-                int overall_sign=s1==0?1:-1;
+                int overall_sign=s1==0?-1:1;
                 for(int s2=0;s2<2;s2++){
                     int term_sign=s1==s2?1:-1;
                     Eigen::Matrix<T,3,3> derivative=term_sign*RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dSpin(relative_position,spins[s2],rotations[s2]*base_offsets[s2]);
