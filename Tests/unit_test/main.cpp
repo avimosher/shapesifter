@@ -27,25 +27,6 @@ TEST_CASE("Rigid structure","[rigid structure]"){
 
 }
 
-/*Estimate_Derivative()
-{
-    for(int i=1;i<=NTAB;i++){
-        hh/=CON;
-        a[0][i]=((*func)(x+hh)-(*func)(x-hh))/(2.0*hh);
-        fac=sqr(CON);
-        for(int j=1;j<=NTAB;j++){
-            a[j][i]=(a[j-1][i]*fac-a[j-1][i-1])/(fac-1.0);
-            fac=sqr(CON)*fac;
-            errt=std::max(fabs(a[j][i]-a[j-1][i]),fabs(a[j][i]-a[j-1][i-1]));
-            if(errt<=*err){
-                *err=errt;
-                ans=a[j][i];
-            }
-            if(std::abs(a[i][i]-a[i-1][i-1])>=SAFE*(*err)){break;}
-        }
-    }
-    }*/
-
 TEST_CASE("Derivatives","[derivatives]"){
     RANDOM<T> random;
     int tests=10;

@@ -161,7 +161,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                         }}
 
                     // TODO: these derivatives are probably wrong.
-#if 1
+#if 0
                     Matrix<T,t+d,t+d> dA1dx1=dC_dA1.transpose()*constant_part*dC_dA1;
                     Matrix<T,t+d,t+d> dA1dx2=-dC_dA1.transpose()*constant_part*dC_dA2;
                     Matrix<T,t+d,t+d> dA2dx1=-dC_dA2.transpose()*constant_part*dC_dA1;

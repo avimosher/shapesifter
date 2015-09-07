@@ -162,7 +162,7 @@ template<class TV> void TRUST_REGION<TV>::
 Update_Preconditioner()
 {
     nvars=hessian.rows();
-#if 1
+#if 0
     Vector TT(nvars);
     SparseMatrix<T> BB(nvars,nvars);
     BB.setIdentity();
