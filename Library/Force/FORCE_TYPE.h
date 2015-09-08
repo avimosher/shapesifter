@@ -32,6 +32,8 @@ public:
     virtual void Special(DATA<TV>& data,const T dt,const T time){};
     virtual void Archive(cereal::BinaryOutputArchive& archive){};
     virtual void Archive(cereal::BinaryInputArchive& archive){};
+    virtual void Archive(cereal::JSONOutputArchive& archive){};
+    virtual void Archive(cereal::JSONInputArchive& archive){};
     virtual void Viewer(const DATA<TV>& data,osg::Node* node){};
     virtual std::string Name(){return "FORCE_TYPE";}
 };

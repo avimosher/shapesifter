@@ -45,7 +45,7 @@ public:
 
     template<class Archive>
     void serialize(Archive& archive) {
-        archive(position,orientation);
+        archive(CEREAL_NVP(position),CEREAL_NVP(orientation));
     }
 
 };

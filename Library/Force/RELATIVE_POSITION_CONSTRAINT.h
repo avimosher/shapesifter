@@ -2,8 +2,7 @@
 #define __RELATIVE_POSITION_CONSTRAINT__
 
 #include <Force/FORCE_TYPE.h>
-#include <cereal/archives/binary.hpp>
-#include <cereal/types/vector.hpp>
+#include <Utilities/CEREAL_HELPERS.h>
 
 namespace Mechanics{
 

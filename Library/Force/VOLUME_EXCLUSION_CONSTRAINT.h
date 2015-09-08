@@ -5,9 +5,7 @@
 #include <Force/FORCE_TYPE.h>
 #include <Force/STORED_FORCE.h>
 #include <Data/RIGID_STRUCTURE.h>
-#include <cereal/archives/binary.hpp>
-#include <cereal/types/utility.hpp>
-#include <cereal/types/vector.hpp>
+#include <Utilities/CEREAL_HELPERS.h>
 
 namespace Mechanics{
 template<class TV> class RIGID_STRUCTURE;
@@ -73,6 +71,9 @@ public:
 
     void Archive(cereal::BinaryOutputArchive& archive){archive(constraints,constant_forces,force_memory,call_count);}
     void Archive(cereal::BinaryInputArchive& archive){archive(constraints,constant_forces,force_memory,call_count);}
+
+    void Archive(cereal::JSONOutputArchive& archive){archive(constraints,constant_forces,force_memory,call_count);}
+    void Archive(cereal::JSONInputArchive& archive){archive(constraints,constant_forces,force_memory,call_count);}
 
     int Force_DOF(){return constraints.size();}
     std::shared_ptr<FORCE_REFERENCE<T>> Create_Stored_Force() const;

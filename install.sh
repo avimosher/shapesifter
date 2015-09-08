@@ -42,7 +42,7 @@ then
     cd catch
     wget https://raw.github.com/philsquared/Catch/master/single_include/catch.hpp
     cd ..
-end
+fi
 
 
 if [ ! -d osg ]

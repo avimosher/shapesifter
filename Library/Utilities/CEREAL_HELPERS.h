@@ -3,6 +3,7 @@
 
 #include <Utilities/EIGEN_HELPERS.h>
 #include <cereal/archives/binary.hpp>
+#include <cereal/archives/json.hpp>
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/types/string.hpp>
 #include <cereal/types/tuple.hpp>
@@ -41,9 +42,9 @@
 
 namespace cereal
 {
-template <class Archive, class _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols> inline
-typename std::enable_if<traits::is_output_serializable<BinaryData<_Scalar>, Archive>::value, void>::type
-save(Archive & ar, Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> const & m)
+template <class _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols> inline
+typename std::enable_if<traits::is_output_serializable<BinaryData<_Scalar>, BinaryOutputArchive>::value, void>::type
+save(BinaryOutputArchive & ar, Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> const & m)
 {
     int32_t rows = m.rows();
     int32_t cols = m.cols();
@@ -52,9 +53,9 @@ save(Archive & ar, Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _Max
     ar(binary_data(m.data(), rows * cols * sizeof(_Scalar)));
 }
 
-template <class Archive, class _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols> inline
-typename std::enable_if<traits::is_input_serializable<BinaryData<_Scalar>, Archive>::value, void>::type
-load(Archive & ar, Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> & m)
+template <class _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols> inline
+typename std::enable_if<traits::is_input_serializable<BinaryData<_Scalar>, BinaryInputArchive>::value, void>::type
+load(BinaryInputArchive & ar, Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> & m)
 {
     int32_t rows;
     int32_t cols;
@@ -62,6 +63,33 @@ load(Archive & ar, Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _Max
     ar(cols);
     m.resize(rows, cols);
     ar(binary_data(m.data(), static_cast<std::size_t>(rows * cols * sizeof(_Scalar))));
+}
+
+template <class Archive, class _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols> inline
+void
+save(Archive & ar, Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> const & m)
+{
+    int32_t rows = m.rows();
+    int32_t cols = m.cols();
+    ar(CEREAL_NVP(rows));
+    ar(CEREAL_NVP(cols));
+    std::vector<_Scalar> v;v.assign(m.data(),m.data()+rows*cols);
+    ar(make_nvp("data",v));
+    
+}
+
+template <class Archive, class _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols> inline
+void
+load(Archive & ar, Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> & m)
+{
+    int32_t rows;
+    int32_t cols;
+    ar(rows);
+    ar(cols);
+    m.resize(rows, cols);
+    std::vector<_Scalar> v;
+    ar(make_nvp("data",v));
+    std::copy(v.begin(),v.end(),m.data());
 }
 
 // define cereal serializers for Rotation1D, Rotation2D and Quaternion

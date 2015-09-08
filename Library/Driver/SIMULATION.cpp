@@ -42,7 +42,8 @@ Write(const std::string& frame_title)
         mkdir(output_directory.c_str(),0777);
         stringStream<<output_directory<<"/frame."<<output_number++;
         std::ofstream output(stringStream.str().c_str(),std::ios::out);
-        cereal::BinaryOutputArchive archive(output);
+        //cereal::BinaryOutputArchive archive(output);
+        cereal::JSONOutputArchive archive(output);
         archive(time,title,data,data.random,force);
     }
 }
@@ -54,7 +55,8 @@ Read(const int frame)
     stringStream<<output_directory<<"/frame."<<frame;
     std::ifstream input(stringStream.str().c_str(),std::ios::in);
     if(!input.is_open()){return false;}
-    cereal::BinaryInputArchive archive(input);
+    //cereal::BinaryInputArchive archive(input);
+    cereal::JSONInputArchive archive(input);
     archive(time,title,data,data.random,force);
     return true;
 }

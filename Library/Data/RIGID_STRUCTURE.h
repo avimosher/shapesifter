@@ -5,8 +5,9 @@
 #include <Data/FRAME.h>
 #include <Data/MOMENT.h>
 #include <Data/TWIST.h>
+#include <Utilities/CEREAL_HELPERS.h>
 #include <Utilities/TYPE_UTILITIES.h>
-#include <cereal/archives/binary.hpp>
+
 
 namespace Mechanics{
 
@@ -111,7 +112,13 @@ public:
     }
 
     template<class Archive>
-    void serialize(Archive& archive) {archive(name,frame,moi,twist,radius,collision_radius,collision_extent);}
+    void serialize(Archive& archive) {archive(CEREAL_NVP(name),
+            CEREAL_NVP(frame),
+            CEREAL_NVP(moi),
+            CEREAL_NVP(twist),
+            CEREAL_NVP(radius),
+            CEREAL_NVP(collision_radius),
+            CEREAL_NVP(collision_extent));}
 
     void Initialize_Inertia(const T eta);
     DEFINE_TYPE_NAME("RIGID_STRUCTURE")

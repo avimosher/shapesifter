@@ -2,10 +2,10 @@
 #define __FORCE__
 
 #include <Force/FORCE_TYPE.h>
+#include <Utilities/CEREAL_HELPERS.h>
 #include <Utilities/TYPE_UTILITIES.h>
 #include <memory>
 #include <vector>
-#include <cereal/archives/binary.hpp>
 #include <Eigen/SparseCore>
 #include <osg/Group>
 
