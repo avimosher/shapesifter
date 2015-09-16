@@ -1,6 +1,7 @@
 #ifndef __CEREAL_HELPERS__
 #define __CEREAL_HELPERS__
 
+#include <Utilities/HASHING.h>
 #include <Utilities/EIGEN_HELPERS.h>
 #include <cereal/archives/binary.hpp>
 #include <cereal/archives/json.hpp>

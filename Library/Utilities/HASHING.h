@@ -1,6 +1,8 @@
 #ifndef __HASHING__
 #define __HASHING__
 
+#include <functional>
+
 namespace std
 {
 template<class A,class B>

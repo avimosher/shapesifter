@@ -33,11 +33,35 @@ Initialize_Inertia(const T eta)
             moi.rotation(spin)=4.0f/3.0f*(1/(p*p)-p*p)/(2-S*(2-1/(p*p)))*rotational_drag;}}
 }
 ///////////////////////////////////////////////////////////////////////
+template<class TV> TV RIGID_STRUCTURE<TV>::
+Displacement(const DATA<TV>& data,const RIGID_STRUCTURE<TV>& structure,TV& offset1,TV& offset2) const
+{
+    TV centroid1=frame.position;
+    TV centroid2=centroid1+data.Minimum_Offset(frame.position,structure.frame.position);
+    TV major_axis1=frame.orientation._transformVector(collision_extent*TV::UnitZ());
+    TV major_axis2=structure.frame.orientation._transformVector(structure.collision_extent*TV::UnitZ());
+    Matrix<T,2,1> weights;
+    Matrix<TV,2,1> segment1;
+    segment1[0]=centroid1-major_axis1;
+    segment1[1]=centroid1+major_axis1;
+    Matrix<TV,2,1> segment2;
+    segment2[0]=centroid2-major_axis2;
+    segment2[1]=centroid2+major_axis2;
+    Segment_Segment_Displacement(segment1,segment2,weights);
+    TV closest_point1=centroid1+(2*weights(0)-1)*major_axis1;
+    TV closest_point2=centroid2+(2*weights(1)-1)*major_axis2;
+    TV displacement=closest_point2-closest_point1;
+    TV displacement_direction=displacement.normalized();
+    offset1=closest_point1-centroid1;//+displacement_direction*collision_radius;
+    offset2=closest_point2-centroid2;//+displacement_direction*structure->collision_radius;
+    return displacement;
+}
+///////////////////////////////////////////////////////////////////////
 GENERIC_CEREAL_REGISTRATION(RIGID_STRUCTURE)
 GENERIC_TYPE_DEFINITION(RIGID_STRUCTURE)
 DEFINE_AND_REGISTER_PARSER(RIGID_STRUCTURE,void)
 {
-    std::shared_ptr<RIGID_STRUCTURE<TV>> structure=std::make_shared<RIGID_STRUCTURE<TV>>();
+    auto structure=std::make_shared<RIGID_STRUCTURE<TV>>();
     Parse_Vector(node["position"],structure->frame.position,TV());
     Parse_Scalar(node["collision_extent"],structure->collision_extent);
     Parse_Scalar(node["radius"],structure->radius,(T)0);

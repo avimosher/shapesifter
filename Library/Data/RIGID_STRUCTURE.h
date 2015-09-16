@@ -1,15 +1,14 @@
 #ifndef __RIGID_STRUCTURE__
 #define __RIGID_STRUCTURE__
 
-#include <Data/DATA.h>
 #include <Data/FRAME.h>
 #include <Data/MOMENT.h>
 #include <Data/TWIST.h>
 #include <Utilities/CEREAL_HELPERS.h>
 #include <Utilities/TYPE_UTILITIES.h>
 
-
 namespace Mechanics{
+template<class TV> class DATA;
 
 template<class TV>
 class RIGID_STRUCTURE
@@ -74,27 +73,6 @@ public:
         return weights[0]*u-w-weights[1]*v;
     }
 
-    TV Displacement(const DATA<TV>& data,const RIGID_STRUCTURE<TV>& structure,TV& offset1,TV& offset2) const {
-        TV centroid1=frame.position;
-        TV centroid2=centroid1+data.Minimum_Offset(frame.position,structure.frame.position);
-        TV major_axis1=frame.orientation._transformVector(collision_extent*TV::UnitZ());
-        TV major_axis2=structure.frame.orientation._transformVector(structure.collision_extent*TV::UnitZ());
-        Matrix<T,2,1> weights;
-        Matrix<TV,2,1> segment1;
-        segment1[0]=centroid1-major_axis1;
-        segment1[1]=centroid1+major_axis1;
-        Matrix<TV,2,1> segment2;
-        segment2[0]=centroid2-major_axis2;
-        segment2[1]=centroid2+major_axis2;
-        Segment_Segment_Displacement(segment1,segment2,weights);
-        TV closest_point1=centroid1+(2*weights(0)-1)*major_axis1;
-        TV closest_point2=centroid2+(2*weights(1)-1)*major_axis2;
-        TV displacement=closest_point2-closest_point1;
-        TV displacement_direction=displacement.normalized();
-        offset1=closest_point1-centroid1;//+displacement_direction*collision_radius;
-        offset2=closest_point2-centroid2;//+displacement_direction*structure->collision_radius;
-        return displacement;
-    }
 
     DiagonalMatrix<T,VelocitySize> Inertia_Matrix()
     {
@@ -120,6 +98,7 @@ public:
             CEREAL_NVP(collision_radius),
             CEREAL_NVP(collision_extent));}
 
+    TV Displacement(const DATA<TV>& data,const RIGID_STRUCTURE<TV>& structure,TV& offset1,TV& offset2) const;
     void Initialize_Inertia(const T eta);
     DEFINE_TYPE_NAME("RIGID_STRUCTURE")
 };

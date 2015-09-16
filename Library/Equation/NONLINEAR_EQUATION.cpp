@@ -22,7 +22,6 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
 
     std::vector<std::vector<Triplet<T>>> force_terms;
     std::vector<Triplet<T>> inverse_inertia_terms;
-    std::vector<Triplet<T>> hessian_terms;
 
     full_right_hand_side[0].resize(data.Velocity_DOF(),1);
     full_right_hand_side[0].setZero();
@@ -35,27 +34,21 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
         data[i]->Inertia(dt,force_terms[i],full_right_hand_side[i]);
         int data_size=data[i]->Velocity_DOF();
         for(int j=0;j<force_terms[i].size();j++){
-            inverse_inertia_terms.push_back(Triplet<T>(force_terms[i][j].row(),force_terms[i][j].col(),1/fabs(force_terms[i][j].value())));
-        }
-    }
+            inverse_inertia_terms.push_back(Triplet<T>(force_terms[i][j].row(),force_terms[i][j].col(),1/fabs(force_terms[i][j].value())));}}
+
     int running_index=data[0]->Velocity_DOF();
     for(int i=0;i<force.size();i++){
         // TODO: force_terms needs to be properly handled when there are multiple data types
         LOG::cout<<"RHS before force "<<i<<" ("<<force[i]->Name()<<")"<<std::endl;
         LOG::cout<<full_right_hand_side[0].transpose()<<std::endl;
-        force[i]->Linearize(data,dt,time,hessian_terms,force_terms[0],full_matrix(i+1,0),full_matrix(0,i+1),full_right_hand_side[0],full_right_hand_side[i+1],stochastic);
+        force[i]->Linearize(data,dt,time,force_terms[0],full_matrix(i+1,0),full_matrix(0,i+1),full_right_hand_side[0],full_right_hand_side[i+1],stochastic);
+        std::cout<<full_matrix(0,i+1)<<std::endl;
         int force_size=full_right_hand_side[i+data.size()].size();
-        for(int j=0;j<force_size;j++){
-            inverse_inertia_terms.push_back(Triplet<T>(running_index+j,running_index+j,1));
-        }
-        running_index+=force_size;
-    }
-    for(int i=0;i<data.size();i++){
-        full_matrix(i,i).setFromTriplets(force_terms[i].begin(),force_terms[i].end());
-    }
+        for(int j=0;j<force_size;j++){inverse_inertia_terms.push_back(Triplet<T>(running_index+j,running_index+j,1));}
+        running_index+=force_size;}
+    for(int i=0;i<data.size();i++){full_matrix(i,i).setFromTriplets(force_terms[i].begin(),force_terms[i].end());}
 
     // scale the jacobian and rhs according to scaling factor on f.  Can't vary with x.  Make it 1/inertia diagonal for force balance, 1 for constraints
-    
     Merge_Block_Matrices(full_matrix,jacobian);
     // TODO: this MAY BE able to scale just the mass matrix terms; the forces are free to be rescaled.  HOWEVER this may mess up the accumulation.
     inverse_inertia.resize(running_index,running_index);
@@ -74,36 +67,6 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     //LOG::cout<<"Jacobian adjoint: "<<std::endl<<jacobian.adjoint()<<std::endl;
     //LOG::cout<<"Rows: "<<jacobian.rows()<<" cols: "<<jacobian.cols()<<std::endl;
     //LOG::cout<<"RHS rows: "<<right_hand_side.rows()<<std::endl;
-}
-///////////////////////////////////////////////////////////////////////
-template<class TV> typename TV::Scalar NONLINEAR_EQUATION<TV>::
-Evaluate()
-{
-    return right_hand_side.squaredNorm()/2;
-}
-///////////////////////////////////////////////////////////////////////
-template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>::
-Gradient()
-{
-    return -jacobian.adjoint()*right_hand_side;
-}
-///////////////////////////////////////////////////////////////////////
-template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>::
-RHS()
-{
-    return right_hand_side;
-}
-///////////////////////////////////////////////////////////////////////
-template<class TV> SparseMatrix<typename TV::Scalar> NONLINEAR_EQUATION<TV>::
-Hessian()
-{
-    return jacobian.adjoint()*jacobian;
-}
-///////////////////////////////////////////////////////////////////////
-template<class TV> int NONLINEAR_EQUATION<TV>::
-System_Size()
-{
-    return right_hand_side.size();
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(NONLINEAR_EQUATION)

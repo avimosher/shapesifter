@@ -75,12 +75,11 @@ public:
     void Archive(cereal::JSONOutputArchive& archive){archive(constraints,constant_forces,force_memory,call_count);}
     void Archive(cereal::JSONInputArchive& archive){archive(constraints,constant_forces,force_memory,call_count);}
 
-    int Force_DOF(){return constraints.size();}
     std::shared_ptr<FORCE_REFERENCE<T>> Create_Stored_Force() const;
     void Pack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information);
     void Unpack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information);
     void Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,int increment);
-    void Linearize(DATA<TV>& data,const T dt,const T time,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,SparseMatrix<T>& constraint_forces,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic);
+    void Linearize(DATA<TV>& data,const T dt,const T time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,SparseMatrix<T>& constraint_forces,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic);
     void Viewer(const DATA<TV>& data,osg::Node* node);
     DEFINE_TYPE_NAME("VOLUME_EXCLUSION_CONSTRAINT")
 };

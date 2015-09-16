@@ -1,5 +1,10 @@
 #define CATCH_CONFIG_MAIN
 #include <Data/RIGID_STRUCTURE.h>
+#include <Data/RIGID_STRUCTURE_DATA.h>
+#include <Driver/SIMULATION.h>
+#include <Equation/NONLINEAR_EQUATION.h>
+#include <Force/FORCE.h>
+#include <Force/VOLUME_EXCLUSION_CONSTRAINT.h>
 #include <Indexing/RIGID_STRUCTURE_INDEX_MAP.h>
 #include <Utilities/RANDOM.h>
 #include <catch.hpp>
@@ -27,6 +32,35 @@ TEST_CASE("Rigid structure","[rigid structure]"){
 
 }
 
+TEST_CASE("VOLUME_EXCLUSION_CONSTRAINT","[derivatives]"){
+    RANDOM<T> random;
+    SECTION("derivative"){
+        SIMULATION<TV> simulation;
+        auto rigid_data=simulation.data.template Find_Or_Create<RIGID_STRUCTURE_DATA<TV>>();
+        auto volume_exclusion_constraint=simulation.force.template Find_Or_Create<VOLUME_EXCLUSION_CONSTRAINT<TV>>();
+        auto structure=std::make_shared<RIGID_STRUCTURE<TV>>();
+        structure->frame.position=random.template Direction<TV>();
+        structure->radius=1;
+        structure->collision_radius=1;
+        structure->Initialize_Inertia(3.5);
+        rigid_data->structures.push_back(structure);
+
+        auto structure2=std::make_shared<RIGID_STRUCTURE<TV>>();
+        structure2->frame.position=structure->frame.position+TV::UnitX()*1.8;
+        structure2->radius=1;
+        structure2->collision_radius=1;
+        structure2->Initialize_Inertia(3.5);
+        rigid_data->structures.push_back(structure2);
+        
+
+        NONLINEAR_EQUATION<TV> equation;
+        equation.Linearize(simulation.data,simulation.force,1,0,1);
+        std::cout<<equation.jacobian<<std::endl;
+        
+        REQUIRE(1);
+    }
+}
+
 TEST_CASE("Derivatives","[derivatives]"){
     RANDOM<T> random;
     int tests=10;
@@ -41,16 +75,8 @@ TEST_CASE("Derivatives","[derivatives]"){
             TV delta=epsilon*random.template Direction<TV>();
             TV estimated_direction=direction+derivative*delta;
             TV actual_direction=(x2+delta-x1).normalized();
-            std::cout<<"Quality: "<<(actual_direction-estimated_direction).norm()/epsilon<<std::endl;
+            //std::cout<<"Quality: "<<(actual_direction-estimated_direction).norm()/epsilon<<std::endl;
             REQUIRE((actual_direction-estimated_direction).norm()<epsilon);
-        }
-    }
-    SECTION("Rotated offset"){
-        T epsilon=1e-6;
-        for(int i=0;i<tests;i++){
-            TV base_offset=random.template Direction<TV>();
-            TV spin=random.template Direction<TV>();
-            
         }
     }
     SECTION("dRotatedOffset_dSpin"){
@@ -62,8 +88,8 @@ TEST_CASE("Derivatives","[derivatives]"){
             TV delta=epsilon*random.template Direction<TV>();
             TV estimated_offset=ROTATION<TV>::From_Rotation_Vector(spin)*base_offset+derivative*delta;
             TV actual_offset=ROTATION<TV>::From_Rotation_Vector(spin+delta)*base_offset;
-            std::cout<<"Step size: "<<(derivative*delta).norm()<<std::endl;
-            std::cout<<"Quality: "<<(actual_offset-estimated_offset).norm()/delta.norm()<<std::endl;
+            //std::cout<<"Step size: "<<(derivative*delta).norm()<<std::endl;
+            //std::cout<<"Quality: "<<(actual_offset-estimated_offset).norm()/delta.norm()<<std::endl;
             REQUIRE((actual_offset-estimated_offset).norm()<epsilon/2);
         }
     }
@@ -73,15 +99,14 @@ TEST_CASE("Derivatives","[derivatives]"){
             std::vector<TV> base_offsets(2);
             std::vector<TV> spins(2);
             std::vector<ROTATION<TV>> rotations(2);
-            std::cout<<"TEST"<<std::endl;
             for(int j=0;j<2;j++){
                 positions[j]=random.template Direction<TV>();
                 base_offsets[j]=random.template Direction<TV>();
                 spins[j]=random.template Direction<TV>();
                 rotations[j]=ROTATION<TV>::From_Rotation_Vector(spins[j]);
-                std::cout<<"Position: "<<positions[j].transpose()<<std::endl;
-                std::cout<<"Base offset: "<<base_offsets[j].transpose()<<std::endl;
-                std::cout<<"Spins: "<<spins[j].transpose()<<std::endl;
+                //std::cout<<"Position: "<<positions[j].transpose()<<std::endl;
+                //std::cout<<"Base offset: "<<base_offsets[j].transpose()<<std::endl;
+                //std::cout<<"Spins: "<<spins[j].transpose()<<std::endl;
             }
             TV relative_position=positions[1]+rotations[1]*base_offsets[1]-(positions[0]+rotations[0]*base_offsets[0]);
             TV direction=relative_position.normalized();
@@ -99,8 +124,8 @@ TEST_CASE("Derivatives","[derivatives]"){
                     for(int j=0;j<2;j++){mod_spins[j]=spins[j];}
                     mod_spins[s2]+=delta;
                     TV actual_direction=overall_sign*(positions[1]+ROTATION<TV>::From_Rotation_Vector(mod_spins[1])*base_offsets[1]-(positions[0]+ROTATION<TV>::From_Rotation_Vector(mod_spins[0])*base_offsets[0])).normalized();
-                    std::cout<<"Direction: "<<direction.transpose()<<" estimated: "<<estimated_direction.transpose()<<" actual: "<<actual_direction.transpose()<<" relative: "<<relative_position.transpose()<<std::endl;
-                    std::cout<<"Quality: "<<(actual_direction-estimated_direction).norm()/delta.norm()<<std::endl;
+                    //std::cout<<"Direction: "<<direction.transpose()<<" estimated: "<<estimated_direction.transpose()<<" actual: "<<actual_direction.transpose()<<" relative: "<<relative_position.transpose()<<std::endl;
+                    //std::cout<<"Quality: "<<(actual_direction-estimated_direction).norm()/delta.norm()<<std::endl;
                     REQUIRE((actual_direction-estimated_direction).norm()<2*delta.norm());
                 }
             }

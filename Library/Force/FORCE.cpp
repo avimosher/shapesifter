@@ -3,14 +3,6 @@
 #include <Force/STORED_FORCE.h>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
-template<class TV> int FORCE<TV>::
-Force_DOF() const
-{
-    int total_size=0;
-    for(auto force_type : (*this)){total_size+=force_type->Force_DOF();}
-    return total_size;
-}
-///////////////////////////////////////////////////////////////////////
 template<class TV> void FORCE<TV>::
 Pack_Forces(STORED_FORCE<T>& stored_force) const
 {

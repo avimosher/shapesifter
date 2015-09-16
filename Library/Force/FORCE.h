@@ -39,7 +39,6 @@ public:
     {for(int i=0;i<(*this).size();i++){(*this)[i]->Archive(archive);}}
 
     T Compute_Dt(DATA<TV>& data,FORCE<TV>& force,const T target_time);
-    int Force_DOF() const;
     void Pack_Forces(STORED_FORCE<T>& stored_force) const;
     void Unpack_Forces(const STORED_FORCE<T>& stored_force);
     void Increment_Forces(const STORED_FORCE<T>& stored_force,T ratio);
