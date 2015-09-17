@@ -6,6 +6,7 @@
 #include <Force/STORED_FORCE.h>
 #include <Data/RIGID_STRUCTURE.h>
 #include <Utilities/CEREAL_HELPERS.h>
+#include <Utilities/CIRCULAR_STACK.h>
 
 namespace Mechanics{
 template<class TV> class RIGID_STRUCTURE;
