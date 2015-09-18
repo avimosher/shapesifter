@@ -39,10 +39,9 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     int running_index=data[0]->Velocity_DOF();
     for(int i=0;i<force.size();i++){
         // TODO: force_terms needs to be properly handled when there are multiple data types
-        LOG::cout<<"RHS before force "<<i<<" ("<<force[i]->Name()<<")"<<std::endl;
-        LOG::cout<<full_right_hand_side[0].transpose()<<std::endl;
+        //LOG::cout<<"RHS before force "<<i<<" ("<<force[i]->Name()<<")"<<std::endl;
+        //LOG::cout<<full_right_hand_side[0].transpose()<<std::endl;
         force[i]->Linearize(data,dt,time,force_terms[0],full_matrix(i+1,0),full_matrix(0,i+1),full_right_hand_side[0],full_right_hand_side[i+1],stochastic);
-        std::cout<<full_matrix(0,i+1)<<std::endl;
         int force_size=full_right_hand_side[i+data.size()].size();
         for(int j=0;j<force_size;j++){inverse_inertia_terms.push_back(Triplet<T>(running_index+j,running_index+j,1));}
         running_index+=force_size;}
@@ -58,10 +57,10 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     jacobian=inverse_inertia*jacobian;
     LOG::cout<<"RHS before inertia: "<<std::endl<<right_hand_side.transpose()<<std::endl;
     right_hand_side=inverse_inertia*right_hand_side;
-    LOG::cout<<"RHS: "<<std::endl<<right_hand_side.transpose()<<std::endl;
-    int index;
-    LOG::cout<<"Min value at index "<<index<<" is "<<right_hand_side.minCoeff(&index)<<std::endl;
-    LOG::cout<<"Max value at index "<<index<<" is "<<right_hand_side.maxCoeff(&index)<<std::endl;
+    //LOG::cout<<"RHS: "<<std::endl<<right_hand_side.transpose()<<std::endl;
+    //int index;
+    //LOG::cout<<"Min value at index "<<index<<" is "<<right_hand_side.minCoeff(&index)<<std::endl;
+    //LOG::cout<<"Max value at index "<<index<<" is "<<right_hand_side.maxCoeff(&index)<<std::endl;
     //LOG::cout<<"Gradient: "<<(-jacobian.adjoint()*right_hand_side).transpose()<<std::endl;
     //LOG::cout<<"Jacobian: "<<std::endl<<jacobian<<std::endl;
     //LOG::cout<<"Jacobian adjoint: "<<std::endl<<jacobian.adjoint()<<std::endl;

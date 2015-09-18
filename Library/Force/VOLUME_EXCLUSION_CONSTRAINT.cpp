@@ -52,8 +52,7 @@ Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,int incre
             memory.first=call_count;
             memory.second+=increment*information->value[i];}
         else{
-            force_memory[information->constraints[i]]=std::pair<int,T>(call_count,increment*information->value[i]);}
-    }
+            force_memory[information->constraints[i]]=std::pair<int,T>(call_count,increment*information->value[i]);}}
     for(int i=0;i<constant_forces.size();i++){
         std::get<0>(constant_force_memory[constant_forces[i]])=call_count;}
 }
@@ -70,8 +69,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     constraints.clear();
     constant_forces.clear();
     if(stochastic){
-        for(auto& memory : force_memory){memory.second.second=(T)0;memory.second.first=-1;}
-        for(auto& constant_memory : constant_force_memory){std::get<2>(constant_memory.second)=(T)0;std::get<0>(constant_memory.second)=-1;}}
+        for(auto& memory : force_memory){std::get<1>(memory.second)=(T)0;std::get<0>(memory.second)=-1;}
+        for(auto& constant_memory : constant_force_memory){std::get<1>(constant_memory.second)=(T)0;std::get<0>(constant_memory.second)=-1;}}
 
     std::vector<AlignedBox<T,d>> bounding_list(rigid_data->Size());
     std::vector<int> index_list(rigid_data->Size());
@@ -126,8 +125,9 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                     constant_forces.push_back(constraint);
                     //LOG::cout<<"Force between "<<s1<<" and "<<s2<<" with force: "<<std::get<2>(constant_memory)<<" but also "<<right_hand_side_force<<" characteristic length "<<characteristic_length<<std::endl;
 
-                    T constant_part=-2*right_hand_side_force*sqr(exponent)*(constraint_violation/characteristic_length-1)/characteristic_length;
+                    //T constant_part=-2*right_hand_side_force*sqr(exponent)*(constraint_violation/characteristic_length-1)/characteristic_length;
                     //T constant_part=right_hand_side_force*sqr(exponent)*(-2*(constraint_violation/characteristic_length-1))/characteristic_length
+#if 0
                     std::vector<int> indices={s1,s2};
                     for(int s1=0;s1<2;s1++){
                         for(int s2=0;s2<2;s2++){
@@ -137,7 +137,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                             Flatten_Matrix_Term<T,t+d,t+d,t,d>(indices[s1],indices[s2],1,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dVelocity(relative_position,offsets[s1])*right_hand_side_force*term_sign,force_terms);
                             Flatten_Matrix_Term<T,t+d,t+d,t,t>(indices[s1],indices[s2],1,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dSpin(relative_position,s1,s2,spins[s2],offsets)*right_hand_side_force*term_sign,force_terms);
                         }}
-
+#endif
                     // TODO: these derivatives are probably wrong.
 #if 0
                     Matrix<T,t+d,t+d> dA1dx1=dC_dA1.transpose()*constant_part*dC_dA1;
