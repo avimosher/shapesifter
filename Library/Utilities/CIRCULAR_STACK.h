@@ -9,7 +9,8 @@ class circular_stack
     std::vector<T> data;
     int top_index;
 public:
-    circular_stack(int size):data(size),top_index(-1)
+    circular_stack(int size)
+        :data(size),top_index(-1)
     {}
 
     void push(const T& item)
@@ -17,6 +18,9 @@ public:
 
     T pop()
     {return data[top_index--%data.size()];}
+
+    const T& peek()
+    {return data[top_index%data.size()];}
 };
 }
 #endif

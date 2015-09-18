@@ -31,9 +31,6 @@ Pack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information)
     information->value.resize(constraints.size());
     for(int i=0;i<information->constraints.size();i++){
         information->value[i]=force_memory[information->constraints[i]].second;}
-    for(int i=0;i<constant_forces.size();i++){
-        std::get<3>(constant_force_memory[constant_forces[i]])=std::get<4>(constant_force_memory[constant_forces[i]]);
-    }
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
@@ -47,7 +44,6 @@ Unpack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information)
 template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
 Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,int increment)
 {
-    LOG::cout<<"Increment Forces.  Initial call_count: "<<call_count<<" increment: "<<increment<<std::endl;
     call_count+=increment;
     auto information=std::static_pointer_cast<STORED_VOLUME_EXCLUSION_CONSTRAINT<T>>(force_information);
     for(int i=0;i<information->constraints.size();i++){
@@ -59,11 +55,7 @@ Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,int incre
             force_memory[information->constraints[i]]=std::pair<int,T>(call_count,increment*information->value[i]);}
     }
     for(int i=0;i<constant_forces.size();i++){
-        LOG::cout<<"Setting force "<<constant_forces[i].first<<", "<<constant_forces[i].second<<std::endl;
-        std::get<0>(constant_force_memory[constant_forces[i]])=call_count;
-        //std::get<3>(constant_force_memory[constant_forces[i]])+=increment*std::get<4>(constant_force_memory[constant_forces[i]]);
-    }
-//        force_memory[constant_forces[i]].first=call_count;}
+        std::get<0>(constant_force_memory[constant_forces[i]])=call_count;}
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
@@ -105,7 +97,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             T push_out_distance=1e-8;
             if(constraint_violation<0){
                 CONSTRAINT constraint(s1,s2);
-                std::pair<int,T>& remembered=force_memory[constraint];
+                std::pair<int,T>& memory=force_memory[constraint];
                 auto& constant_memory=constant_force_memory[constraint];
                 std::vector<T_SPIN> spins={structure1->twist.angular,structure2->twist.angular};
                 CONSTRAINT_VECTOR dC_dA1=RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(spins[0],offsets[0],relative_position);
@@ -113,40 +105,26 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 T right_hand_side_force=0;
                 FORCE_VECTOR force_direction1=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(offsets[0]).transpose()*direction;
                 FORCE_VECTOR force_direction2=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(offsets[1]).transpose()*direction;
-                LOG::cout<<"Constraint violation: "<<constraint_violation<<" call count: "<<call_count<<" remembered count: "<<remembered.first<<" force: "<<remembered.second<<std::endl;
-                LOG::cout<<"Constant force memory call count: "<<std::get<0>(constant_memory)<<" force: "<<std::get<3>(constant_memory)<<std::endl;
                 if(constraint_violation<slack_distance){
-                    if(remembered.first!=call_count){
-                        remembered.second=0;
+                    if(std::get<0>(memory)!=call_count){
+                        std::get<1>(memory)=0;
                         if(std::get<0>(constant_memory)==call_count){
-                            // TODO: does not properly keep track of the last actually-applied force (e.g. in the case where we never apply a force; also others)
-                            remembered.second=std::get<3>(constant_memory);//std::exp(1-1/(1-sqr(constraint_violation/std::get<2>(constant_memory)-1)));
-                        }
-                    }
-                    LOG::cout<<"Constraint between "<<s1<<" and "<<s2<<" with force: "<<remembered.second<<std::endl;
-                    right_hand_side_force=remembered.second;
+                            std::get<1>(memory)=std::get<1>(constant_memory)*sqr(constraint_violation);}}
+                    LOG::cout<<"Constraint between "<<s1<<" and "<<s2<<" with force: "<<std::get<1>(memory)<<std::endl;
+                    right_hand_side_force=std::get<1>(memory);
                     terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s2,dC_dA2));
                     terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s1,-dC_dA1));
                     forces.push_back(Triplet<FORCE_VECTOR>(s2,constraints.size(),force_direction2));
                     forces.push_back(Triplet<FORCE_VECTOR>(s1,constraints.size(),-force_direction1));
                     rhs.push_back(-constraint_violation+slack_distance+push_out_distance);
                     constraints.push_back(constraint);}
-                else if(remembered.first==call_count || std::get<0>(constant_memory)==call_count){ // exponential falloff
-                    right_hand_side_force=0;
-#if 1
-                    T characteristic_length=slack_distance;//std::get<1>(constant_memory);
-                    T exponent=-1/(1-sqr(constraint_violation/characteristic_length-1));
+                else if(memory.first==call_count || std::get<0>(constant_memory)==call_count){ // exponential falloff
                     if(std::get<0>(constant_memory)!=call_count){
-                        //std::get<1>(constant_memory)=constraint_violation;
-                        // set 2 such that the force is right at this length
-                        
-                        std::get<2>(constant_memory)=remembered.second*std::exp(-exponent-1);
-                        std::get<3>(constant_memory)=remembered.second;
-                    }
-                    right_hand_side_force=std::get<2>(constant_memory)*std::exp(1+exponent);
-                    std::get<4>(constant_memory)=right_hand_side_force;
+                        std::get<1>(constant_memory)=std::get<1>(memory)/sqr(constraint_violation);}
+
+                    right_hand_side_force=std::get<1>(constant_memory)*sqr(constraint_violation);
                     constant_forces.push_back(constraint);
-                    LOG::cout<<"Force between "<<s1<<" and "<<s2<<" with force: "<<std::get<2>(constant_memory)<<" but also "<<right_hand_side_force<<" characteristic length "<<characteristic_length<<std::endl;
+                    //LOG::cout<<"Force between "<<s1<<" and "<<s2<<" with force: "<<std::get<2>(constant_memory)<<" but also "<<right_hand_side_force<<" characteristic length "<<characteristic_length<<std::endl;
 
                     T constant_part=-2*right_hand_side_force*sqr(exponent)*(constraint_violation/characteristic_length-1)/characteristic_length;
                     //T constant_part=right_hand_side_force*sqr(exponent)*(-2*(constraint_violation/characteristic_length-1))/characteristic_length
@@ -170,7 +148,6 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                     Flatten_Matrix_Term(s1,s2,dA1dx2,force_terms);
                     Flatten_Matrix_Term(s2,s1,dA2dx1,force_terms);
                     Flatten_Matrix_Term(s2,s2,dA2dx2,force_terms);
-#endif
 #endif
                 }
                 LOG::cout<<"Force applied to body "<<s1<<": "<<(force_direction1*right_hand_side_force).transpose()<<std::endl;
