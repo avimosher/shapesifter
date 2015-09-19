@@ -162,4 +162,43 @@ TEST_CASE("Derivatives","[derivatives]"){
             REQUIRE((actual_force-estimated_force).norm()<delta.norm());
         }
     }
+
+    SECTION("Penalty force","dPenaltyTorque_dSpin"){
+        for(int i=0;i<tests;i++){
+            std::vector<TV> positions(2);
+            std::vector<TV> base_offsets(2);
+            std::vector<TV> spins(2);
+            std::vector<ROTATION<TV>> rotations(2);
+            for(int j=0;j<2;j++){
+                positions[j]=random.template Direction<TV>();
+                base_offsets[j]=random.template Direction<TV>();
+                spins[j]=random.template Direction<TV>();
+                rotations[j]=ROTATION<TV>::From_Rotation_Vector(spins[j]);
+            }
+            TV relative_position=positions[1]+rotations[1]*base_offsets[1]-(positions[0]+rotations[0]*base_offsets[0]);
+            T threshold=relative_position.norm()+random.Uniform((T)0,(T).1);
+            std::vector<TV> rotated_offsets={rotations[0]*base_offsets[0],rotations[1]*base_offsets[1]};
+            T epsilon=1e-8;
+            for(int s1=0;s1<2;s1++){
+                int overall_sign=s1==0?-1:1;
+                for(int s2=0;s2<2;s2++){
+                    int term_sign=s1==s2?1:-1;
+                    Eigen::Matrix<T,3,3> derivative=term_sign*RIGID_STRUCTURE_INDEX_MAP<TV>::dPenaltyTorque_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets,threshold);
+                    TV delta=epsilon*random.template Direction<TV>();
+
+                    TV torque=overall_sign*(ROTATION<TV>::From_Rotation_Vector(spins[s1])*base_offsets[s1]).cross(sqr(relative_position.norm()-threshold)*relative_position.normalized());
+
+                    TV estimated_torque=torque+derivative*delta;
+                    std::vector<TV> mod_spins(2);
+                    for(int j=0;j<2;j++){mod_spins[j]=spins[j];}
+                    mod_spins[s2]+=delta;
+                    TV new_relative_position=positions[1]+ROTATION<TV>::From_Rotation_Vector(mod_spins[1])*base_offsets[1]-(positions[0]+ROTATION<TV>::From_Rotation_Vector(mod_spins[0])*base_offsets[0]);
+                    TV actual_torque=overall_sign*(ROTATION<TV>::From_Rotation_Vector(mod_spins[s1])*base_offsets[s1]).cross(sqr(new_relative_position.norm()-threshold)*new_relative_position.normalized());
+                    std::cout<<"Quality: "<<(actual_torque-estimated_torque).norm()/delta.norm()<<std::endl;
+                    REQUIRE((actual_torque-estimated_torque).norm()<delta.norm());
+
+                }
+            }
+        }        
+    }
 }
