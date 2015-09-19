@@ -90,7 +90,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             std::vector<TV> offsets(2);
             TV relative_position=structure1->Displacement(data,*structure2,offsets[0],offsets[1]);
             TV direction=relative_position.normalized();
-            T constraint_violation=relative_position.norm()-structure1->collision_radius-structure2->collision_radius;
+            T threshold=structure1->collision_radius+structure2->collision_radius;
+            T constraint_violation=relative_position.norm()-threshold;
             //LOG::cout<<"Relative position: "<<relative_position.transpose()<<" normalized: "<<direction.transpose()<<" offset 1: "<<offsets[0].transpose()<<" offset 2: "<<offsets[1].transpose()<<std::endl;
             T slack_distance=-.005;
             T push_out_distance=1e-8;
@@ -125,7 +126,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
 
                     right_hand_side_force=std::get<1>(constant_memory)*sqr(constraint_violation);
                     constant_forces.push_back(constraint);
-                    RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Penalty_Force_Derivatives(indices,std::get<1>(constant_memory),relative_position,offsets,spins,force_terms);
+                    RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Penalty_Force_Derivatives(indices,threshold,std::get<1>(constant_memory),relative_position,offsets,spins,force_terms);
                 }
                 LOG::cout<<"Force applied to body "<<s1<<": "<<(force_direction1*right_hand_side_force).transpose()<<std::endl;
                 LOG::cout<<"Force applied to body "<<s2<<": "<<(-force_direction2*right_hand_side_force).transpose()<<std::endl;

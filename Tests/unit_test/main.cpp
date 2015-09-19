@@ -55,7 +55,7 @@ TEST_CASE("VOLUME_EXCLUSION_CONSTRAINT","[derivatives]"){
 
         NONLINEAR_EQUATION<TV> equation;
         equation.Linearize(simulation.data,simulation.force,1,0,1);
-        std::cout<<equation.jacobian<<std::endl;
+        //std::cout<<equation.jacobian<<std::endl;
         
         REQUIRE(1);
     }
@@ -125,10 +125,41 @@ TEST_CASE("Derivatives","[derivatives]"){
                     mod_spins[s2]+=delta;
                     TV actual_direction=overall_sign*(positions[1]+ROTATION<TV>::From_Rotation_Vector(mod_spins[1])*base_offsets[1]-(positions[0]+ROTATION<TV>::From_Rotation_Vector(mod_spins[0])*base_offsets[0])).normalized();
                     //std::cout<<"Direction: "<<direction.transpose()<<" estimated: "<<estimated_direction.transpose()<<" actual: "<<actual_direction.transpose()<<" relative: "<<relative_position.transpose()<<std::endl;
-                    //std::cout<<"Quality: "<<(actual_direction-estimated_direction).norm()/delta.norm()<<std::endl;
+                    std::cout<<"Quality: "<<(actual_direction-estimated_direction).norm()/delta.norm()<<std::endl;
                     REQUIRE((actual_direction-estimated_direction).norm()<2*delta.norm());
                 }
             }
+        }
+    }
+
+    SECTION("Penalty force","dPenaltyForce_dVelocity"){
+        for(int i=0;i<tests;i++){
+            std::vector<TV> positions(2);
+            std::vector<TV> base_offsets(2);
+            std::vector<TV> spins(2);
+            std::vector<ROTATION<TV>> rotations(2);
+            for(int j=0;j<2;j++){
+                positions[j]=random.template Direction<TV>();
+                base_offsets[j]=random.template Direction<TV>();
+                spins[j]=random.template Direction<TV>();
+                rotations[j]=ROTATION<TV>::From_Rotation_Vector(spins[j]);
+                //std::cout<<"Position: "<<positions[j].transpose()<<std::endl;
+                //std::cout<<"Base offset: "<<base_offsets[j].transpose()<<std::endl;
+                //std::cout<<"Spins: "<<spins[j].transpose()<<std::endl;
+            }
+            T threshold=(positions[1]-positions[0]).norm()+random.Uniform((T)0,(T).1);
+            //TV relative_position=positions[1]+rotations[1]*base_offsets[1]-(positions[0]+rotations[0]*base_offsets[0]);
+            TV relative_position=positions[1]-positions[0];
+            TV direction=relative_position.normalized();
+            T epsilon=1e-8;
+            TV force=sqr(relative_position.norm()-threshold)*relative_position.normalized();
+            Eigen::Matrix<T,3,3> derivative=RIGID_STRUCTURE_INDEX_MAP<TV>::dPenaltyForce_dVelocity(relative_position,threshold);
+            TV delta=epsilon*random.template Direction<TV>();
+            TV estimated_force=force+derivative*delta;
+            TV new_relative=(positions[1]+delta-positions[0]);
+            TV actual_force=sqr(new_relative.norm()-threshold)*new_relative.normalized();
+            std::cout<<"Quality: "<<(actual_force-estimated_force).norm()/delta.norm()<<std::endl;
+            REQUIRE((actual_force-estimated_force).norm()<delta.norm());
         }
     }
 }
