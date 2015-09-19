@@ -38,8 +38,6 @@ public:
         Matrix<T,3,3> dq_dspin=cos(norm_spin/2)/2*spin_normspin*spin_normspin.transpose()+sinc(norm_spin/2)/2*(Matrix<T,t,t>::Identity()-spin_normspin*spin_normspin.transpose());
         T w=cos(norm_spin/2);
         TV q=sinc(norm_spin/2)*spin/2;
-        //return 2*q.cross(offset)*dw_dspin-2*w*Cross_Product_Matrix(offset)*dq_dspin+4*w*offset*dw_dspin+
-        //    4*q.dot(offset)*dq_dspin;
         return 2*q.cross(offset)*dw_dspin-2*(Cross_Product_Matrix(offset)*w+Cross_Product_Matrix(q.cross(offset))+Cross_Product_Matrix(q)*Cross_Product_Matrix(offset))*dq_dspin;
     }
 
@@ -72,6 +70,28 @@ public:
         if(s1==s2){
             return (s1==0?1:-1)*Cross_Product_Matrix(relative_position)*dRotatedOffset_dSpin(spin,rotated_offsets[s2])/distance+first_term;}
         return first_term;
+    }
+
+    static void Compute_Constraint_Force_Derivatives(const std::vector<int>& indices,const T scalar_force,const TV& relative_position,const std::vector<TV>& rotated_offsets,const std::vector<T_SPIN>& spins,std::vector<Triplet<T>>& force_terms){
+        for(int s1=0;s1<2;s1++){ // structure of the force term
+            for(int s2=0;s2<2;s2++){ // structure we're taking derivative with respect to
+                int term_force=(s1==s2?1:-1)*scalar_force;
+                Flatten_Matrix_Term<T,t+d,t+d,d,d>(indices[s1],indices[s2],0,0,dForce_dVelocity(relative_position)*term_force,force_terms);
+                Flatten_Matrix_Term<T,t+d,t+d,d,t>(indices[s1],indices[s2],0,1,dForce_dSpin(relative_position,spins[s2],rotated_offsets[s2])*term_force,force_terms);
+                Flatten_Matrix_Term<T,t+d,t+d,t,d>(indices[s1],indices[s2],1,0,dTorque_dVelocity(relative_position,rotated_offsets[s1])*term_force,force_terms);
+                Flatten_Matrix_Term<T,t+d,t+d,t,t>(indices[s1],indices[s2],1,1,dTorque_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets)*term_force,force_terms);
+            }}
+    }
+
+    static void Compute_Penalty_Force_Derivatives(const std::vector<int>& indices,const T force_constant,const TV& relative_position,const std::vector<TV>& rotated_offsets,const std::vector<T_SPIN>& spins,std::vector<Triplet<T>>& force_terms){
+        for(int s1=0;s1<2;s1++){ // structure of the force term
+            for(int s2=0;s2<2;s2++){ // structure we're taking derivative with respect to
+                int term_force=(s1==s2?1:-1)*force_constant;
+                Flatten_Matrix_Term<T,t+d,t+d,d,d>(indices[s1],indices[s2],0,0,dForce_dVelocity(relative_position)*term_force,force_terms);
+                Flatten_Matrix_Term<T,t+d,t+d,d,t>(indices[s1],indices[s2],0,1,dForce_dSpin(relative_position,spins[s2],rotated_offsets[s2])*term_force,force_terms);
+                Flatten_Matrix_Term<T,t+d,t+d,t,d>(indices[s1],indices[s2],1,0,dTorque_dVelocity(relative_position,rotated_offsets[s1])*term_force,force_terms);
+                Flatten_Matrix_Term<T,t+d,t+d,t,t>(indices[s1],indices[s2],1,1,dTorque_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets)*term_force,force_terms);
+            }}
     }
 
     static Matrix<T,3,3> Compute_Orientation_Constraint_Matrix(const ROTATION<TV>& rotation,const ROTATION<TV>& relative_rotation,const int composed_rotation_sign)

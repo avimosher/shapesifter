@@ -104,6 +104,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 T right_hand_side_force=0;
                 FORCE_VECTOR force_direction1=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(offsets[0]).transpose()*direction;
                 FORCE_VECTOR force_direction2=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(offsets[1]).transpose()*direction;
+                std::vector<int> indices={s1,s2};
                 if(constraint_violation<slack_distance){
                     if(std::get<0>(memory)!=call_count){
                         std::get<1>(memory)=0;
@@ -115,6 +116,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                     terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s1,-dC_dA1));
                     forces.push_back(Triplet<FORCE_VECTOR>(s2,constraints.size(),force_direction2));
                     forces.push_back(Triplet<FORCE_VECTOR>(s1,constraints.size(),-force_direction1));
+                    RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Force_Derivatives(indices,right_hand_side_force,relative_position,offsets,spins,force_terms);
                     rhs.push_back(-constraint_violation+slack_distance+push_out_distance);
                     constraints.push_back(constraint);}
                 else if(memory.first==call_count || std::get<0>(constant_memory)==call_count){ // exponential falloff
@@ -123,32 +125,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
 
                     right_hand_side_force=std::get<1>(constant_memory)*sqr(constraint_violation);
                     constant_forces.push_back(constraint);
-                    //LOG::cout<<"Force between "<<s1<<" and "<<s2<<" with force: "<<std::get<2>(constant_memory)<<" but also "<<right_hand_side_force<<" characteristic length "<<characteristic_length<<std::endl;
-
-                    //T constant_part=-2*right_hand_side_force*sqr(exponent)*(constraint_violation/characteristic_length-1)/characteristic_length;
-                    //T constant_part=right_hand_side_force*sqr(exponent)*(-2*(constraint_violation/characteristic_length-1))/characteristic_length
-#if 0
-                    std::vector<int> indices={s1,s2};
-                    for(int s1=0;s1<2;s1++){
-                        for(int s2=0;s2<2;s2++){
-                            int term_sign=s1==s2?1:-1;
-                            Flatten_Matrix_Term<T,t+d,t+d,d,d>(indices[s1],indices[s2],0,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dVelocity(relative_position)*right_hand_side_force*term_sign,force_terms);
-                            Flatten_Matrix_Term<T,t+d,t+d,d,t>(indices[s1],indices[s2],0,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dSpin(relative_position,spins[s2],offsets[s2])*right_hand_side_force*term_sign,force_terms);
-                            Flatten_Matrix_Term<T,t+d,t+d,t,d>(indices[s1],indices[s2],1,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dVelocity(relative_position,offsets[s1])*right_hand_side_force*term_sign,force_terms);
-                            Flatten_Matrix_Term<T,t+d,t+d,t,t>(indices[s1],indices[s2],1,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dSpin(relative_position,s1,s2,spins[s2],offsets)*right_hand_side_force*term_sign,force_terms);
-                        }}
-#endif
-                    // TODO: these derivatives are probably wrong.
-#if 0
-                    Matrix<T,t+d,t+d> dA1dx1=dC_dA1.transpose()*constant_part*dC_dA1;
-                    Matrix<T,t+d,t+d> dA1dx2=-dC_dA1.transpose()*constant_part*dC_dA2;
-                    Matrix<T,t+d,t+d> dA2dx1=-dC_dA2.transpose()*constant_part*dC_dA1;
-                    Matrix<T,t+d,t+d> dA2dx2=dC_dA2.transpose()*constant_part*dC_dA2;
-                    Flatten_Matrix_Term(s1,s1,dA1dx1,force_terms);
-                    Flatten_Matrix_Term(s1,s2,dA1dx2,force_terms);
-                    Flatten_Matrix_Term(s2,s1,dA2dx1,force_terms);
-                    Flatten_Matrix_Term(s2,s2,dA2dx2,force_terms);
-#endif
+                    RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Penalty_Force_Derivatives(indices,std::get<1>(constant_memory),relative_position,offsets,spins,force_terms);
                 }
                 LOG::cout<<"Force applied to body "<<s1<<": "<<(force_direction1*right_hand_side_force).transpose()<<std::endl;
                 LOG::cout<<"Force applied to body "<<s2<<": "<<(-force_direction2*right_hand_side_force).transpose()<<std::endl;

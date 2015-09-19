@@ -43,14 +43,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,indices[0],-RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(spins[0],rotated_offsets[0],relative_position)));
         constraint_rhs[i]=(constraint.target_distance-distance);
 
-        for(int s1=0;s1<2;s1++){ // structure of the force term
-            for(int s2=0;s2<2;s2++){ // structure we're taking derivative with respect to
-                int term_sign=s1==s2?1:-1;
-                Flatten_Matrix_Term<T,t+d,t+d,d,d>(indices[s1],indices[s2],0,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dVelocity(relative_position)*stored_forces[i]*term_sign,force_terms);
-                Flatten_Matrix_Term<T,t+d,t+d,d,t>(indices[s1],indices[s2],0,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dSpin(relative_position,spins[s2],rotated_offsets[s2])*stored_forces[i]*term_sign,force_terms);
-                Flatten_Matrix_Term<T,t+d,t+d,t,d>(indices[s1],indices[s2],1,0,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dVelocity(relative_position,rotated_offsets[s1])*stored_forces[i]*term_sign,force_terms);
-                Flatten_Matrix_Term<T,t+d,t+d,t,t>(indices[s1],indices[s2],1,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dTorque_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets)*stored_forces[i]*term_sign,force_terms);
-            }}
+        RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Force_Derivatives(indices,stored_forces[i],relative_position,rotated_offsets,spins,force_terms);
         // contribution to force-balance RHS
         FORCE_VECTOR force_direction1=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(rotated_offsets[0]).transpose()*direction;
         FORCE_VECTOR force_direction2=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(rotated_offsets[1]).transpose()*direction;
