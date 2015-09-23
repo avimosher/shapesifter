@@ -47,8 +47,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         // contribution to force-balance RHS
         FORCE_VECTOR force_direction1=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(rotated_offsets[0]).transpose()*direction;
         FORCE_VECTOR force_direction2=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(rotated_offsets[1]).transpose()*direction;
-        LOG::cout<<"Force applied to body "<<indices[0]<<": "<<(force_direction1*stored_forces[i]).transpose()<<std::endl;
-        LOG::cout<<"Force applied to body "<<indices[1]<<": "<<-(force_direction2*stored_forces[i]).transpose()<<std::endl;
+        //LOG::cout<<"Force applied to body "<<indices[0]<<": "<<(force_direction1*stored_forces[i]).transpose()<<std::endl;
+        //LOG::cout<<"Force applied to body "<<indices[1]<<": "<<-(force_direction2*stored_forces[i]).transpose()<<std::endl;
         right_hand_side.template block<t+d,1>(indices[0]*(t+d),0)+=force_direction1*stored_forces[i];
         right_hand_side.template block<t+d,1>(indices[1]*(t+d),0)-=force_direction2*stored_forces[i];
 
@@ -124,10 +124,10 @@ DEFINE_AND_REGISTER_PARSER(RELATIVE_POSITION_CONSTRAINT,void)
     for(Json::ValueIterator it=constraints.begin();it!=constraints.end();it++){
         typename RELATIVE_POSITION_CONSTRAINT<TV>::CONSTRAINT constraint;
         constraint.s1=rigid_data->Structure_Index((*it)["structure1"].asString());
-        LOG::cout<<(*it)["structure1"]<<" index is "<<constraint.s1<<std::endl;
+        //LOG::cout<<(*it)["structure1"]<<" index is "<<constraint.s1<<std::endl;
         Parse_Vector((*it)["offset1"],constraint.v1);
         constraint.s2=rigid_data->Structure_Index((*it)["structure2"].asString());
-        LOG::cout<<(*it)["structure2"]<<" index is "<<constraint.s2<<std::endl;
+        //LOG::cout<<(*it)["structure2"]<<" index is "<<constraint.s2<<std::endl;
         Parse_Vector((*it)["offset2"],constraint.v2);
         constraint.target_distance=(*it)["distance"].asDouble();
         relative_position_constraint->constraints.push_back(constraint);

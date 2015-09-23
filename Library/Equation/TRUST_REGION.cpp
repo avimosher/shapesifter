@@ -45,7 +45,7 @@ Resize_Vectors()
 template<class TV> void TRUST_REGION<TV>::
 Linearize(SIMULATION<TV>& simulation,const T dt,const T time)
 {
-    LOG::cout<<"Linearize"<<std::endl;
+    //LOG::cout<<"Linearize"<<std::endl;
     DATA<TV>& data=simulation.data;
     FORCE<TV>& force=simulation.force;
 
@@ -69,7 +69,7 @@ Linearize(SIMULATION<TV>& simulation,const T dt,const T time)
 template<class TV> void TRUST_REGION<TV>::
 Linearize_Around()
 {
-    LOG::cout<<"Linearize_Around"<<std::endl;
+    //LOG::cout<<"Linearize_Around"<<std::endl;
     DATA<TV>& data=stored_simulation->data;
     FORCE<TV>& force=stored_simulation->force;
     // sk is solve_vector
@@ -83,10 +83,10 @@ Linearize_Around()
     equation->Linearize(data,force,dt,time,false);
     if(last_good_rhs.rows()==equation->RHS().rows()){
         Vector delta_rhs=(equation->RHS()-last_good_rhs);
-        LOG::cout<<"Delta RHS: "<<std::endl<<delta_rhs.transpose()<<std::endl;
+        //LOG::cout<<"Delta RHS: "<<std::endl<<delta_rhs.transpose()<<std::endl;
         int index;
-        LOG::cout<<"Min value at index "<<index<<" is "<<delta_rhs.minCoeff(&index)<<std::endl;
-        LOG::cout<<"Max value at index "<<index<<" is "<<delta_rhs.maxCoeff(&index)<<std::endl;
+        //LOG::cout<<"Min value at index "<<index<<" is "<<delta_rhs.minCoeff(&index)<<std::endl;
+        //LOG::cout<<"Max value at index "<<index<<" is "<<delta_rhs.maxCoeff(&index)<<std::endl;
     }
     force.Increment_Forces(solve_forces,-1);
 }
@@ -94,7 +94,7 @@ Linearize_Around()
 template<class TV> void TRUST_REGION<TV>::
 Increment_X()
 {
-    LOG::cout<<"INCREMENTING"<<std::endl;
+    //LOG::cout<<"INCREMENTING"<<std::endl;
     DATA<TV>& data=stored_simulation->data;
     FORCE<TV>& force=stored_simulation->force;
     // sk is solve_vector
@@ -134,10 +134,10 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     Update_Preconditioner();
     static int failed_radius=0;
     do{
-        LOG::cout<<"\n\nBEGIN STEP"<<std::endl;
+        //LOG::cout<<"\n\nBEGIN STEP"<<std::endl;
         iteration++;
         status=Update_One_Step();
-        LOG::cout<<"norm_gk: "<<norm_gk<<" norm_gk/sqrt(nvars): "<<norm_gk/sqrt(T(nvars))<<std::endl;
+        //LOG::cout<<"norm_gk: "<<norm_gk<<" norm_gk/sqrt(nvars): "<<norm_gk/sqrt(T(nvars))<<std::endl;
         if(norm_gk/sqrt(T(nvars))<=precision && f<=precision){status=SUCCESS;}
         if(iteration>=max_iterations){status=EMAXITER;}
         if(radius<=min_radius){ // trust region collapse
@@ -155,7 +155,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
             simulation.Write(frame_name);}
         if(status==CONTRACT){status=CONTINUE;}
     }while(status==CONTINUE);
-    LOG::cout<<"SOLVE STEPS: "<<iteration<<" Failed due to radius: "<<failed_radius<<std::endl;
+    //LOG::cout<<"SOLVE STEPS: "<<iteration<<" Failed due to radius: "<<failed_radius<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
@@ -171,7 +171,7 @@ Update_Preconditioner()
 #else
     PrecondLLt.analyzePattern(hessian);
     PrecondLLt.factorize(hessian);
-    LOG::cout<<"Success: "<<(PrecondLLt.info()==Eigen::ComputationInfo::Success)<<std::endl;
+    //LOG::cout<<"Success: "<<(PrecondLLt.info()==Eigen::ComputationInfo::Success)<<std::endl;
 #endif
 }
 ///////////////////////////////////////////////////////////////////////
@@ -188,28 +188,28 @@ Update_One_Step()
     T try_f,step_quality,predicted_reduction;
     Solve_Trust_CG(sk);
     T norm_sk_scaled=Get_Norm_Sk(PrecondLLt);
-    LOG::cout<<"sk: norm: "<<norm_sk_scaled<<std::endl<<sk.transpose()<<std::endl;
+    //LOG::cout<<"sk: norm: "<<norm_sk_scaled<<std::endl<<sk.transpose()<<std::endl;
     if(!finite(norm_sk_scaled)){step_status=FAILEDCG;}
     else{
         Linearize_Around();
         Get_F(try_x,try_f);
-        LOG::cout<<"Old f: "<<f<<" try f: "<<try_f<<std::endl;
+        //LOG::cout<<"Old f: "<<f<<" try f: "<<try_f<<std::endl;
         if(finite(try_f)){
             T actual_reduction=f-try_f;
             T gs=gk.dot(sk);
             T sBs=sk.dot(hessian.template selfadjointView<Lower>()*sk);
-            LOG::cout<<"Expected leverage: "<<(-(gk+hessian.template selfadjointView<Lower>()*sk/2)).transpose()<<std::endl;
+            //LOG::cout<<"Expected leverage: "<<(-(gk+hessian.template selfadjointView<Lower>()*sk/2)).transpose()<<std::endl;
             predicted_reduction=-(gs+sBs/2);
             if(predicted_reduction<0){step_status=ENEGMOVE;}
             step_quality=actual_reduction/predicted_reduction;
-            LOG::cout<<"AP: "<<step_quality<<" ared: "<<actual_reduction<<" pred: "<<predicted_reduction<<" radius: "<<radius<<" gs: "<<gs<<" sBs: "<<sBs<<" norm_sk_scaled: "<<norm_sk_scaled<<std::endl;
-            LOG::cout<<"Gk: "<<gk.transpose()<<std::endl;
-            LOG::cout<<"Sk: "<<sk.transpose()<<std::endl;
+            //LOG::cout<<"AP: "<<step_quality<<" ared: "<<actual_reduction<<" pred: "<<predicted_reduction<<" radius: "<<radius<<" gs: "<<gs<<" sBs: "<<sBs<<" norm_sk_scaled: "<<norm_sk_scaled<<std::endl;
+            //LOG::cout<<"Gk: "<<gk.transpose()<<std::endl;
+            //LOG::cout<<"Sk: "<<sk.transpose()<<std::endl;
             int index;
-            LOG::cout<<"Min value at index "<<index<<" is "<<sk.minCoeff(&index)<<std::endl;
-            LOG::cout<<"Max value at index "<<index<<" is "<<sk.maxCoeff(&index)<<std::endl;
+            //LOG::cout<<"Min value at index "<<index<<" is "<<sk.minCoeff(&index)<<std::endl;
+            //LOG::cout<<"Max value at index "<<index<<" is "<<sk.maxCoeff(&index)<<std::endl;
 
-            LOG::cout<<"Sk./Gk: "<<sk.cwiseQuotient(gk).transpose()<<std::endl;
+            //LOG::cout<<"Sk./Gk: "<<sk.cwiseQuotient(gk).transpose()<<std::endl;
         }
         else{step_status=FAILEDCG;}
     }
@@ -229,12 +229,12 @@ Update_One_Step()
         else if(step_quality<0){step_status=NEGRATIO;}
         else{step_status=CONTRACT;}}
 
-    LOG::cout<<"Step status: "<<step_status<<std::endl;
+    //LOG::cout<<"Step status: "<<step_status<<std::endl;
     switch(step_status){
         case NEGRATIO:{
             T gksk=gk.dot(sk);
             T gamma_bad=(1-contract_threshold)*gksk/((1-contract_threshold)*(f+gksk+contract_threshold*(f-predicted_reduction)-try_f));
-            LOG::cout<<"gamma bad: "<<gamma_bad<<" gksk: "<<gksk<<std::endl;
+            //LOG::cout<<"gamma bad: "<<gamma_bad<<" gksk: "<<gksk<<std::endl;
             radius=std::min(contract_factor*norm_sk_scaled,std::max((T)0.0625,gamma_bad)*radius);
             //radius=std::min(contract_factor*norm_sk_scaled,std::max((T)0.0625,gamma_bad)*radius);
             step_status=CONTRACT;
@@ -289,7 +289,7 @@ Solve_Trust_CG(Vector& pk)
 
         UPz(PrecondLLt,zj,wd);
         norm_zj=wd.norm();
-        LOG::cout<<"norm_zk: "<<norm_zj<<std::endl;
+        //LOG::cout<<"norm_zk: "<<norm_zj<<std::endl;
 
         if(norm_zj>=radius){
             // find tau>=0 s.t. p intersects trust region
@@ -326,7 +326,7 @@ Solve_Trust_CG(Vector& pk)
         reason<<"Exceeded max CG iterations";}
 
     CG_stop_reason=reason.str();
-    LOG::cout<<"CG reason: "<<CG_stop_reason<<" iterations: "<<num_CG_iterations<<std::endl;
+    //LOG::cout<<"CG reason: "<<CG_stop_reason<<" iterations: "<<num_CG_iterations<<std::endl;
     return;
 }
 ///////////////////////////////////////////////////////////////////////
@@ -383,7 +383,7 @@ Find_Tau(const Vector& z,const Vector& d)
     T dCd=d.dot(wd);
     T pCp=z.dot(wz);
     T tau=(-2*pCd+sqrt(4*pCd*pCd-4*dCd*(pCp-radius*radius)))/(2*dCd);
-    LOG::cout<<"Tau: "<<tau<<std::endl;
+    //LOG::cout<<"Tau: "<<tau<<std::endl;
     return tau;
 }
 ///////////////////////////////////////////////////////////////////////

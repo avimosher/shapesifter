@@ -111,7 +111,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                         std::get<1>(memory)=0;
                         if(std::get<0>(constant_memory)==call_count){
                             std::get<1>(memory)=std::get<1>(constant_memory)*sqr(constraint_violation);}}
-                    LOG::cout<<"Constraint between "<<s1<<" and "<<s2<<" with force: "<<std::get<1>(memory)<<std::endl;
+                    //LOG::cout<<"Constraint between "<<s1<<" and "<<s2<<" with force: "<<std::get<1>(memory)<<std::endl;
                     right_hand_side_force=std::get<1>(memory);
                     terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s2,dC_dA2));
                     terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s1,-dC_dA1));
@@ -120,16 +120,15 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                     RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Force_Derivatives(indices,right_hand_side_force,relative_position,offsets,spins,force_terms);
                     rhs.push_back(-constraint_violation+slack_distance+push_out_distance);
                     constraints.push_back(constraint);}
-                else if(memory.first==call_count || std::get<0>(constant_memory)==call_count){ // exponential falloff
+                else if(memory.first==call_count || std::get<0>(constant_memory)==call_count){
                     if(std::get<0>(constant_memory)!=call_count){
                         std::get<1>(constant_memory)=std::get<1>(memory)/sqr(constraint_violation);}
-
                     right_hand_side_force=std::get<1>(constant_memory)*sqr(constraint_violation);
                     constant_forces.push_back(constraint);
                     RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Penalty_Force_Derivatives(indices,threshold,std::get<1>(constant_memory),relative_position,offsets,spins,force_terms);
                 }
-                LOG::cout<<"Force applied to body "<<s1<<": "<<(force_direction1*right_hand_side_force).transpose()<<std::endl;
-                LOG::cout<<"Force applied to body "<<s2<<": "<<(-force_direction2*right_hand_side_force).transpose()<<std::endl;
+                //LOG::cout<<"Force applied to body "<<s1<<": "<<(force_direction1*right_hand_side_force).transpose()<<std::endl;
+                //LOG::cout<<"Force applied to body "<<s2<<": "<<(-force_direction2*right_hand_side_force).transpose()<<std::endl;
                 right_hand_side.template block<t+d,1>(s1*(t+d),0)+=force_direction1*right_hand_side_force;
                 right_hand_side.template block<t+d,1>(s2*(t+d),0)-=force_direction2*right_hand_side_force;}}}
     constraint_rhs.resize(rhs.size(),1);
