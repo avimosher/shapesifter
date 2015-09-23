@@ -23,7 +23,7 @@ public:
     MOMENT<TV> moi;
     T radius;
     T collision_radius;
-    T collision_extent; // defined in the Z direction
+    TV collision_extent; // require to be in the Z direction for now
 
     RIGID_STRUCTURE(){}
     ~RIGID_STRUCTURE(){}
@@ -84,8 +84,8 @@ public:
     }
 
     AlignedBox<T,3> Bounding_Box(){
-        TV minimum=frame*(-TV::Unit(2)*collision_extent);
-        TV maximum=frame*(TV::Unit(2)*collision_extent);
+        TV minimum=frame*(-collision_extent);
+        TV maximum=frame*collision_extent;
         return AlignedBox<T,3>(minimum.cwiseMin(maximum)-TV::Constant(radius),minimum.cwiseMax(maximum)+TV::Constant(radius));
     }
 

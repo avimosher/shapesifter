@@ -117,7 +117,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                     RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Force_Derivatives(indices,right_hand_side_force,relative_position,offsets,spins,force_terms);
                     rhs.push_back(-constraint_violation+slack_distance+push_out_distance);
                     constraints.push_back(constraint);}
-                else if(memory.first==call_count || std::get<0>(constant_memory)==call_count){
+                else if(std::get<0>(memory)==call_count || std::get<0>(constant_memory)==call_count){
                     if(std::get<0>(constant_memory)!=call_count){
                         std::get<1>(constant_memory)=std::get<1>(memory)/sqr(constraint_violation);}
                     right_hand_side_force=std::get<1>(constant_memory)*sqr(constraint_violation);

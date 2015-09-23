@@ -5,25 +5,22 @@ namespace Mechanics{
 
 
 template<class TV>
-class RANGE
+class RANGE:public Matrix<TV,2,1>
 {
 public:
-    TV minimum_corner;
-    TV maximum_corner;
-
     TV Wrap(const TV& X) const
     {
         TV wrapped;TV edges=Edge_Lengths();
         for(int i=0;i<TV::RowsAtCompileTime;i++){
-            if(X[i]>=minimum_corner[i]){
-                wrapped[i]=X[i]-((int)((X[i]-minimum_corner[i])/edges[i]))*edges[i];}
+            if(X[i]>=(*this)[0][i]){
+                wrapped[i]=X[i]-((int)((X[i]-(*this)[0][i])/edges[i]))*edges[i];}
             else{
-                wrapped[i]=X[i]+((int)((maximum_corner[i]-X[i])/edges[i]))*edges[i];}}
+                wrapped[i]=X[i]+((int)(((*this)[1][i]-X[i])/edges[i]))*edges[i];}}
         return wrapped;
     }
 
     TV Edge_Lengths() const
-    {return maximum_corner-minimum_corner;}
+    {return (*this)[1]-(*this)[0];}
 };
 }
 

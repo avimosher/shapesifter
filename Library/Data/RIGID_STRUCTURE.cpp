@@ -10,7 +10,7 @@ Initialize_Inertia(const T eta)
 {
     T rotational_drag=8*M_PI*eta*std::pow(radius,3);
     T linear_drag=6*M_PI*eta*radius;
-    if(!collision_extent){
+    if(!collision_extent.norm()){
 #if 0
         moi.translation=TV::Constant(1);
         moi.rotation=T_SPIN::Constant(1);
@@ -20,12 +20,12 @@ Initialize_Inertia(const T eta)
 #endif
     }
     else{
-        T p=collision_extent/collision_radius+1;
+        T p=collision_extent.norm()/collision_radius+1;
         T E=sqrt(fabs(p*p-1))/p;
         T S=2*atanh(E)/E;
         
         // Perrin friction factors
-        T half_length=collision_extent+collision_radius;
+        T half_length=collision_extent.norm()+collision_radius;
         T equivalent_linear_drag=6*M_PI*eta*std::pow(half_length*collision_radius*collision_radius,1.0f/3.0f);
         moi.translation=TV::Constant(2*std::pow(p,2.0f/3.0f)/S*equivalent_linear_drag);
         moi.rotation(2)=4.0f/3.0f*E*E/(2-S/(p*p))*rotational_drag;
@@ -38,8 +38,8 @@ Displacement(const DATA<TV>& data,const RIGID_STRUCTURE<TV>& structure,TV& offse
 {
     TV centroid1=frame.position;
     TV centroid2=centroid1+data.Minimum_Offset(frame.position,structure.frame.position);
-    TV major_axis1=frame.orientation._transformVector(collision_extent*TV::UnitZ());
-    TV major_axis2=structure.frame.orientation._transformVector(structure.collision_extent*TV::UnitZ());
+    TV major_axis1=frame.orientation._transformVector(collision_extent);
+    TV major_axis2=structure.frame.orientation._transformVector(structure.collision_extent);
     Matrix<T,2,1> weights;
     Matrix<TV,2,1> segment1;
     segment1[0]=centroid1-major_axis1;
@@ -63,7 +63,9 @@ DEFINE_AND_REGISTER_PARSER(RIGID_STRUCTURE,void)
 {
     auto structure=std::make_shared<RIGID_STRUCTURE<TV>>();
     Parse_Vector(node["position"],structure->frame.position,TV());
-    Parse_Scalar(node["collision_extent"],structure->collision_extent);
+    T scalar_collision_extent;
+    Parse_Scalar(node["collision_extent"],scalar_collision_extent);
+    structure->collision_extent=scalar_collision_extent*TV::UnitZ();
     Parse_Scalar(node["radius"],structure->radius,(T)0);
     Parse_Scalar(node["collision_radius"],structure->collision_radius,structure->radius);
     Parse_Rotation(node["orientation"],structure->frame.orientation);

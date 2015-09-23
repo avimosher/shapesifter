@@ -110,6 +110,21 @@ public:
             }}
     }
 
+    static void Compute_Constraint_Force_Derivative(const int index,const T scalar_force,const TV& relative_position,const TV& rotated_offset,const T_SPIN& spin,std::vector<Triplet<T>>& force_terms){
+        Flatten_Matrix_Term<T,t+d,t+d,d,d>(index,index,0,0,dForce_dVelocity(relative_position)*scalar_force,force_terms);
+        Flatten_Matrix_Term<T,t+d,t+d,d,t>(index,index,0,1,dForce_dSpin(relative_position,spin,rotated_offset)*scalar_force,force_terms);
+        Flatten_Matrix_Term<T,t+d,t+d,t,d>(index,index,1,0,dTorque_dVelocity(relative_position,rotated_offset)*scalar_force,force_terms);
+        Flatten_Matrix_Term<T,t+d,t+d,t,t>(index,index,1,1,dTorque_dSpin(relative_position,0,0,spin,rotated_offset)*scalar_force,force_terms);
+    }
+
+    static void Compute_Penalty_Force_Derivative(const int index,const T threshold,const T force_constant,const TV& relative_position,const TV& rotated_offset,const T_SPIN& spin,std::vector<Triplet<T>>& force_terms){
+        Matrix<T,d,d> dF_dV=dPenaltyForce_dVelocity(relative_position,threshold)*force_constant;
+        Flatten_Matrix_Term<T,t+d,t+d,d,d>(index,index,0,0,dF_dV,force_terms);
+        Flatten_Matrix_Term<T,t+d,t+d,d,t>(index,index,0,1,dF_dV*dRotatedOffset_dSpin(spin,rotated_offset),force_terms);
+        Flatten_Matrix_Term<T,t+d,t+d,t,d>(index,index,1,0,Cross_Product_Matrix(rotated_offset)*dF_dV,force_terms);
+        Flatten_Matrix_Term<T,t+d,t+d,t,t>(index,index,1,1,dPenaltyTorque_dSpin(relative_position,0,0,spin,rotated_offset,threshold)*force_constant,force_terms);
+    }
+
     static Matrix<T,3,3> Compute_Orientation_Constraint_Matrix(const ROTATION<TV>& rotation,const ROTATION<TV>& relative_rotation,const int composed_rotation_sign)
     {
         TV orientation=rotation.Rotation_Vector();

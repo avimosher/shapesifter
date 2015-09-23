@@ -10,6 +10,10 @@ class WALL_CONSTRAINT:public FORCE_TYPE<TV>
 public:
     enum DEFINITIONS{d=TV::RowsAtCompileTime,t=T_SPIN::RowsAtCompileTime};
 
+    enum WALL{PLUS_WALL,MINUS_WALL};
+    typedef std::tuple<int,int,WALL> CONSTRAINT; // body, axis, wall
+    RANGE<Matrix<bool,d>> walls;
+
     WALL_CONSTRAINT()
     {}
 

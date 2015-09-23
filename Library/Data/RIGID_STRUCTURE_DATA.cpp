@@ -90,16 +90,16 @@ Viewer(osg::Node* node)
             auto transform=new osg::PositionAttitudeTransform();
             auto basicShapesGeode=new osg::Geode();
             osg::Vec4 color=colorMap(i);
-            if(structures[i]->collision_extent){
-                auto cylinder=new osg::Cylinder(osg::Vec3(0,0,0),structures[i]->radius,2*structures[i]->collision_extent);
+            if(structures[i]->collision_extent.norm()){
+                auto cylinder=new osg::Cylinder(osg::Vec3(0,0,0),structures[i]->radius,2*structures[i]->collision_extent.norm());
                 auto cylinderDrawable=new osg::ShapeDrawable(cylinder);
                 cylinderDrawable->setColor(color);
                 basicShapesGeode->addDrawable(cylinderDrawable);
-                auto topSphere=new osg::Sphere(osg::Vec3(0,0,structures[i]->collision_extent),structures[i]->radius);
+                auto topSphere=new osg::Sphere(osg::Vec3(0,0,structures[i]->collision_extent.norm()),structures[i]->radius);
                 auto topSphereDrawable=new osg::ShapeDrawable(topSphere);
                 topSphereDrawable->setColor(color);
                 basicShapesGeode->addDrawable(topSphereDrawable);
-                auto bottomSphere=new osg::Sphere(osg::Vec3(0,0,-structures[i]->collision_extent),structures[i]->radius);
+                auto bottomSphere=new osg::Sphere(osg::Vec3(0,0,-structures[i]->collision_extent.norm()),structures[i]->radius);
                 auto bottomSphereDrawable=new osg::ShapeDrawable(bottomSphere);
                 bottomSphereDrawable->setColor(color);
                 basicShapesGeode->addDrawable(bottomSphereDrawable);

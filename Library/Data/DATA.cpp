@@ -97,8 +97,8 @@ DEFINE_AND_REGISTER_PARSER(DATA,void)
         if(itr.key()=="type"){continue;}
         if(itr.key()=="domain"){
             simulation.data.periodic=true;
-            Parse_Vector(node["domain"]["minimum_corner"],simulation.data.domain.minimum_corner);
-            Parse_Vector(node["domain"]["maximum_corner"],simulation.data.domain.maximum_corner);
+            Parse_Vector(node["domain"]["minimum_corner"],simulation.data.domain[0]);
+            Parse_Vector(node["domain"]["maximum_corner"],simulation.data.domain[1]);
             continue;}
         if(itr.key()!="type"){Parse_Scalar(*itr,simulation.data.globals[itr.key().asString()]);}}
     return 0;
