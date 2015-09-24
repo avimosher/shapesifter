@@ -82,22 +82,18 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             else{
                 axis_extrema[0]=axis_extrema[1]=(extrema[0]+extrema[1])*(T).5;}
 
-            for(int w=0;w<2;w++){
+            for(int w=0,sgn=1;w<2;w++,sgn-=2){
                 if(walls[w][axis]){
-                    T relative_position;
-                    if(w==0){
-                        relative_position=axis_extrema[w][axis]+structure->frame.position[axis]-data.domain[w][axis];}
-                    else{
-                        relative_position=data.domain[w][axis]-axis_extrema[w][axis]-structure->frame.position[axis];}
-
+                    T relative_position=sgn*(axis_extrema[w][axis]+structure->frame.position[axis]-data.domain[w][axis]);
                     T constraint_violation=relative_position-threshold;
                     TV offset=axis_extrema[w];
+                    TV direction=sgn*TV::Unit(axis);
                     if(constraint_violation<0){ // do something about it
                         CONSTRAINT constraint(s,axis,w);
                         auto& memory=force_memory[constraint];
                         auto& constant_memory=constant_force_memory[constraint];
                         T right_hand_side_force=0;
-                        FORCE_VECTOR force_direction=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(offset).transpose()*TV::Unit(axis);
+                        FORCE_VECTOR force_direction=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(offset).transpose()*direction;
                         if(constraint_violation<slack_distance){
                             if(std::get<0>(memory)!=call_count){
                                 std::get<1>(memory)=0;
@@ -105,19 +101,18 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                                     std::get<1>(memory)=std::get<1>(constant_memory)*sqr(constraint_violation);}}
                             //LOG::cout<<"Constraint force with base: "<<std::get<1>(memory)<<std::endl;
                             right_hand_side_force=std::get<1>(memory);
-                            terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s,RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(spin,offset,TV::Unit(axis)*relative_position)));
+                            terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s,RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(spin,offset,direction*relative_position)));
                             forces.push_back(Triplet<FORCE_VECTOR>(s,constraints.size(),force_direction));
-                            RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Force_Derivative(s,right_hand_side_force,TV::Unit(axis)*relative_position,offset,spin,force_terms);
+                            RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Force_Derivative(s,right_hand_side_force,direction*relative_position,offset,spin,force_terms);
                             rhs.push_back(-constraint_violation+slack_distance+push_out_distance);
-                            constraints.push_back(constraint);
-                        }
+                            constraints.push_back(constraint);}
                         else if(std::get<0>(memory)==call_count || std::get<0>(constant_memory)==call_count){
                             if(std::get<0>(constant_memory)!=call_count){
                                 std::get<1>(constant_memory)=std::get<1>(memory)/sqr(constraint_violation);}
                             //LOG::cout<<"Penalty force with base: "<<std::get<1>(constant_memory)<<std::endl;
                             right_hand_side_force=std::get<1>(constant_memory)*sqr(constraint_violation);
                             constant_forces.push_back(constraint);
-                            RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Penalty_Force_Derivative(s,threshold,std::get<1>(constant_memory),relative_position*TV::Unit(axis),offset,spin,force_terms);}
+                            RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Penalty_Force_Derivative(s,threshold,std::get<1>(constant_memory),relative_position*direction,offset,spin,force_terms);}
                         right_hand_side.template block<t+d,1>(s*(t+d),0)-=force_direction*right_hand_side_force;}}}}}
     constraint_rhs.resize(rhs.size(),1);
     for(int i=0;i<rhs.size();i++){constraint_rhs(i,0)=rhs[i];}
