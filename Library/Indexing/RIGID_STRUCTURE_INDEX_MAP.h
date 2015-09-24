@@ -2,7 +2,9 @@
 #define __RIGID_STRUCTURE_INDEX_MAP__
 
 #include <Data/FRAME.h>
+#include <Data/RIGID_STRUCTURE.h>
 #include <Data/ROTATION.h>
+#include <Data/TWIST.h>
 #include <Utilities/EIGEN_HELPERS.h>
 
 namespace Mechanics{
@@ -64,11 +66,11 @@ public:
         return Cross_Product_Matrix(rotated_offset)*dForce_dVelocity(relative_position);
     }
 
-    static Matrix<T,t,t> dTorque_dSpin(const TV& relative_position,int s1,int s2,const T_SPIN& spin,const std::vector<TV>& rotated_offsets){
+    static Matrix<T,t,t> dTorque_dSpin(const TV& relative_position,int s1,int s2,const T_SPIN& spin,const TV& rotated_offset1,const TV& rotated_offset2){
         T distance=std::max((T)1e-8,relative_position.norm());
-        Matrix<T,t,t> first_term=Cross_Product_Matrix(rotated_offsets[s1])*dForce_dSpin(relative_position,spin,rotated_offsets[s2]);
+        Matrix<T,t,t> first_term=Cross_Product_Matrix(rotated_offset1)*dForce_dSpin(relative_position,spin,rotated_offset2);
         if(s1==s2){
-            return (s1==0?1:-1)*Cross_Product_Matrix(relative_position)*dRotatedOffset_dSpin(spin,rotated_offsets[s2])/distance+first_term;}
+            return (s1==0?1:-1)*Cross_Product_Matrix(relative_position)*dRotatedOffset_dSpin(spin,rotated_offset2)/distance+first_term;}
         return first_term;
     }
 
@@ -79,11 +81,11 @@ public:
         return (Matrix<T,d,d>::Identity()*one_over_distance-relative_position*relative_position.transpose()*cube(one_over_distance))*sqr(threshold_distance)+2*threshold_distance*relative_position*relative_position.transpose()*sqr(one_over_distance);
     }
 
-    static Matrix<T,t,t> dPenaltyTorque_dSpin(const TV& relative_position,int s1,int s2,const T_SPIN& spin,const std::vector<TV>& rotated_offsets,const T threshold){
+    static Matrix<T,t,t> dPenaltyTorque_dSpin(const TV& relative_position,int s1,int s2,const T_SPIN& spin,const TV& rotated_offset1,const TV& rotated_offset2,const T threshold){
         T distance=std::max((T)1e-8,relative_position.norm());
-        Matrix<T,t,t> first_term=Cross_Product_Matrix(rotated_offsets[s1])*dPenaltyForce_dVelocity(relative_position,threshold)*dRotatedOffset_dSpin(spin,rotated_offsets[s2]);
+        Matrix<T,t,t> first_term=Cross_Product_Matrix(rotated_offset1)*dPenaltyForce_dVelocity(relative_position,threshold)*dRotatedOffset_dSpin(spin,rotated_offset2);
         if(s1==s2){
-            return (s1==0?1:-1)*Cross_Product_Matrix(relative_position)*dRotatedOffset_dSpin(spin,rotated_offsets[s2])/distance*sqr(distance-threshold)+first_term;}
+            return (s1==0?1:-1)*Cross_Product_Matrix(relative_position)*dRotatedOffset_dSpin(spin,rotated_offset2)/distance*sqr(distance-threshold)+first_term;}
         return first_term;
     }
 
@@ -94,7 +96,7 @@ public:
                 Flatten_Matrix_Term<T,t+d,t+d,d,d>(indices[s1],indices[s2],0,0,dForce_dVelocity(relative_position)*term_force,force_terms);
                 Flatten_Matrix_Term<T,t+d,t+d,d,t>(indices[s1],indices[s2],0,1,dForce_dSpin(relative_position,spins[s2],rotated_offsets[s2])*term_force,force_terms);
                 Flatten_Matrix_Term<T,t+d,t+d,t,d>(indices[s1],indices[s2],1,0,dTorque_dVelocity(relative_position,rotated_offsets[s1])*term_force,force_terms);
-                Flatten_Matrix_Term<T,t+d,t+d,t,t>(indices[s1],indices[s2],1,1,dTorque_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets)*term_force,force_terms);
+                Flatten_Matrix_Term<T,t+d,t+d,t,t>(indices[s1],indices[s2],1,1,dTorque_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets[s1],rotated_offsets[s2])*term_force,force_terms);
             }}
     }
 
@@ -106,7 +108,7 @@ public:
                 Flatten_Matrix_Term<T,t+d,t+d,d,d>(indices[s1],indices[s2],0,0,dF_dV,force_terms);
                 Flatten_Matrix_Term<T,t+d,t+d,d,t>(indices[s1],indices[s2],0,1,dF_dV*dRotatedOffset_dSpin(spins[s2],rotated_offsets[s2]),force_terms);
                 Flatten_Matrix_Term<T,t+d,t+d,t,d>(indices[s1],indices[s2],1,0,Cross_Product_Matrix(rotated_offsets[s1])*dF_dV,force_terms);
-                Flatten_Matrix_Term<T,t+d,t+d,t,t>(indices[s1],indices[s2],1,1,dPenaltyTorque_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets,threshold)*term_force,force_terms);
+                Flatten_Matrix_Term<T,t+d,t+d,t,t>(indices[s1],indices[s2],1,1,dPenaltyTorque_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets[s1],rotated_offsets[s2],threshold)*term_force,force_terms);
             }}
     }
 
@@ -114,7 +116,7 @@ public:
         Flatten_Matrix_Term<T,t+d,t+d,d,d>(index,index,0,0,dForce_dVelocity(relative_position)*scalar_force,force_terms);
         Flatten_Matrix_Term<T,t+d,t+d,d,t>(index,index,0,1,dForce_dSpin(relative_position,spin,rotated_offset)*scalar_force,force_terms);
         Flatten_Matrix_Term<T,t+d,t+d,t,d>(index,index,1,0,dTorque_dVelocity(relative_position,rotated_offset)*scalar_force,force_terms);
-        Flatten_Matrix_Term<T,t+d,t+d,t,t>(index,index,1,1,dTorque_dSpin(relative_position,0,0,spin,rotated_offset)*scalar_force,force_terms);
+        Flatten_Matrix_Term<T,t+d,t+d,t,t>(index,index,1,1,dTorque_dSpin(relative_position,0,0,spin,rotated_offset,rotated_offset)*scalar_force,force_terms);
     }
 
     static void Compute_Penalty_Force_Derivative(const int index,const T threshold,const T force_constant,const TV& relative_position,const TV& rotated_offset,const T_SPIN& spin,std::vector<Triplet<T>>& force_terms){
@@ -122,7 +124,7 @@ public:
         Flatten_Matrix_Term<T,t+d,t+d,d,d>(index,index,0,0,dF_dV,force_terms);
         Flatten_Matrix_Term<T,t+d,t+d,d,t>(index,index,0,1,dF_dV*dRotatedOffset_dSpin(spin,rotated_offset),force_terms);
         Flatten_Matrix_Term<T,t+d,t+d,t,d>(index,index,1,0,Cross_Product_Matrix(rotated_offset)*dF_dV,force_terms);
-        Flatten_Matrix_Term<T,t+d,t+d,t,t>(index,index,1,1,dPenaltyTorque_dSpin(relative_position,0,0,spin,rotated_offset,threshold)*force_constant,force_terms);
+        Flatten_Matrix_Term<T,t+d,t+d,t,t>(index,index,1,1,dPenaltyTorque_dSpin(relative_position,0,0,spin,rotated_offset,rotated_offset,threshold)*force_constant,force_terms);
     }
 
     static Matrix<T,3,3> Compute_Orientation_Constraint_Matrix(const ROTATION<TV>& rotation,const ROTATION<TV>& relative_rotation,const int composed_rotation_sign)

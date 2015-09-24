@@ -183,7 +183,7 @@ TEST_CASE("Derivatives","[derivatives]"){
                 int overall_sign=s1==0?-1:1;
                 for(int s2=0;s2<2;s2++){
                     int term_sign=s1==s2?1:-1;
-                    Eigen::Matrix<T,3,3> derivative=term_sign*RIGID_STRUCTURE_INDEX_MAP<TV>::dPenaltyTorque_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets,threshold);
+                    Eigen::Matrix<T,3,3> derivative=term_sign*RIGID_STRUCTURE_INDEX_MAP<TV>::dPenaltyTorque_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets[s1],rotated_offsets[s2],threshold);
                     TV delta=epsilon*random.template Direction<TV>();
 
                     TV torque=overall_sign*(ROTATION<TV>::From_Rotation_Vector(spins[s1])*base_offsets[s1]).cross(sqr(relative_position.norm()-threshold)*relative_position.normalized());

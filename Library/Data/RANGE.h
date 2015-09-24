@@ -1,11 +1,12 @@
 #ifndef __RANGE__
 #define __RANGE__
 
+#include <Eigen/Dense>
+
 namespace Mechanics{
 
-
 template<class TV>
-class RANGE:public Matrix<TV,2,1>
+class RANGE:public Eigen::Matrix<TV,2,1>
 {
 public:
     TV Wrap(const TV& X) const

@@ -98,7 +98,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             T push_out_distance=1e-8;
             if(constraint_violation<0){
                 CONSTRAINT constraint(s1,s2);
-                std::pair<int,T>& memory=force_memory[constraint];
+                auto& memory=force_memory[constraint];
                 auto& constant_memory=constant_force_memory[constraint];
                 std::vector<T_SPIN> spins={structure1->twist.angular,structure2->twist.angular};
                 T right_hand_side_force=0;
