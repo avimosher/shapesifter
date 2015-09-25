@@ -1,0 +1,33 @@
+{
+    "output_directory": "minimal_complex",
+    "dt": 0.1,
+    "last_time": 1000,
+    "root": [
+        {"type": "DATA",
+         "eta": 3.5},
+        {"type": "RIGID_STRUCTURE_DATA"},
+        {"type": "RIGID_STRUCTURE",
+         "position": [0, 7.1, 4],
+         "radius": 1,
+         "name": "scFv"
+        },
+        {"type": "RIGID_STRUCTURE",
+         "position": [1, 1, 1],
+         "radius": 1,
+         "name": "interferon"
+        },
+        {"type": "TRUST_REGION",
+         "name": "evolution"},
+        {"type": "BROWNIAN_FORCE",
+         "temperature": 300},
+        {"type": "FLEXIBLE_LINKER",
+         "structure1": "scFv",
+         "offset1": [0,0,0],
+         "structure2": "interferon",
+         "offset2": [0,0,0],
+         "links": 1,
+         "link_radius": 0.2,
+         "link_offset": [1.2,0,0]
+        }
+    ]
+}

@@ -103,6 +103,10 @@ public:
         simulation.Viewer(root);
     }
 
+    void goToFrame(int goFrame){
+        advanceFrame(goFrame-frame);
+    }
+
     virtual void operator()(osg::Node* node,osg::NodeVisitor* nv) {
         T time=nv->getFrameStamp()->getSimulationTime();
         if(animating && time-lastTime>frameTime){
@@ -117,6 +121,8 @@ class KeyboardEventHandler : public osgGA::GUIEventHandler
 {
 public:
     AnimationHandler* animation;
+    int frame;
+    bool readingFrame;
 
     KeyboardEventHandler(AnimationHandler* animation)
         :animation(animation)
@@ -126,6 +132,29 @@ public:
         switch(ea.getEventType()) {
             case(osgGA::GUIEventAdapter::KEYDOWN):{
                 switch(ea.getKey()) {
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9':
+                        frame=10*frame+ea.getKey()-'0';
+                        return true;
+                    case 65293:
+                    case osgGA::GUIEventAdapter::KEY_KP_Enter:
+                        std::cout<<"cr"<<std::endl;
+                        if(readingFrame){
+                            readingFrame=false;
+                            animation->goToFrame(frame);}
+                        return true;
+                    case 'g':
+                        readingFrame=true;
+                        frame=0;
+                        return true;
                     case 's':
                         animation->advanceFrame(1);
                         return true;

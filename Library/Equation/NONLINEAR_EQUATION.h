@@ -28,6 +28,7 @@ public:
     Matrix<T,Dynamic,1> Gradient(){return -jacobian.adjoint()*right_hand_side;}
     Matrix<T,Dynamic,1> RHS(){return right_hand_side;}
     SparseMatrix<T> Hessian(){return jacobian.adjoint()*jacobian;}
+    SparseMatrix<T> Jacobian(){return jacobian;}
     int System_Size(){return right_hand_side.size();}
 
     void Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool stochastic);

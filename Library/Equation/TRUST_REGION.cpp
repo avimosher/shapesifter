@@ -189,6 +189,8 @@ Update_One_Step()
     Solve_Trust_CG(sk);
     T norm_sk_scaled=Get_Norm_Sk(PrecondLLt);
     //LOG::cout<<"sk: norm: "<<norm_sk_scaled<<std::endl<<sk.transpose()<<std::endl;
+    //LOG::cout<<"Hessian*sk: "<<std::endl<<(hessian*sk).transpose()<<std::endl;
+    //LOG::cout<<"Jacobian*sk: "<<std::endl<<(equation->Jacobian()*sk).transpose()<<std::endl;
     if(!finite(norm_sk_scaled)){step_status=FAILEDCG;}
     else{
         Linearize_Around();
@@ -272,6 +274,8 @@ Solve_Trust_CG(Vector& pk)
     // Solve LL'y=r
     yj=PrecondLLt.solve(rj);
     dj=yj;
+    LOG::cout<<"Hessian: "<<std::endl<<hessian<<std::endl;
+    LOG::cout<<"Gradient: "<<gk.transpose()<<std::endl;
     
     std::stringstream reason;
     for(j=0;j<trust_iterations;j++){
@@ -326,7 +330,7 @@ Solve_Trust_CG(Vector& pk)
         reason<<"Exceeded max CG iterations";}
 
     CG_stop_reason=reason.str();
-    //LOG::cout<<"CG reason: "<<CG_stop_reason<<" iterations: "<<num_CG_iterations<<std::endl;
+    LOG::cout<<"CG reason: "<<CG_stop_reason<<" iterations: "<<num_CG_iterations<<std::endl;
     return;
 }
 ///////////////////////////////////////////////////////////////////////
