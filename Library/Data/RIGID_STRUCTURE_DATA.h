@@ -56,7 +56,11 @@ public:
     }
     
     std::shared_ptr<RIGID_STRUCTURE<TV>> Structure(const std::string& name)
-    {return structures[Structure_Index(name)];}
+    {
+        int index=Structure_Index(name);
+        if(index>-1){return structures[index];}
+        return std::shared_ptr<RIGID_STRUCTURE<TV>>();
+    }
 
     int Size();
     virtual int Velocity_DOF() const;
