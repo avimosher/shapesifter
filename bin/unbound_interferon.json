@@ -1,0 +1,41 @@
+{
+    "output_directory": "unbound_interferon",
+    "dt": 0.1,
+    "last_time": 500,
+    "root": [
+        {"type": "DATA",
+         "eta": 3.5,
+         "domain": {
+             "minimum_corner": [0,0,0],
+             "maximum_corner": [10,10,10]}
+        },
+        {"type": "RIGID_STRUCTURE",
+         "position": [6.96,7,0],
+         "radius": 1.16,
+         "collision_extent": 0.27,
+         "name": "interferon"
+        },
+        {"type": "TRUST_REGION",
+         "name": "evolution"},
+        {"type": "BROWNIAN_FORCE",
+         "temperature": 300},
+        {"type": "ANALYTE",
+         "prerequisites": ["evolution"],
+         "predicate": {
+             "type": "orientation_quality",
+             "binder_name": "interferon",
+             "distance_limit": 1,
+             "around_bond_angle_limit": 0.785,
+             "out_of_bond_angle_limit": 0.785,
+             "target_bond_orientation": [0,-1,0],
+             "binder_bond_vector": [0,-1.16,0],
+             "target_height": 3.65,
+             "receptor_radius": 1.8
+         },
+         "aggregator": {"type": "average"}
+        },
+        {"type": "WALL_CONSTRAINT",
+         "lower": [0,1,0],
+         "upper": [0,1,0]}
+    ]
+}
