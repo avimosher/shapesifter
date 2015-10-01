@@ -155,7 +155,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
             simulation.Write(frame_name);}
         if(status==CONTRACT){status=CONTINUE;}
     }while(status==CONTINUE);
-    LOG::cout<<"SOLVE STEPS: "<<iteration<<" Failed due to radius: "<<failed_radius<<std::endl;
+    //LOG::cout<<"SOLVE STEPS: "<<iteration<<" Failed due to radius: "<<failed_radius<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
@@ -204,7 +204,7 @@ Update_One_Step()
             predicted_reduction=-(gs+sBs/2);
             if(predicted_reduction<0){step_status=ENEGMOVE;}
             step_quality=actual_reduction/predicted_reduction;
-            LOG::cout<<"AP: "<<step_quality<<" old f: "<<f<<" try f: "<<try_f<<" ared: "<<actual_reduction<<" pred: "<<predicted_reduction<<" radius: "<<radius<<" gs: "<<gs<<" sBs: "<<sBs<<" norm_sk_scaled: "<<norm_sk_scaled<<std::endl;
+            //LOG::cout<<"AP: "<<step_quality<<" old f: "<<f<<" try f: "<<try_f<<" ared: "<<actual_reduction<<" pred: "<<predicted_reduction<<" radius: "<<radius<<" gs: "<<gs<<" sBs: "<<sBs<<" norm_sk_scaled: "<<norm_sk_scaled<<std::endl;
             //LOG::cout<<"Gk: "<<gk.transpose()<<std::endl;
             //LOG::cout<<"Sk: "<<sk.transpose()<<std::endl;
             int index;
@@ -274,8 +274,8 @@ Solve_Trust_CG(Vector& pk)
     // Solve LL'y=r
     yj=PrecondLLt.solve(rj);
     dj=yj;
-    LOG::cout<<"Hessian: "<<std::endl<<hessian<<std::endl;
-    LOG::cout<<"Gradient: "<<gk.transpose()<<std::endl;
+    //LOG::cout<<"Hessian: "<<std::endl<<hessian<<std::endl;
+    //LOG::cout<<"Gradient: "<<gk.transpose()<<std::endl;
     
     std::stringstream reason;
     for(j=0;j<trust_iterations;j++){
@@ -330,7 +330,7 @@ Solve_Trust_CG(Vector& pk)
         reason<<"Exceeded max CG iterations";}
 
     CG_stop_reason=reason.str();
-    LOG::cout<<"CG reason: "<<CG_stop_reason<<" iterations: "<<num_CG_iterations<<std::endl;
+    //LOG::cout<<"CG reason: "<<CG_stop_reason<<" iterations: "<<num_CG_iterations<<std::endl;
     return;
 }
 ///////////////////////////////////////////////////////////////////////

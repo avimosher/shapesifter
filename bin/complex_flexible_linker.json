@@ -1,7 +1,7 @@
 {
     "output_directory": "chimeric",
     "dt": 0.1,
-    "last_time": 1000,
+    "last_time": 500,
     "root": [
         {"type": "DATA",
          "eta": 3.5},
