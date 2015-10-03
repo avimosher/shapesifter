@@ -1,0 +1,222 @@
+107c107
+<       x = m_scale.asDiagonal() * x;
+---
+>       x = m_inverseScale.asDiagonal() * x;
+110c110
+<       x = m_scale.asDiagonal() * x;
+---
+>       x = m_inverseScale.asDiagonal() * x;
+115a116,145
+>     template<typename Rhs,typename Dest>
+>     void _multiply(const Rhs& b, Dest& x) const
+>     {
+>       eigen_assert(m_factorizationIsOk && "factorize() should be called first");
+>       if (m_perm.rows() == b.rows())
+>           x = m_perm * b;
+>       else
+>           x = b;
+>       x = m_scale.asDiagonal() * x;
+>       x = m_L.adjoint().template triangularView<Upper>() * x;
+>       x = m_L.template triangularView<Lower>() * x;
+>       x = m_scale.asDiagonal() * x;
+>       if (m_perm.rows() == b.rows()) 
+>           x = m_perm.inverse() * x;
+>     }
+> 
+>     template<typename Rhs>
+>     Scalar _norm(const Rhs& b,Rhs& scratch) const
+>     {
+>         if (m_perm.rows() == b.rows())
+>             scratch = m_perm * b;
+>         else
+>             scratch = b;
+>         scratch = m_scale.asDiagonal() * scratch;
+>         scratch = m_L.adjoint().template triangularView<Upper>() * scratch;
+>         return scratch.norm();
+>     }
+> 
+>         
+> 
+118a149
+>     VectorRx m_inverseScale;
+178a210,215
+> 
+>   m_inverseScale.resize(n);
+>   for (Index j = 0; j < n; j++)
+>   {
+>       m_inverseScale(j) = 1 / (m_scale(j));
+>   }   
+194,216c231,245
+<   // Apply the shift to the diagonal elements of the matrix
+<   for (Index j = 0; j < n; j++)
+<     vals[colPtr[j]] += shift;
+<   
+<   // jki version of the Cholesky factorization 
+<   for (Index j=0; j < n; ++j)
+<   {  
+<     // Left-looking factorization of the j-th column
+<     // First, load the j-th column into col_vals 
+<     Scalar diag = vals[colPtr[j]];  // It is assumed that only the lower part is stored
+<     col_nnz = 0;
+<     for (Index i = colPtr[j] + 1; i < colPtr[j+1]; i++)
+<     {
+<       StorageIndex l = rowIdx[i];
+<       col_vals(col_nnz) = vals[i];
+<       col_irow(col_nnz) = l;
+<       col_pattern(l) = col_nnz;
+<       col_nnz++;
+<     }
+<     {
+<       typename std::list<StorageIndex>::iterator k; 
+<       // Browse all previous columns that will update column j
+<       for(k = listCol[j].begin(); k != listCol[j].end(); k++) 
+---
+>   VectorSx storeVals=vals;
+> 
+>   while(1){
+>     // Apply the shift to the diagonal elements of the matrix
+>     for (Index j = 0; j < n; j++)
+>       vals[colPtr[j]] += shift;
+>   
+>     // jki version of the Cholesky factorization 
+>     for (Index j=0; j < n; ++j)
+>     {  
+>       // Left-looking factorization of the j-th column
+>       // First, load the j-th column into col_vals 
+>       Scalar diag = vals[colPtr[j]];  // It is assumed that only the lower part is stored
+>       col_nnz = 0;
+>       for (Index i = colPtr[j] + 1; i < colPtr[j+1]; i++)
+218,223c247,256
+<         Index jk = firstElt(*k); // First element to use in the column 
+<         eigen_internal_assert(rowIdx[jk]==j);
+<         Scalar v_j_jk = numext::conj(vals[jk]);
+<         
+<         jk += 1; 
+<         for (Index i = jk; i < colPtr[*k+1]; i++)
+---
+>         StorageIndex l = rowIdx[i];
+>         col_vals(col_nnz) = vals[i];
+>         col_irow(col_nnz) = l;
+>         col_pattern(l) = col_nnz;
+>         col_nnz++;
+>       }
+>       {
+>         typename std::list<StorageIndex>::iterator k; 
+>         // Browse all previous columns that will update column j
+>         for(k = listCol[j].begin(); k != listCol[j].end(); k++) 
+225,226c258,263
+<           StorageIndex l = rowIdx[i];
+<           if(col_pattern[l]<0)
+---
+>           Index jk = firstElt(*k); // First element to use in the column 
+>           eigen_internal_assert(rowIdx[jk]==j);
+>           Scalar v_j_jk = numext::conj(vals[jk]);
+>         
+>           jk += 1; 
+>           for (Index i = jk; i < colPtr[*k+1]; i++)
+228,231c265,274
+<             col_vals(col_nnz) = vals[i] * v_j_jk;
+<             col_irow[col_nnz] = l;
+<             col_pattern(l) = col_nnz;
+<             col_nnz++;
+---
+>             StorageIndex l = rowIdx[i];
+>             if(col_pattern[l]<0)
+>             {
+>               col_vals(col_nnz) = vals[i] * v_j_jk;
+>               col_irow[col_nnz] = l;
+>               col_pattern(l) = col_nnz;
+>               col_nnz++;
+>             }
+>             else
+>               col_vals(col_pattern[l]) -= vals[i] * v_j_jk;
+233,234c276
+<           else
+<             col_vals(col_pattern[l]) -= vals[i] * v_j_jk;
+---
+>           updateList(colPtr,rowIdx,vals, *k, jk, firstElt, listCol);
+236d277
+<         updateList(colPtr,rowIdx,vals, *k, jk, firstElt, listCol);
+238d278
+<     }
+240,246c280,289
+<     // Scale the current column
+<     if(numext::real(diag) <= 0) 
+<     {
+<       std::cerr << "\nNegative diagonal during Incomplete factorization at position " << j << " (value = " << diag << ")\n";
+<       m_info = NumericalIssue; 
+<       return; 
+<     }
+---
+>       // Scale the current column
+>       if(numext::real(diag) <= 0) 
+>       {
+>         vals=storeVals;
+>         shift=std::max(2 * shift, m_initialShift);
+>         continue;
+>         /*std::cerr << "\nNegative diagonal during Incomplete factorization at position " << j << " (value = " << diag << ")\n";
+>         m_info = NumericalIssue; 
+>         return; */
+>       }
+248,272c291,319
+<     RealScalar rdiag = sqrt(numext::real(diag));
+<     vals[colPtr[j]] = rdiag;
+<     for (Index k = 0; k<col_nnz; ++k)
+<     {
+<       Index i = col_irow[k];
+<       //Scale
+<       col_vals(k) /= rdiag;
+<       //Update the remaining diagonals with col_vals
+<       vals[colPtr[i]] -= numext::abs2(col_vals(k));
+<     }
+<     // Select the largest p elements
+<     // p is the original number of elements in the column (without the diagonal)
+<     Index p = colPtr[j+1] - colPtr[j] - 1 ; 
+<     Ref<VectorSx> cvals = col_vals.head(col_nnz);
+<     Ref<VectorIx> cirow = col_irow.head(col_nnz);
+<     internal::QuickSplit(cvals,cirow, p); 
+<     // Insert the largest p elements in the matrix
+<     Index cpt = 0; 
+<     for (Index i = colPtr[j]+1; i < colPtr[j+1]; i++)
+<     {
+<       vals[i] = col_vals(cpt); 
+<       rowIdx[i] = col_irow(cpt);
+<       // restore col_pattern:
+<       col_pattern(col_irow(cpt)) = -1;
+<       cpt++; 
+---
+>       RealScalar rdiag = sqrt(numext::real(diag));
+>       vals[colPtr[j]] = rdiag;
+>       for (Index k = 0; k<col_nnz; ++k)
+>       {
+>         Index i = col_irow[k];
+>         //Scale
+>         col_vals(k) /= rdiag;
+>         //Update the remaining diagonals with col_vals
+>         vals[colPtr[i]] -= numext::abs2(col_vals(k));
+>       }
+>       // Select the largest p elements
+>       // p is the original number of elements in the column (without the diagonal)
+>       Index p = colPtr[j+1] - colPtr[j] - 1 ; 
+>       Ref<VectorSx> cvals = col_vals.head(col_nnz);
+>       Ref<VectorIx> cirow = col_irow.head(col_nnz);
+>       internal::QuickSplit(cvals,cirow, p); 
+>       // Insert the largest p elements in the matrix
+>       Index cpt = 0; 
+>       for (Index i = colPtr[j]+1; i < colPtr[j+1]; i++)
+>       {
+>         vals[i] = col_vals(cpt); 
+>         rowIdx[i] = col_irow(cpt);
+>         // restore col_pattern:
+>         col_pattern(col_irow(cpt)) = -1;
+>         cpt++; 
+>       }
+>       // Get the first smallest row index and put it after the diagonal element
+>       Index jk = colPtr(j)+1;
+>       updateList(colPtr,rowIdx,vals,j,jk,firstElt,listCol); 
+274,276c321
+<     // Get the first smallest row index and put it after the diagonal element
+<     Index jk = colPtr(j)+1;
+<     updateList(colPtr,rowIdx,vals,j,jk,firstElt,listCol); 
+---
+>     break;

@@ -17,9 +17,10 @@ fi
 
 if [ ! -d eigen ]
 then
-    wget http://bitbucket.org/eigen/eigen/get/3.2.4.tar.gz
-    tar -xvf 3.2.4.tar.gz
-    mv eigen-eigen-10219c95fe65 eigen
+    wget http://bitbucket.org/eigen/eigen/get/3.3-alpha1.tar.gz
+    tar -xvf 3.3-alpha1.tar.gz
+    mv eigen-eigen-09a8e2186610 eigen
+    patch eigen/unsupported/Eigen/src/IterativeSolvers/IncompleteCholesky.h patches/eigen/incomplete_cholesky.patch
 fi
 
 if [ ! -d jsoncpp ]
