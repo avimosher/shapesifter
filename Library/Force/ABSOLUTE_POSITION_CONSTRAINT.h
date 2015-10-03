@@ -45,7 +45,6 @@ public:
     {return linear_constraints.size()+angular_constraints.size()*t;}
 
     void Linearize(DATA<TV>& data,const T dt,const T time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,SparseMatrix<T>& constraint_forces,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic);
-    void Viewer(const DATA<TV>& data,osg::Node* node);
     DEFINE_TYPE_NAME("ABSOLUTE_POSITION_CONSTRAINT")
 };
 }

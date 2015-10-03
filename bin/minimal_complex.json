@@ -7,27 +7,42 @@
          "eta": 3.5},
         {"type": "RIGID_STRUCTURE_DATA"},
         {"type": "RIGID_STRUCTURE",
-         "position": [0, 7.1, 4],
+         "position": [0, 0, 1],
          "radius": 1,
          "name": "scFv"
         },
         {"type": "RIGID_STRUCTURE",
-         "position": [1, 1, 1],
+         "position": [1, 0, 0],
          "radius": 1,
          "name": "interferon"
         },
+        {"type": "RIGID_STRUCTURE",
+         "position": [0,0,0],
+         "radius": 0.2,
+         "name": "link"
+        },
+        
         {"type": "TRUST_REGION",
          "name": "evolution"},
         {"type": "BROWNIAN_FORCE",
          "temperature": 300},
-        {"type": "FLEXIBLE_LINKER",
-         "structure1": "scFv",
-         "offset1": [0,0,0],
-         "structure2": "interferon",
-         "offset2": [0,0,0],
-         "links": 1,
-         "link_radius": 0.2,
-         "link_offset": [1.2,0,0]
+        {"type": "RELATIVE_POSITION_CONSTRAINT",
+         "constraints": [
+             {
+                 "structure1": "scFv",
+                 "offset1": [0,0,0],
+                 "structure2": "link",
+                 "offset2": [0,0,0],
+                 "distance": 1.2
+             },
+             {
+                 "structure1": "link",
+                 "offset1": [0,0,0],
+                 "structure2": "interferon",
+                 "offset2": [0,0,0],
+                 "distance": 1.2
+             }
+         ]
         }
     ]
 }

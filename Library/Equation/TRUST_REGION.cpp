@@ -7,6 +7,7 @@
 #include <Utilities/EIGEN_HELPERS.h>
 #include <Utilities/LOG.h>
 #include <Utilities/MATH.h>
+#include <Eigen/Eigenvalues>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> TRUST_REGION<TV>::
@@ -30,7 +31,6 @@ Resize_Vectors()
     xk.setZero(nvars);
     gk.resize(nvars);
     sk.resize(nvars);
-    try_x.resize(nvars);
     try_g.resize(nvars);
 
     zj.setZero(nvars);
@@ -62,7 +62,6 @@ Linearize(SIMULATION<TV>& simulation,const T dt,const T time)
     data.Pack_Positions(positions);
 
     equation->Linearize(data,force,dt,time,true);
-    last_good_rhs=equation->RHS();
     force.Pack_Forces(solve_forces);
 }
 ///////////////////////////////////////////////////////////////////////
@@ -81,20 +80,12 @@ Linearize_Around()
     data.Unpack_Velocities(current_velocities+solve_velocities);
     data.Step();
     equation->Linearize(data,force,dt,time,false);
-    if(last_good_rhs.rows()==equation->RHS().rows()){
-        Vector delta_rhs=(equation->RHS()-last_good_rhs);
-        //LOG::cout<<"Delta RHS: "<<std::endl<<delta_rhs.transpose()<<std::endl;
-        int index;
-        //LOG::cout<<"Min value at index "<<index<<" is "<<delta_rhs.minCoeff(&index)<<std::endl;
-        //LOG::cout<<"Max value at index "<<index<<" is "<<delta_rhs.maxCoeff(&index)<<std::endl;
-    }
     force.Increment_Forces(solve_forces,-1);
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
 Increment_X()
 {
-    //LOG::cout<<"INCREMENTING"<<std::endl;
     DATA<TV>& data=stored_simulation->data;
     FORCE<TV>& force=stored_simulation->force;
     // sk is solve_vector
@@ -104,7 +95,6 @@ Increment_X()
     force.Increment_Forces(solve_forces,1);
     force.Pack_Forces(solve_forces);
     current_velocities+=solve_velocities;
-    last_good_rhs=equation->RHS();
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
@@ -125,12 +115,11 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     preconditioner_refresh_frequency=1;
 
     Linearize(simulation,dt,time);
-    Get_F(xk,f);
-    Get_Gradient(xk,gk);
+    f=equation->Evaluate();
+    gk=equation->Gradient();
     Resize_Vectors();
     norm_gk=gk.norm();
     Update_Hessian();
-    PrecondLLt.analyzePattern(hessian);
     Update_Preconditioner();
     static int failed_radius=0;
     do{
@@ -155,23 +144,30 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
             simulation.Write(frame_name);}
         if(status==CONTRACT){status=CONTINUE;}
     }while(status==CONTINUE);
-    //LOG::cout<<"SOLVE STEPS: "<<iteration<<" Failed due to radius: "<<failed_radius<<std::endl;
+    LOG::cout<<"SOLVE STEPS: "<<iteration<<" Failed due to radius: "<<failed_radius<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
 Update_Preconditioner()
 {
-    nvars=hessian.rows();
 #if 0
+    nvars=hessian.rows();
     Vector TT(nvars);
     SparseMatrix<T> BB(nvars,nvars);
     BB.setIdentity();
-    PrecondLLt.analyzePattern(BB);
-    PrecondLLt.factorize(BB);
+    preconditioner.analyzePattern(BB);
+    preconditioner.factorize(BB);
 #else
-    PrecondLLt.analyzePattern(hessian);
-    PrecondLLt.factorize(hessian);
-    //LOG::cout<<"Success: "<<(PrecondLLt.info()==Eigen::ComputationInfo::Success)<<std::endl;
+
+    preconditioner.compute(hessian);
+    /*LOG::cout<<"Success: "<<preconditioner.info()<<std::endl;
+    Matrix<T,Dynamic,1> x1,x2;
+    x1.resize(nvars);x2.resize(nvars);
+    x1=Matrix<T,Dynamic,1>::Constant(nvars,1,1);
+    x2=hessian*x1;
+    LOG::cout<<"Ones test: "<<std::endl<<x2.transpose()<<std::endl;
+    preconditioner._solve_impl(x2,x1);
+    LOG::cout<<x1.transpose()<<std::endl;*/
 #endif
 }
 ///////////////////////////////////////////////////////////////////////
@@ -187,15 +183,16 @@ Update_One_Step()
     auto step_status=UNKNOWN;
     T try_f,step_quality,predicted_reduction;
     Solve_Trust_CG(sk);
-    T norm_sk_scaled=Get_Norm_Sk(PrecondLLt);
+    T norm_sk_scaled=preconditioner._norm(sk,wd);
     //LOG::cout<<"sk: norm: "<<norm_sk_scaled<<std::endl<<sk.transpose()<<std::endl;
+    LOG::cout<<"sk: norm: "<<norm_sk_scaled<<std::endl;
     //LOG::cout<<"Hessian*sk: "<<std::endl<<(hessian*sk).transpose()<<std::endl;
     //LOG::cout<<"Jacobian*sk: "<<std::endl<<(equation->Jacobian()*sk).transpose()<<std::endl;
     if(!finite(norm_sk_scaled)){step_status=FAILEDCG;}
     else{
         Linearize_Around();
-        Get_F(try_x,try_f);
-        //LOG::cout<<"Old f: "<<f<<" try f: "<<try_f<<std::endl;
+        try_f=equation->Evaluate();
+        //LOG::cout<<"Old f: "<<<f<" try f: "<<try_f<<std::endl;
         if(finite(try_f)){
             T actual_reduction=f-try_f;
             T gs=gk.dot(sk);
@@ -204,7 +201,7 @@ Update_One_Step()
             predicted_reduction=-(gs+sBs/2);
             if(predicted_reduction<0){step_status=ENEGMOVE;}
             step_quality=actual_reduction/predicted_reduction;
-            //LOG::cout<<"AP: "<<step_quality<<" old f: "<<f<<" try f: "<<try_f<<" ared: "<<actual_reduction<<" pred: "<<predicted_reduction<<" radius: "<<radius<<" gs: "<<gs<<" sBs: "<<sBs<<" norm_sk_scaled: "<<norm_sk_scaled<<std::endl;
+            LOG::cout<<"AP: "<<step_quality<<" old f: "<<f<<" try f: "<<try_f<<" ared: "<<actual_reduction<<" pred: "<<predicted_reduction<<" radius: "<<radius<<" gs: "<<gs<<" sBs: "<<sBs<<" norm_sk_scaled: "<<norm_sk_scaled<<std::endl;
             //LOG::cout<<"Gk: "<<gk.transpose()<<std::endl;
             //LOG::cout<<"Sk: "<<sk.transpose()<<std::endl;
             int index;
@@ -217,7 +214,7 @@ Update_One_Step()
     }
     if(step_status!=FAILEDCG && step_status!=ENEGMOVE){
         if(step_quality>contract_threshold){
-            Get_Gradient(try_x,try_g);
+            try_g=equation->Gradient();
             if(finite(try_g.norm())){
                 f=try_f;
                 Increment_X();
@@ -266,13 +263,15 @@ Solve_Trust_CG(Vector& pk)
     zj.resize(hessian.rows());
     zj.setZero();
     rj=-gk;
-    UPz(PrecondLLt,rj,wd);
-    norm_rj=wd.norm();
-    UPz(PrecondLLt,gk,wd);
-    norm_gk=wd.norm();
+    //Multiply(preconditioner,rj,wd);
+    //norm_rj=wd.norm();
+    norm_rj=preconditioner._norm(rj,wd);
+    //Multiply(preconditioner,gk,wd);
+    //norm_gk=wd.norm();
+    norm_gk=preconditioner._norm(gk,wd);
 
     // Solve LL'y=r
-    yj=PrecondLLt.solve(rj);
+    yj=preconditioner.solve(rj);
     dj=yj;
     //LOG::cout<<"Hessian: "<<std::endl<<hessian<<std::endl;
     //LOG::cout<<"Gradient: "<<gk.transpose()<<std::endl;
@@ -291,8 +290,10 @@ Solve_Trust_CG(Vector& pk)
         zj_old=zj;
         zj.noalias()+=aj*dj;
 
-        UPz(PrecondLLt,zj,wd);
-        norm_zj=wd.norm();
+        
+        //Multiply(preconditioner,zj,wd);
+        //norm_zj=wd.norm();
+        norm_zj=preconditioner._norm(zj,wd);
         //LOG::cout<<"norm_zk: "<<norm_zj<<std::endl;
 
         if(norm_zj>=radius){
@@ -305,8 +306,9 @@ Solve_Trust_CG(Vector& pk)
 
         dot_ry=rj.dot(yj);
         rj.noalias()-=aj*(hessian.template selfadjointView<Lower>()*dj).eval();
-        UPz(PrecondLLt,rj,wd);
-        norm_rj=wd.norm();
+        //Multiply(preconditioner,rj,wd);
+        //norm_rj=wd.norm();
+        norm_rj=preconditioner._norm(rj,wd);
         crit=norm_rj/norm_gk;
         
         if(crit<tol){
@@ -318,7 +320,7 @@ Solve_Trust_CG(Vector& pk)
         dot_ry_old=dot_ry;
         
         //updating yj
-        yj=PrecondLLt.solve(rj);
+        yj=preconditioner.solve(rj);
         dot_ry=rj.dot(yj);
         bj=dot_ry/dot_ry_old;
         dj*=bj;
@@ -330,65 +332,26 @@ Solve_Trust_CG(Vector& pk)
         reason<<"Exceeded max CG iterations";}
 
     CG_stop_reason=reason.str();
-    //LOG::cout<<"CG reason: "<<CG_stop_reason<<" iterations: "<<num_CG_iterations<<std::endl;
+    LOG::cout<<"CG reason: "<<CG_stop_reason<<" iterations: "<<num_CG_iterations<<std::endl;
     return;
 }
 ///////////////////////////////////////////////////////////////////////
-template<class TV> typename TV::Scalar TRUST_REGION<TV>::
-Get_Norm_Sk(const Preconditioner& X)
-{
-    //T res=(X.matrixU()*(X.permutationP()*sk).eval()).norm();
-    T res=(X.matrixU().template triangularView<Upper>()*(X.permutationP()*sk).eval()).norm();
-    return res;
-}
-///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
-Get_F(const Vector& x,T& f)
+Multiply(const Preconditioner& X,const Vector& v,Vector& out)
 {
-    f=equation->Evaluate();
-}
-///////////////////////////////////////////////////////////////////////
-template<class TV> void TRUST_REGION<TV>::
-Get_Gradient(const Vector& x,Vector& g)
-{
-    g=equation->Gradient();
-}
-///////////////////////////////////////////////////////////////////////
-template<class TV> void TRUST_REGION<TV>::
-UPz(const Preconditioner& X,const Vector& v,Vector& out)
-{
-    //T res=(X.permutationPinv()*X.matrixL()*X.matrixU()*X.permutationP()*sk).norm();
-
-    /*out=X.permutationP()*v;
-      out=X.matrixU().template triangularView<Upper>()*out;*/
-    // it looks like X.matrixU() is L...
-    out=X.permutationP()*v;
-    out=X.matrixU()*out;
-    out=X.matrixL()*out;
-    out=X.permutationPinv()*out;
+    X._multiply(v,out);
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> typename TV::Scalar TRUST_REGION<TV>::
 Find_Tau(const Vector& z,const Vector& d)
 {
-    UPz(PrecondLLt,d,wd);
-    UPz(PrecondLLt,z,wz);
+    Multiply(preconditioner,d,wd);
+    Multiply(preconditioner,z,wz);
     
-    /*
-    T d2=wd.squaredNorm();
-    T z2=z.squaredNorm();
-    T zd=wd.dot(wz);
-    
-    T root=zd*zd-d2*(z2-radius*radius);
-    T tau=(sqrt(root)-zd)/d2;
-    */
-
     T pCd=z.dot(wd);
     T dCd=d.dot(wd);
     T pCp=z.dot(wz);
-    T tau=(-2*pCd+sqrt(4*pCd*pCd-4*dCd*(pCp-radius*radius)))/(2*dCd);
-    //LOG::cout<<"Tau: "<<tau<<std::endl;
-    return tau;
+    return (-2*pCd+sqrt(4*pCd*pCd-4*dCd*(pCp-radius*radius)))/(2*dCd);
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(TRUST_REGION)

@@ -39,7 +39,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         constraint_vector.template block<1,d>(0,0)=constraint.direction.transpose();
         terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,constraint.s,constraint_vector));
         forces.push_back(Triplet<FORCE_VECTOR>(constraint.s,i,constraint_vector.transpose()));
-    }
+        //RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Force_Derivative(constraint.s,stored_forces[i],constraint_rhs[i]*constraint.direction,TV(),T_SPIN(),force_terms); // TODO: this constraint has no spin dependence!
+}
     for(int i=0;i<angular_constraints.size();i++){
         const ANGULAR_CONSTRAINT& constraint=angular_constraints[i];
         auto structure=rigid_data->structures[constraint.s];
@@ -66,12 +67,6 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     stored_forces.resize(Size());
 }
 ///////////////////////////////////////////////////////////////////////
-template<class TV> void ABSOLUTE_POSITION_CONSTRAINT<TV>::
-Viewer(const DATA<TV>& data,osg::Node* node)
-{
-}
-///////////////////////////////////////////////////////////////////////
-//GENERIC_CEREAL_REGISTRATION(ABSOLUTE_POSITION_CONSTRAINT)
 GENERIC_TYPE_DEFINITION(ABSOLUTE_POSITION_CONSTRAINT)
 DEFINE_AND_REGISTER_PARSER(ABSOLUTE_POSITION_CONSTRAINT,void)
 {
@@ -86,15 +81,12 @@ DEFINE_AND_REGISTER_PARSER(ABSOLUTE_POSITION_CONSTRAINT,void)
             constraint.s=s;
             Parse_Vector((*it)["direction"],constraint.direction);
             Parse_Scalar((*it)["magnitude"],constraint.magnitude);
-            absolute_position_constraint->linear_constraints.push_back(constraint);
-        }
+            absolute_position_constraint->linear_constraints.push_back(constraint);}
         else if(constraint_type=="angular"){
             typename ABSOLUTE_POSITION_CONSTRAINT<TV>::ANGULAR_CONSTRAINT constraint;
             constraint.s=s;
             Parse_Rotation((*it)["orientation"],constraint.orientation);
-            absolute_position_constraint->angular_constraints.push_back(constraint);
-        }
-    }
+            absolute_position_constraint->angular_constraints.push_back(constraint);}}
     absolute_position_constraint->stored_forces.resize(absolute_position_constraint->Size());
     absolute_position_constraint->stored_forces.setZero();
     return 0;

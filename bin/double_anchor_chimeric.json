@@ -1,7 +1,7 @@
 {
     "output_directory": "double_anchor_chimeric",
     "dt": 0.1,
-    "last_time": 100,
+    "last_time": 200,
     "root": [
         {"type": "DATA",
          "eta": 3.5},
@@ -75,7 +75,7 @@
          "offset1": [-1.015,0,1.355],
          "structure2": "interferon",
          "offset2": [0,0,1.43],
-         "links": 5,
+         "links": 10,
          "link_radius": 0.2,
          "link_offset": [1.2,0,0]
         },
@@ -84,7 +84,7 @@
          "offset1": [0,0,1.43],
          "structure2": "scFv_2",
          "offset2": [-1.015,0,1.355],
-         "links": 5,
+         "links": 10,
          "link_radius": 0.2,
          "link_offset": [0,0,-1.2]
         },
