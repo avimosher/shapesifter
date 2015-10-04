@@ -13,14 +13,13 @@ class TRUST_REGION:public EVOLUTION_STEP<TV>
 {
     typedef typename TV::Scalar T;
     typedef Matrix<T,Dynamic,1> Vector;
-    //typedef SimplicialLLT<SparseMatrix<T>> Preconditioner;
     typedef IncompleteCholesky<T> Preconditioner;
 public:
     enum STATUS{UNKNOWN,CONTINUE,SUCCESS,EMAXITER,ETOLG,MOVED,EXPAND,CONTRACT,FAILEDCG,ENEGMOVE,NEGRATIO};
     EQUATION<TV>* equation;
     SparseMatrix<T> hessian;
     Preconditioner preconditioner;
-    Vector xk,gk,sk,try_g,zj,rj,dj,zj_old,yj,wd,wz;
+    Vector gk,sk,try_g,zj,rj,dj,zj_old,yj,wd,wz;
     T f;
     T norm_gk;
     
@@ -41,9 +40,6 @@ public:
     STORED_FORCE<T> solve_forces;
     Vector current_velocities;
     Vector positions;
-    SIMULATION<TV>* stored_simulation;
-    T dt;
-    T time;
 
     TRUST_REGION();
     ~TRUST_REGION(){}
@@ -51,12 +47,12 @@ public:
     void Step(SIMULATION<TV>& simulation,const T dt,const T time);
     void Resize_Vectors();
     void Linearize(SIMULATION<TV>& simulation,const T dt,const T time);
-    void Linearize_Around();
-    void Increment_X();;
+    void Linearize_Around(SIMULATION<TV>& simulation,const T dt,const T time);
+    void Increment_X(SIMULATION<TV>& simulation);
     void Update_Preconditioner();
     void Update_Hessian();
-    STATUS Update_One_Step();
-    void Solve_Trust_CG(Vector& pk);
+    STATUS Update_One_Step(SIMULATION<TV>& simulation,const T dt,const T time);
+    void Solve_Trust_Conjugate_Gradient(Vector& pk);
     void Multiply(const Preconditioner& X,const Vector& v,Vector& out);
     T Find_Tau(const Vector& z,const Vector& d);
     DEFINE_TYPE_NAME("TRUST_REGION")

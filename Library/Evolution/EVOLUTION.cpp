@@ -9,6 +9,14 @@ using namespace Mechanics;
 template<class TV> typename TV::Scalar EVOLUTION<TV>::
 Compute_Dt(SIMULATION<TV>& simulation,const T time,const T target_time,bool& done)
 {
+    /*TIME_STEP_INFLUENCE<TV> time_step;
+    done=false;
+    simulation.force.Compute_Dt(time,simulation.data,time_step);
+    T dt=max(simulation.dt,time_step.Compute_Dt(minimum_dt));
+    if(time+dt>=target_time){
+        done=true;
+        dt=target_time-time;
+        }*/
     T dt=simulation.dt;
     done=time+dt>=target_time;
     return dt;

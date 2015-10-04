@@ -13,7 +13,6 @@ using namespace Mechanics;
 template<class TV> TRUST_REGION<TV>::
 TRUST_REGION()
 {
-    norm_gk=gk.norm();
     precision=1e-6;
     contract_factor=.25;
     expand_factor=2.5;
@@ -25,27 +24,8 @@ TRUST_REGION()
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
-Resize_Vectors()
-{
-    nvars=equation->System_Size();
-    xk.setZero(nvars);
-    gk.resize(nvars);
-    sk.resize(nvars);
-    try_g.resize(nvars);
-
-    zj.setZero(nvars);
-    rj.setZero(nvars);
-    dj.setZero(nvars);
-    zj_old.setZero(nvars);
-    yj.setZero(nvars);
-    wd.resize(nvars);
-    wz.resize(nvars);    
-}
-///////////////////////////////////////////////////////////////////////
-template<class TV> void TRUST_REGION<TV>::
 Linearize(SIMULATION<TV>& simulation,const T dt,const T time)
 {
-    //LOG::cout<<"Linearize"<<std::endl;
     DATA<TV>& data=simulation.data;
     FORCE<TV>& force=simulation.force;
 
@@ -66,11 +46,10 @@ Linearize(SIMULATION<TV>& simulation,const T dt,const T time)
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
-Linearize_Around()
+Linearize_Around(SIMULATION<TV>& simulation,const T dt,const T time)
 {
-    //LOG::cout<<"Linearize_Around"<<std::endl;
-    DATA<TV>& data=stored_simulation->data;
-    FORCE<TV>& force=stored_simulation->force;
+    DATA<TV>& data=simulation.data;
+    FORCE<TV>& force=simulation.force;
     // sk is solve_vector
     int velocity_dof=data.Velocity_DOF();
     Vector solve_velocities=sk.block(0,0,velocity_dof,1);
@@ -84,29 +63,23 @@ Linearize_Around()
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
-Increment_X()
+Increment_X(SIMULATION<TV>& simulation)
 {
-    DATA<TV>& data=stored_simulation->data;
-    FORCE<TV>& force=stored_simulation->force;
     // sk is solve_vector
-    int velocity_dof=data.Velocity_DOF();
+    int velocity_dof=simulation.data.Velocity_DOF();
     Vector solve_velocities=sk.block(0,0,velocity_dof,1);
     solve_forces.Set(sk.block(velocity_dof,0,sk.rows()-velocity_dof,1));
-    force.Increment_Forces(solve_forces,1);
-    force.Pack_Forces(solve_forces);
+    simulation.force.Increment_Forces(solve_forces,1);
+    simulation.force.Pack_Forces(solve_forces);
     current_velocities+=solve_velocities;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
 Step(SIMULATION<TV>& simulation,const T dt,const T time)
 {
-    // based on trustOptim implementation
+    // loosely based on trustOptim implementation
     int iteration=0;
     auto status=CONTINUE;
-
-    stored_simulation=&simulation;
-    this->dt=dt;
-    this->time=time;
 
     iteration=0;
     max_iterations=100;
@@ -117,16 +90,15 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     Linearize(simulation,dt,time);
     f=equation->Evaluate();
     gk=equation->Gradient();
-    Resize_Vectors();
     norm_gk=gk.norm();
     Update_Hessian();
     Update_Preconditioner();
+
     static int failed_radius=0;
     do{
-        //LOG::cout<<"\n\nBEGIN STEP"<<std::endl;
         iteration++;
-        status=Update_One_Step();
-        //LOG::cout<<"norm_gk: "<<norm_gk<<" norm_gk/sqrt(nvars): "<<norm_gk/sqrt(T(nvars))<<std::endl;
+        status=Update_One_Step(simulation,dt,time);
+        LOG::cout<<"norm_gk: "<<norm_gk<<" norm_gk/sqrt(nvars): "<<norm_gk/sqrt(T(nvars))<<std::endl;
         if(norm_gk/sqrt(T(nvars))<=precision && f<=precision){status=SUCCESS;}
         if(iteration>=max_iterations){status=EMAXITER;}
         if(radius<=min_radius){ // trust region collapse
@@ -150,24 +122,14 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
 template<class TV> void TRUST_REGION<TV>::
 Update_Preconditioner()
 {
-#if 0
     nvars=hessian.rows();
+#if 0
     Vector TT(nvars);
     SparseMatrix<T> BB(nvars,nvars);
     BB.setIdentity();
-    preconditioner.analyzePattern(BB);
-    preconditioner.factorize(BB);
+    preconditioner.compute(BB);
 #else
-
     preconditioner.compute(hessian);
-    /*LOG::cout<<"Success: "<<preconditioner.info()<<std::endl;
-    Matrix<T,Dynamic,1> x1,x2;
-    x1.resize(nvars);x2.resize(nvars);
-    x1=Matrix<T,Dynamic,1>::Constant(nvars,1,1);
-    x2=hessian*x1;
-    LOG::cout<<"Ones test: "<<std::endl<<x2.transpose()<<std::endl;
-    preconditioner._solve_impl(x2,x1);
-    LOG::cout<<x1.transpose()<<std::endl;*/
 #endif
 }
 ///////////////////////////////////////////////////////////////////////
@@ -178,46 +140,32 @@ Update_Hessian()
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> typename TRUST_REGION<TV>::STATUS TRUST_REGION<TV>::
-Update_One_Step()
+Update_One_Step(SIMULATION<TV>& simulation,const T dt,const T time)
 {
     auto step_status=UNKNOWN;
     T try_f,step_quality,predicted_reduction;
-    Solve_Trust_CG(sk);
+    Solve_Trust_Conjugate_Gradient(sk);
     T norm_sk_scaled=preconditioner._norm(sk,wd);
     //LOG::cout<<"sk: norm: "<<norm_sk_scaled<<std::endl<<sk.transpose()<<std::endl;
-    LOG::cout<<"sk: norm: "<<norm_sk_scaled<<std::endl;
-    //LOG::cout<<"Hessian*sk: "<<std::endl<<(hessian*sk).transpose()<<std::endl;
-    //LOG::cout<<"Jacobian*sk: "<<std::endl<<(equation->Jacobian()*sk).transpose()<<std::endl;
     if(!finite(norm_sk_scaled)){step_status=FAILEDCG;}
     else{
-        Linearize_Around();
+        Linearize_Around(simulation,dt,time);
         try_f=equation->Evaluate();
-        //LOG::cout<<"Old f: "<<<f<" try f: "<<try_f<<std::endl;
         if(finite(try_f)){
             T actual_reduction=f-try_f;
             T gs=gk.dot(sk);
             T sBs=sk.dot(hessian.template selfadjointView<Lower>()*sk);
-            //LOG::cout<<"Expected leverage: "<<(-(gk+hessian.template selfadjointView<Lower>()*sk/2)).transpose()<<std::endl;
             predicted_reduction=-(gs+sBs/2);
             if(predicted_reduction<0){step_status=ENEGMOVE;}
             step_quality=actual_reduction/predicted_reduction;
-            LOG::cout<<"AP: "<<step_quality<<" old f: "<<f<<" try f: "<<try_f<<" ared: "<<actual_reduction<<" pred: "<<predicted_reduction<<" radius: "<<radius<<" gs: "<<gs<<" sBs: "<<sBs<<" norm_sk_scaled: "<<norm_sk_scaled<<std::endl;
-            //LOG::cout<<"Gk: "<<gk.transpose()<<std::endl;
-            //LOG::cout<<"Sk: "<<sk.transpose()<<std::endl;
-            int index;
-            //LOG::cout<<"Min value at index "<<index<<" is "<<sk.minCoeff(&index)<<std::endl;
-            //LOG::cout<<"Max value at index "<<index<<" is "<<sk.maxCoeff(&index)<<std::endl;
-
-            //LOG::cout<<"Sk./Gk: "<<sk.cwiseQuotient(gk).transpose()<<std::endl;
-        }
-        else{step_status=FAILEDCG;}
-    }
+            LOG::cout<<"AP: "<<step_quality<<" old f: "<<f<<" try f: "<<try_f<<" ared: "<<actual_reduction<<" pred: "<<predicted_reduction<<" radius: "<<radius<<" gs: "<<gs<<" sBs: "<<sBs<<" norm_sk_scaled: "<<norm_sk_scaled<<std::endl;}
+        else{step_status=FAILEDCG;}}
     if(step_status!=FAILEDCG && step_status!=ENEGMOVE){
         if(step_quality>contract_threshold){
             try_g=equation->Gradient();
             if(finite(try_g.norm())){
                 f=try_f;
-                Increment_X();
+                Increment_X(simulation);
                 gk=try_g;
                 norm_gk=gk.norm();
                 //tol=std::min(0.5,sqrt(norm_gk))*norm_gk;
@@ -228,14 +176,11 @@ Update_One_Step()
         else if(step_quality<0){step_status=NEGRATIO;}
         else{step_status=CONTRACT;}}
 
-    //LOG::cout<<"Step status: "<<step_status<<std::endl;
     switch(step_status){
         case NEGRATIO:{
             T gksk=gk.dot(sk);
             T gamma_bad=(1-contract_threshold)*gksk/((1-contract_threshold)*(f+gksk+contract_threshold*(f-predicted_reduction)-try_f));
-            //LOG::cout<<"gamma bad: "<<gamma_bad<<" gksk: "<<gksk<<std::endl;
             radius=std::min(contract_factor*norm_sk_scaled,std::max((T)0.0625,gamma_bad)*radius);
-            //radius=std::min(contract_factor*norm_sk_scaled,std::max((T)0.0625,gamma_bad)*radius);
             step_status=CONTRACT;
             break;}
         case CONTRACT:
@@ -254,34 +199,26 @@ Update_One_Step()
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
-Solve_Trust_CG(Vector& pk)
+Solve_Trust_Conjugate_Gradient(Vector& pk)
 {
-    T norm_rj,dot_ry,dot_ry_old,norm_zj,aj,bj,tau,dBd,norm_gk;
+    T dot_ry,dot_ry_old,aj,tau,dBd,p_norm_gk;
     int j;
-    T crit;
 
     zj.resize(hessian.rows());
     zj.setZero();
     rj=-gk;
-    //Multiply(preconditioner,rj,wd);
-    //norm_rj=wd.norm();
-    norm_rj=preconditioner._norm(rj,wd);
-    //Multiply(preconditioner,gk,wd);
-    //norm_gk=wd.norm();
-    norm_gk=preconditioner._norm(gk,wd);
+    p_norm_gk=preconditioner._norm(gk,wd);
 
     // Solve LL'y=r
     yj=preconditioner.solve(rj);
     dj=yj;
-    //LOG::cout<<"Hessian: "<<std::endl<<hessian<<std::endl;
-    //LOG::cout<<"Gradient: "<<gk.transpose()<<std::endl;
     
     std::stringstream reason;
     for(j=0;j<trust_iterations;j++){
         dBd=dj.dot(hessian.template selfadjointView<Lower>()*dj);
         if(dBd<=0){
             tau=Find_Tau(zj,dj);
-            pk=zj+tau*dj;
+            pk.noalias()=zj+tau*dj;
             num_CG_iterations=j+1;
             reason<<"Negative curvature";
             break;}
@@ -290,28 +227,18 @@ Solve_Trust_CG(Vector& pk)
         zj_old=zj;
         zj.noalias()+=aj*dj;
 
-        
-        //Multiply(preconditioner,zj,wd);
-        //norm_zj=wd.norm();
-        norm_zj=preconditioner._norm(zj,wd);
-        //LOG::cout<<"norm_zk: "<<norm_zj<<std::endl;
-
-        if(norm_zj>=radius){
+        if(preconditioner._norm(zj,wd)>=radius){
             // find tau>=0 s.t. p intersects trust region
             tau=Find_Tau(zj_old,dj);
-            pk=zj_old+tau*dj;
+            pk.noalias()=zj_old+tau*dj;
             num_CG_iterations=j+1;
             reason<<"Intersect TR bound";
             break;}
 
         dot_ry=rj.dot(yj);
         rj.noalias()-=aj*(hessian.template selfadjointView<Lower>()*dj).eval();
-        //Multiply(preconditioner,rj,wd);
-        //norm_rj=wd.norm();
-        norm_rj=preconditioner._norm(rj,wd);
-        crit=norm_rj/norm_gk;
         
-        if(crit<tol){
+        if(preconditioner._norm(rj,wd)/p_norm_gk<tol){
             pk=zj;
             num_CG_iterations=j+1;
             reason<<"Reached tolerance";
@@ -322,8 +249,7 @@ Solve_Trust_CG(Vector& pk)
         //updating yj
         yj=preconditioner.solve(rj);
         dot_ry=rj.dot(yj);
-        bj=dot_ry/dot_ry_old;
-        dj*=bj;
+        dj*=dot_ry/dot_ry_old;
         dj.noalias()+=yj;}
     
     if(j>=trust_iterations){
@@ -333,7 +259,6 @@ Solve_Trust_CG(Vector& pk)
 
     CG_stop_reason=reason.str();
     LOG::cout<<"CG reason: "<<CG_stop_reason<<" iterations: "<<num_CG_iterations<<std::endl;
-    return;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
