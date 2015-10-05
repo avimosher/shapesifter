@@ -19,7 +19,7 @@ TRUST_REGION()
     contract_threshold=.4;
     expand_threshold_ap=.8;
     expand_threshold_rad=.8;
-    trust_iterations=200;
+    trust_iterations=20;
     tol=1e-8;
 }
 ///////////////////////////////////////////////////////////////////////
@@ -129,10 +129,22 @@ Update_Preconditioner()
     BB.setIdentity();
     preconditioner.compute(BB);
 #else
-    /*Matrix<T,Dynamic,Dynamic> dense(hessian);
-    EigenSolver<Matrix<T,Dynamic,Dynamic>> es(dense);
-    LOG::cout<<"Eigenvalues: "<<es.eigenvalues()<<std::endl;*/
     preconditioner.compute(hessian);
+    if(preconditioner.info()!=ComputationInfo::Success){
+        LOG::cout<<"Preconditioner computation failed; using identity"<<std::endl;
+        SparseMatrix<T> BB(nvars,nvars);
+        BB.setIdentity();
+        preconditioner.compute(BB);
+    }
+    /*
+    Matrix<T,Dynamic,Dynamic> dense(hessian);
+    EigenSolver<Matrix<T,Dynamic,Dynamic>> es(dense);
+    LOG::cout<<"Matrix: "<<std::endl<<dense<<std::endl;
+    LOG::cout<<"Eigenvalues: "<<es.eigenvalues()<<std::endl;
+    Matrix<T,Dynamic,1> first,second;
+    first=Matrix<T,Dynamic,1>::Constant(nvars,1,1);
+    LOG::cout<<preconditioner.solve(first).transpose()<<std::endl;
+    LOG::cout<<dense.jacobiSvd(ComputeThinU | ComputeThinV).solve(first).transpose()<<std::endl;*/
 #endif
 }
 ///////////////////////////////////////////////////////////////////////
