@@ -25,10 +25,10 @@ public:
     ~NONLINEAR_EQUATION(){};
 
     T Evaluate(){return right_hand_side.squaredNorm()/2;}
-    Matrix<T,Dynamic,1> Gradient(){return -jacobian.adjoint()*right_hand_side;}
-    Matrix<T,Dynamic,1> RHS(){return right_hand_side;}
-    SparseMatrix<T> Hessian(){return jacobian.adjoint()*jacobian;}
-    SparseMatrix<T> Jacobian(){return jacobian;}
+    void Gradient(Matrix<T,Dynamic,1>& gradient) const{gradient=-jacobian.adjoint()*right_hand_side;}
+    void RHS(Matrix<T,Dynamic,1>& rhs) const{rhs=right_hand_side;}
+    void Hessian(SparseMatrix<T>& hessian) const{hessian=jacobian.adjoint()*jacobian;}
+    void Jacobian(SparseMatrix<T>& jacobian_out) const{jacobian_out=jacobian;}
     int System_Size(){return right_hand_side.size();}
 
     void Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool stochastic);

@@ -20,10 +20,10 @@ public:
     virtual void Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool stochastic)=0;
     virtual void Linearize_Around(const Vector& x){};
     virtual T Evaluate()=0;
-    virtual Matrix<T,Dynamic,1> Gradient()=0;
-    virtual Matrix<T,Dynamic,1> RHS()=0;
-    virtual SparseMatrix<T> Hessian()=0;
-    virtual SparseMatrix<T> Jacobian()=0;
+    virtual void Gradient(Matrix<T,Dynamic,1>& gradient) const=0;
+    virtual void RHS(Matrix<T,Dynamic,1>& rhs) const=0;
+    virtual void Hessian(SparseMatrix<T>& hessian) const=0;
+    virtual void Jacobian(SparseMatrix<T>& jacobian) const=0;
     virtual int System_Size()=0;
 };
 }

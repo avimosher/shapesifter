@@ -89,7 +89,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
 
     Linearize(simulation,dt,time);
     f=equation->Evaluate();
-    gk=equation->Gradient();
+    equation->Gradient(gk);
     norm_gk=gk.norm();
     Update_Hessian();
     Update_Preconditioner();
@@ -129,6 +129,9 @@ Update_Preconditioner()
     BB.setIdentity();
     preconditioner.compute(BB);
 #else
+    /*Matrix<T,Dynamic,Dynamic> dense(hessian);
+    EigenSolver<Matrix<T,Dynamic,Dynamic>> es(dense);
+    LOG::cout<<"Eigenvalues: "<<es.eigenvalues()<<std::endl;*/
     preconditioner.compute(hessian);
 #endif
 }
@@ -136,7 +139,7 @@ Update_Preconditioner()
 template<class TV> void TRUST_REGION<TV>::
 Update_Hessian()
 {
-    hessian=equation->Hessian();
+    equation->Hessian(hessian);
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> typename TRUST_REGION<TV>::STATUS TRUST_REGION<TV>::
@@ -162,7 +165,7 @@ Update_One_Step(SIMULATION<TV>& simulation,const T dt,const T time)
         else{step_status=FAILEDCG;}}
     if(step_status!=FAILEDCG && step_status!=ENEGMOVE){
         if(step_quality>contract_threshold){
-            try_g=equation->Gradient();
+            equation->Gradient(try_g);
             if(finite(try_g.norm())){
                 f=try_f;
                 Increment_X(simulation);

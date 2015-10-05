@@ -16,6 +16,11 @@
          "position": [2.5, 1, 1],
          "radius": 1
         },
+        {"type": "RIGID_STRUCTURE",
+         "name": "bottom",
+         "position": [2.25, 0.75, 1],
+         "radius": 1
+        },
         {"type": "BROWNIAN_FORCE",
          "temperature": 300},
         {"type": "TRUST_REGION"},
