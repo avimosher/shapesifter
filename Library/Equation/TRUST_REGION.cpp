@@ -136,6 +136,10 @@ Update_Preconditioner()
         BB.setIdentity();
         preconditioner.compute(BB);
     }
+    inverse_scale.resize(nvars);
+    for(int i=0;i<nvars;i++){
+        inverse_scale(i)=1/preconditioner.scalingS()(i);
+    }
     /*
     Matrix<T,Dynamic,Dynamic> dense(hessian);
     EigenSolver<Matrix<T,Dynamic,Dynamic>> es(dense);
@@ -160,7 +164,7 @@ Update_One_Step(SIMULATION<TV>& simulation,const T dt,const T time)
     auto step_status=UNKNOWN;
     T try_f,step_quality,predicted_reduction;
     Solve_Trust_Conjugate_Gradient(sk);
-    T norm_sk_scaled=preconditioner._norm(sk,wd);
+    T norm_sk_scaled=Norm(preconditioner,sk,wd);
     //LOG::cout<<"sk: norm: "<<norm_sk_scaled<<std::endl<<sk.transpose()<<std::endl;
     if(!finite(norm_sk_scaled)){step_status=FAILEDCG;}
     else{
@@ -213,6 +217,17 @@ Update_One_Step(SIMULATION<TV>& simulation,const T dt,const T time)
     return step_status;
 }
 ///////////////////////////////////////////////////////////////////////
+template<class TV> typename TV::Scalar TRUST_REGION<TV>::
+Norm(const Preconditioner& preconditioner,const Vector& v,Vector& scratch)
+{
+    if(preconditioner.permutationP().rows() == v.rows()){
+        scratch=preconditioner.permutationP()*v;}
+    else{scratch=v;}
+    scratch=inverse_scale.asDiagonal()*scratch;
+    scratch=preconditioner.matrixL().adjoint().template triangularView<Upper>()*scratch;
+    return scratch.norm();
+}
+///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
 Solve_Trust_Conjugate_Gradient(Vector& pk)
 {
@@ -222,7 +237,7 @@ Solve_Trust_Conjugate_Gradient(Vector& pk)
     zj.resize(hessian.rows());
     zj.setZero();
     rj=-gk;
-    p_norm_gk=preconditioner._norm(gk,wd);
+    p_norm_gk=Norm(preconditioner,gk,wd);
 
     // Solve LL'y=r
     yj=preconditioner.solve(rj);
@@ -242,7 +257,7 @@ Solve_Trust_Conjugate_Gradient(Vector& pk)
         zj_old=zj;
         zj.noalias()+=aj*dj;
 
-        if(preconditioner._norm(zj,wd)>=radius){
+        if(Norm(preconditioner,zj,wd)>=radius){
             // find tau>=0 s.t. p intersects trust region
             tau=Find_Tau(zj_old,dj);
             pk.noalias()=zj_old+tau*dj;
@@ -253,7 +268,7 @@ Solve_Trust_Conjugate_Gradient(Vector& pk)
         dot_ry=rj.dot(yj);
         rj.noalias()-=aj*(hessian.template selfadjointView<Lower>()*dj).eval();
         
-        if(preconditioner._norm(rj,wd)/p_norm_gk<tol){
+        if(Norm(preconditioner,rj,wd)/p_norm_gk<tol){
             pk=zj;
             num_CG_iterations=j+1;
             reason<<"Reached tolerance";
@@ -279,7 +294,15 @@ Solve_Trust_Conjugate_Gradient(Vector& pk)
 template<class TV> void TRUST_REGION<TV>::
 Multiply(const Preconditioner& X,const Vector& v,Vector& out)
 {
-    X._multiply(v,out);
+    if(X.permutationP().rows() == v.rows()){
+        out=X.permutationP()*v;}
+    else{out=v;}
+    out=inverse_scale.asDiagonal()*out;
+    out=X.matrixL().adjoint().template triangularView<Upper>()*out;
+    out=X.matrixL().template triangularView<Lower>()*out;
+    out=inverse_scale.asDiagonal()*out;
+    if(X.permutationP().rows() == v.rows()){
+        out=X.permutationP().inverse()*out;}
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> typename TV::Scalar TRUST_REGION<TV>::

@@ -19,7 +19,7 @@ public:
     EQUATION<TV>* equation;
     SparseMatrix<T> hessian;
     Preconditioner preconditioner;
-    Vector gk,sk,try_g,zj,rj,dj,zj_old,yj,wd,wz;
+    Vector gk,sk,try_g,zj,rj,dj,zj_old,yj,wd,wz,inverse_scale;
     T f;
     T norm_gk;
     
@@ -54,6 +54,7 @@ public:
     STATUS Update_One_Step(SIMULATION<TV>& simulation,const T dt,const T time);
     void Solve_Trust_Conjugate_Gradient(Vector& pk);
     void Multiply(const Preconditioner& X,const Vector& v,Vector& out);
+    T Norm(const Preconditioner& X,const Vector& v,Vector& scratch);
     T Find_Tau(const Vector& z,const Vector& d);
     DEFINE_TYPE_NAME("TRUST_REGION")
 };
