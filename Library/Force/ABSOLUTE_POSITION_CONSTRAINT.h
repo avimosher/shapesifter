@@ -2,7 +2,6 @@
 #define __ABSOLUTE_POSITION_CONSTRAINT__
 
 #include <Force/FORCE_TYPE.h>
-#include <Utilities/CEREAL_HELPERS.h>
 
 namespace Mechanics{
 

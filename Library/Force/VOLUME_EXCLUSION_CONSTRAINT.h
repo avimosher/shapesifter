@@ -5,7 +5,6 @@
 #include <Force/FORCE_TYPE.h>
 #include <Force/STORED_FORCE.h>
 #include <Data/RIGID_STRUCTURE.h>
-#include <Utilities/CEREAL_HELPERS.h>
 #include <Utilities/CIRCULAR_STACK.h>
 
 namespace Mechanics{
@@ -62,11 +61,13 @@ public:
     std::vector<CONSTRAINT> constraints;
     std::vector<CONSTRAINT> constant_forces;
     int call_count;
+    circular_stack<int> constraint_count;
+    bool equations_changed;
     std::unordered_map<CONSTRAINT,std::pair<int,T>> force_memory;
     std::unordered_map<CONSTRAINT,std::pair<int,T>> constant_force_memory;
 
     VOLUME_EXCLUSION_CONSTRAINT()
-        :call_count(0)
+        :call_count(0),constraint_count(2)
     {}
     ~VOLUME_EXCLUSION_CONSTRAINT(){}
 
@@ -82,6 +83,7 @@ public:
     void Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,int increment);
     void Linearize(DATA<TV>& data,const T dt,const T time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,SparseMatrix<T>& constraint_forces,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic);
     void Viewer(const DATA<TV>& data,osg::Node* node);
+    bool Equations_Changed() const{return equations_changed;};
     DEFINE_TYPE_NAME("VOLUME_EXCLUSION_CONSTRAINT")
 };
 }

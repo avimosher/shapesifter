@@ -108,7 +108,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
         // update Hessian
         if(status==MOVED || status==EXPAND){
             Update_Hessian();
-            if(iteration%preconditioner_refresh_frequency==0){Update_Preconditioner();}
+            if(simulation.force.Equations_Changed() || iteration%preconditioner_refresh_frequency==0){Update_Preconditioner();}
             status=CONTINUE;}
         if(simulation.substeps){
             std::string frame_name="Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration)+" radius "+std::to_string(radius)+" real "+std::to_string(int(status==CONTINUE))+ " f "+std::to_string(f);
@@ -122,40 +122,22 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
 template<class TV> void TRUST_REGION<TV>::
 Update_Preconditioner()
 {
-    nvars=hessian.rows();
-#if 0
-    Vector TT(nvars);
-    SparseMatrix<T> BB(nvars,nvars);
-    BB.setIdentity();
-    preconditioner.compute(BB);
-#else
     preconditioner.compute(hessian);
     if(preconditioner.info()!=ComputationInfo::Success){
         LOG::cout<<"Preconditioner computation failed; using identity"<<std::endl;
         SparseMatrix<T> BB(nvars,nvars);
         BB.setIdentity();
-        preconditioner.compute(BB);
-    }
+        preconditioner.compute(BB);}
     inverse_scale.resize(nvars);
     for(int i=0;i<nvars;i++){
-        inverse_scale(i)=1/preconditioner.scalingS()(i);
-    }
-    /*
-    Matrix<T,Dynamic,Dynamic> dense(hessian);
-    EigenSolver<Matrix<T,Dynamic,Dynamic>> es(dense);
-    LOG::cout<<"Matrix: "<<std::endl<<dense<<std::endl;
-    LOG::cout<<"Eigenvalues: "<<es.eigenvalues()<<std::endl;
-    Matrix<T,Dynamic,1> first,second;
-    first=Matrix<T,Dynamic,1>::Constant(nvars,1,1);
-    LOG::cout<<preconditioner.solve(first).transpose()<<std::endl;
-    LOG::cout<<dense.jacobiSvd(ComputeThinU | ComputeThinV).solve(first).transpose()<<std::endl;*/
-#endif
+        inverse_scale(i)=1/preconditioner.scalingS()(i);}
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
 Update_Hessian()
 {
     equation->Hessian(hessian);
+    nvars=hessian.rows();
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> typename TRUST_REGION<TV>::STATUS TRUST_REGION<TV>::

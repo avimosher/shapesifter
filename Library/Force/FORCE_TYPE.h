@@ -2,6 +2,7 @@
 #define __FORCE_TYPE__
 
 #include <Force/STORED_FORCE.h>
+#include <Utilities/CEREAL_HELPERS.h>
 #include <Utilities/TYPE_UTILITIES.h>
 #include <limits>
 #include <Eigen/SparseCore>
@@ -15,7 +16,6 @@ template<class TV>
 class FORCE_TYPE
 {
     typedef typename TV::Scalar T;
-
 public:
     Matrix<T,Dynamic,1> stored_forces;
 
@@ -34,6 +34,7 @@ public:
     virtual void Archive(cereal::JSONOutputArchive& archive){};
     virtual void Archive(cereal::JSONInputArchive& archive){};
     virtual void Viewer(const DATA<TV>& data,osg::Node* node){};
+    virtual bool Equations_Changed() const{return false;}
     virtual std::string Name(){return "FORCE_TYPE";}
 };
 }

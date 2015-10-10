@@ -46,6 +46,10 @@ Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,int incre
 {
     call_count+=increment;
     auto information=std::static_pointer_cast<STORED_VOLUME_EXCLUSION_CONSTRAINT<T>>(force_information);
+    if(increment==1){
+        constraint_count.push(information->constraints.size());}
+    else{
+        constraint_count.pop();}
     for(int i=0;i<information->constraints.size();i++){
         if(force_memory.count(information->constraints[i])){// this could be compressed if I could be sure that the force would be initialized properly
             auto& memory=force_memory[information->constraints[i]];
@@ -66,9 +70,12 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     std::vector<Triplet<CONSTRAINT_VECTOR>> terms;
     std::vector<Triplet<FORCE_VECTOR>> forces;
     std::vector<T> rhs;
+    int new_constraints=0;
+    int old_constraints=0;
     constraints.clear();
     constant_forces.clear();
     if(stochastic){
+        constraint_count.push(0);
         for(auto& memory : force_memory){std::get<1>(memory.second)=(T)0;std::get<0>(memory.second)=-1;}
         for(auto& constant_memory : constant_force_memory){std::get<1>(constant_memory.second)=(T)0;std::get<0>(constant_memory.second)=-1;}}
 
@@ -106,9 +113,12 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 std::vector<int> indices={s1,s2};
                 if(constraint_violation<slack_distance){
                     if(std::get<0>(memory)!=call_count){ // if the force wasn't on last step, start it at zero
+                        new_constraints++;
                         std::get<1>(memory)=0;
                         if(std::get<0>(constant_memory)==call_count){ // if we're moving from a penalty force, use its magnitude
                             std::get<1>(memory)=std::get<1>(constant_memory)*sqr(constraint_violation);}}
+                    else{
+                        old_constraints++;}
                     //LOG::cout<<"Constraint between "<<s1<<" and "<<s2<<" with force: "<<std::get<1>(memory)<<std::endl;
                     right_hand_side_force=std::get<1>(memory);
                     for(int s=0,sgn=-1;s<2;s++,sgn+=2){
@@ -128,6 +138,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 //LOG::cout<<"Force applied to body "<<s2<<": "<<(-force_direction2*right_hand_side_force).transpose()<<std::endl;
                 right_hand_side.template block<t+d,1>(s1*(t+d),0)+=force_directions[0]*right_hand_side_force;
                 right_hand_side.template block<t+d,1>(s2*(t+d),0)-=force_directions[1]*right_hand_side_force;}}}
+    LOG::cout<<"Existing constraints: "<<constraint_count.peek()<<" old: "<<old_constraints<<" new: "<<new_constraints<<std::endl;
+    equations_changed=new_constraints>0 || old_constraints!=constraint_count.peek();
     constraint_rhs.resize(rhs.size(),1);
     for(int i=0;i<rhs.size();i++){constraint_rhs(i,0)=rhs[i];}
     constraint_terms.resize(constraints.size(),rigid_data->Velocity_DOF());

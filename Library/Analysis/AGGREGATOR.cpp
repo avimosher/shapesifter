@@ -15,7 +15,8 @@ Aggregate(std::shared_ptr<PREDICATE<TV>> predicate,const SIMULATION<TV>& simulat
             Aggregate_Subtype(predicate->Vector(simulation));
             break;
         default:
-            // TODO: error
+            LOG::cout<<"Attempting to aggregate invalid predicate type"<<std::endl;
+            exit(EXIT_FAILURE);
             break;
     }
 }

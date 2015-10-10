@@ -29,6 +29,14 @@ Increment_Forces(const STORED_FORCE<T>& stored_force,T ratio)
         auto force_type=(*this)[i];
         force_type->Increment_Forces(stored_force[i],ratio);}
 }
+///////////////////////////////////////////////////////////////////////
+template<class TV> bool FORCE<TV>::
+Equations_Changed() const
+{
+    for(auto force : (*this)){
+        if(force->Equations_Changed()){return true;}}
+    return false;
+}
 /////////////////////////////////////////////////////////////////////// 
 template<class TV> void FORCE<TV>::
 Viewer(const DATA<TV>& data,osg::Group*& root)
