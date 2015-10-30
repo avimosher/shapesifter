@@ -45,7 +45,6 @@ public:
     ~TRUST_REGION(){}
 
     void Step(SIMULATION<TV>& simulation,const T dt,const T time);
-    void Resize_Vectors();
     void Linearize(SIMULATION<TV>& simulation,const T dt,const T time);
     void Linearize_Around(SIMULATION<TV>& simulation,const T dt,const T time);
     void Increment_X(SIMULATION<TV>& simulation);

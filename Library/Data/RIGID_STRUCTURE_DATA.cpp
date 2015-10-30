@@ -31,6 +31,13 @@ Position_DOF() const
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RIGID_STRUCTURE_DATA<TV>::
+Identify_DOF(int index) const
+{
+    int body_index=index/s;
+    LOG::cout<<Name()<<": body "<<structures[body_index]->name<<" dof "<<index-body_index*s<<std::endl;
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void RIGID_STRUCTURE_DATA<TV>::
 Pack_Velocities(Block<Matrix<T,Dynamic,1>>& velocities)
 {
     for(int i=0;i<structures.size();i++){

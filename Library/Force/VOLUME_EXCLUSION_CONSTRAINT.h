@@ -60,6 +60,7 @@ public:
     using FORCE_TYPE<TV>::stored_forces;
     std::vector<CONSTRAINT> constraints;
     std::vector<CONSTRAINT> constant_forces;
+    std::vector<T> rhs;
     int call_count;
     circular_stack<int> constraint_count;
     bool equations_changed;
@@ -77,6 +78,7 @@ public:
     void Archive(cereal::JSONOutputArchive& archive){archive(constraints,constant_forces,force_memory,call_count);}
     void Archive(cereal::JSONInputArchive& archive){archive(constraints,constant_forces,force_memory,call_count);}
 
+    int DOF() const{return constraints.size();}
     std::shared_ptr<FORCE_REFERENCE<T>> Create_Stored_Force() const;
     void Pack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information);
     void Unpack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information);

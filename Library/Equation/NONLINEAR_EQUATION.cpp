@@ -13,6 +13,26 @@
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void NONLINEAR_EQUATION<TV>::
+Identify_DOF(const DATA<TV>& data,const FORCE<TV>& force,int index)
+{
+    int current_index=0;
+    for(int i=0;i<data.size();i++){
+        int data_size=data[i]->Velocity_DOF();
+        if(index<current_index+data_size){
+            data[i]->Identify_DOF(index-current_index);
+            return;}
+        current_index+=data_size;
+    }
+    for(int i=0;i<force.size();i++){
+        int force_size=force[i]->DOF();
+        if(index<current_index+force_size){
+            force[i]->Identify_DOF(index-current_index);
+            return;}
+        current_index+=force_size;}
+    LOG::cout<<"Unidentified DOF"<<std::endl;
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void NONLINEAR_EQUATION<TV>::
 Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool stochastic)
 {
     int full_size=data.size()+force.size();
@@ -56,9 +76,11 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     //LOG::cout<<"RHS before inertia: "<<std::endl<<right_hand_side.transpose()<<std::endl;
     right_hand_side=inverse_inertia*right_hand_side;
     //LOG::cout<<"RHS: "<<std::endl<<right_hand_side.transpose()<<std::endl;
-    //int index;
-    //LOG::cout<<"Min value at index "<<index<<" is "<<right_hand_side.minCoeff(&index)<<std::endl;
-    //LOG::cout<<"Max value at index "<<index<<" is "<<right_hand_side.maxCoeff(&index)<<std::endl;
+    int index;
+    LOG::cout<<"Min value at index "<<index<<" is "<<right_hand_side.minCoeff(&index)<<std::endl;
+    Identify_DOF(data,force,index);
+    LOG::cout<<"Max value at index "<<index<<" is "<<right_hand_side.maxCoeff(&index)<<std::endl;
+    Identify_DOF(data,force,index);
     //LOG::cout<<"Gradient: "<<(-jacobian.adjoint()*right_hand_side).transpose()<<std::endl;
     //LOG::cout<<"Jacobian: "<<std::endl<<jacobian<<std::endl;
 }

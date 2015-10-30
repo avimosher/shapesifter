@@ -31,6 +31,7 @@ public:
     void Jacobian(SparseMatrix<T>& jacobian_out) const{jacobian_out=jacobian;}
     int System_Size(){return right_hand_side.size();}
 
+    void Identify_DOF(const DATA<TV>& data,const FORCE<TV>& force,int index);
     void Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool stochastic);
     DEFINE_TYPE_NAME("NONLINEAR_EQUATION")
 };

@@ -1,12 +1,12 @@
 import re
 import math
 import json
-from mechanics.flexible_linker import *
+from flexible_linker import *
 
 
 def make_subunits(node,structure_nodes,force_nodes):
 	pore_radius = 2
-	capsule_radius = 0.95
+	capsule_radius = 0.8
 	collision_extent = 3
 	number = 7
 	center = "[5,10,3]"
@@ -61,7 +61,7 @@ def make_subunits(node,structure_nodes,force_nodes):
 					capsule_constraints.append({'structure': 'capsule '+str(j), 'type': 'angular', 'orientation': {'angle': 0, 'axis': [1,0,0]}})
 
 				capsule_constraint ={"type": "ABSOLUTE_POSITION_CONSTRAINT", "constraints": capsule_constraints}
-				force_nodes.append(capsule_constraint)
+				#force_nodes.append(capsule_constraint)
 
 
 	if node['linker_length'][0] == 'low' and node['linker_length'][1] == 'low':

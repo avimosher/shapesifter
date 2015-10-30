@@ -24,7 +24,7 @@ using namespace Eigen;
     static std::string Static_Name() \
     {return name;}                   \
                                      \
-    virtual std::string Name()       \
+    virtual std::string Name() const       \
     {return Static_Name();}
 
 template<class T>

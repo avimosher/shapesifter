@@ -19,6 +19,7 @@ public:
     virtual int Size()=0;
     virtual int Velocity_DOF() const {return 0;}
     virtual int Position_DOF() const {return 0;}
+    virtual void Identify_DOF(int index) const{LOG::cout<<Name()<<" DOF "<<index<<std::endl;}
     virtual void Pack_Velocities(Block<Matrix<T,Dynamic,1>>& velocities){};
     virtual void Unpack_Velocities(const Matrix<T,Dynamic,1>& velocities){};
     virtual void Pack_Positions(Block<Matrix<T,Dynamic,1>>& positions){};
@@ -27,7 +28,7 @@ public:
     template<class Archive> void serialize(Archive& archive){}
     virtual T Print(){return T();}
     virtual void Viewer(osg::Node* node){};
-    virtual std::string Name(){return "DATA_TYPE";}
+    virtual std::string Name() const{return "DATA_TYPE";}
     virtual void Inertia(const T dt,std::vector<Triplet<T>>& force_terms,Matrix<T,Dynamic,1>& rhs){};
 };
 

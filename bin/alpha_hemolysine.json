@@ -1,13 +1,13 @@
 {
     "output_directory": "nanopore",
     "dt": 0.1,
-    "last_time": 6,
+    "last_time": 64397.51553,
     "root": [
         {"type": "DATA",
          "eta": 3.5},
-	{"type": "MAKE_SUBUNITS",
-         "linker_length": ["high", "high"]},
-	{"type": "RIGID_STRUCTURE_DATA"},
+        {"type": "MAKE_SUBUNITS",
+         "linker_length": ["med", "med"]},
+        {"type": "RIGID_STRUCTURE_DATA"},
         {"type": "TRUST_REGION",
          "name": "evolution"},
         {"type": "BROWNIAN_FORCE",
@@ -16,16 +16,12 @@
         {"type": "ANALYTE",
          "prerequisites": ["evolution"],
          "predicate": {"type": "distance",
-		       "first": {"type":"rigid_structure_position",
-				 "name": "phi29",
-				 "offset":[0,0,2.25]},
-		       "second":{"type": "vector",
-				 "vector": [0,0,0]}},
-	 "aggregator": {"type": "histogram",
-			"min": 0,
-			"max": 60,
-			"bins": 12
-			}
+                       "first": {"type":"rigid_structure_position",
+                                 "name": "phi29",
+                                 "offset":[0,0,2.25]},
+                       "second":{"type": "vector",
+                                 "vector": [0,0,2.85]}},
+         "aggregator": {"type": "record"}
         }
     ]
 }

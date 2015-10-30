@@ -69,11 +69,11 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     typedef Matrix<T,RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE,1> FORCE_VECTOR;
     std::vector<Triplet<CONSTRAINT_VECTOR>> terms;
     std::vector<Triplet<FORCE_VECTOR>> forces;
-    std::vector<T> rhs;
     int new_constraints=0;
     int old_constraints=0;
     constraints.clear();
     constant_forces.clear();
+    rhs.clear();
     if(stochastic){
         constraint_count.push(0);
         for(auto& memory : force_memory){std::get<1>(memory.second)=(T)0;std::get<0>(memory.second)=-1;}
