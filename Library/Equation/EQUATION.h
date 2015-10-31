@@ -17,6 +17,8 @@ public:
     EQUATION(){};
     ~EQUATION(){};
 
+    virtual void Unpack_Velocities(DATA<TV>& data,const Matrix<T,Dynamic,1>& velocities){};
+    virtual void Initialize(DATA<TV>& data,FORCE<TV>& force){};
     virtual void Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool stochastic)=0;
     virtual void Linearize_Around(const Vector& x){};
     virtual T Evaluate()=0;
@@ -25,6 +27,7 @@ public:
     virtual void Hessian(SparseMatrix<T>& hessian) const=0;
     virtual void Jacobian(SparseMatrix<T>& jacobian) const=0;
     virtual int System_Size()=0;
+    virtual int Velocity_DOF() const=0;
 };
 }
 #endif

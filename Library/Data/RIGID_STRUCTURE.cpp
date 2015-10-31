@@ -68,6 +68,7 @@ DEFINE_AND_REGISTER_PARSER(RIGID_STRUCTURE,void)
     structure->collision_extent=scalar_collision_extent*TV::UnitZ();
     Parse_Scalar(node["radius"],structure->radius,(T)0);
     Parse_Scalar(node["collision_radius"],structure->collision_radius,structure->radius);
+    Parse_Scalar(node["kinematic"],structure->kinematic,false);
     Parse_Rotation(node["orientation"],structure->frame.orientation);
     structure->name=node["name"].asString();
     structure->Initialize_Inertia(simulation.data.globals["eta"]);

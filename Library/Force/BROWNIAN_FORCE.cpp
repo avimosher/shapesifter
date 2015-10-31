@@ -14,6 +14,7 @@ template<class TV> void BROWNIAN_FORCE<TV>::
 Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,SparseMatrix<T>& constraint_forces,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
 {
     typedef typename ROTATION<TV>::SPIN T_SPIN;
+    auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
     T k_B=1.38e-2; // pN nm/K
     T kT=k_B*temperature; // pN nm
     T eta=data.globals["eta"];
@@ -21,7 +22,6 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         T one_over_dt=1/dt;
         stored_right_hand_side.resize(right_hand_side.rows(),1);
         stored_right_hand_side.setZero();
-        auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
         for(int i=0;i<(*rigid_data).structures.size();i++){
             T radius=rigid_data->structures[i]->radius;
             T linear_drag=6*M_PI*eta*radius;
@@ -38,6 +38,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             T random_angle=data.random.Gaussian(T(),rotational_variance);
             stored_right_hand_side.template block<T_SPIN::SizeAtCompileTime,1>(TWIST<TV>::STATIC_SIZE*i+TV::SizeAtCompileTime,0)=random_spin_orientation*rotational_resistance*random_angle*one_over_dt;}}
     right_hand_side+=stored_right_hand_side;
+    constraint_terms.resize(0,rigid_data->Velocity_DOF());
+    constraint_forces.resize(rigid_data->Velocity_DOF(),0);
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(BROWNIAN_FORCE)

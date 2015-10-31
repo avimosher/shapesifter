@@ -53,7 +53,7 @@ def make_subunits(node,structure_nodes,force_nodes):
 				for j in range(number):
 
 
-					structure_nodes['capsule '+str(j)] = {'type': 'RIGID_STRUCTURE', 'position': [x_array[j],y_array[j],z_array[j]], 'orientation': {'axis': [axis_x,axis_y,axis_z], 'angle': 0}, 'radius': capsule_radius, 'collision_extent': collision_extent, 'name': 'capsule '+str(j)}
+					structure_nodes['capsule '+str(j)] = {'type': 'RIGID_STRUCTURE', 'kinematic': 1, 'position': [x_array[j],y_array[j],z_array[j]], 'orientation': {'axis': [axis_x,axis_y,axis_z], 'angle': 0}, 'radius': capsule_radius, 'collision_extent': collision_extent, 'name': 'capsule '+str(j)}
 
 					capsule_constraints.append({'type': 'linear', 'structure': 'capsule '+str(j), 'direction': [1,0,0], 'magnitude': x_array[j]})
 					capsule_constraints.append({'type': 'linear', 'structure': 'capsule '+str(j), 'direction': [0,1,0], 'magnitude': y_array[j]})

@@ -14,7 +14,9 @@ class NONLINEAR_EQUATION : public EQUATION<TV>
 {
     typedef typename TV::Scalar T;
 public:
-    Matrix<SparseMatrix<T>,Dynamic,Dynamic> inverse_inertia_matrix;
+    std::vector<SparseMatrix<T>> inverse_inertia_matrices;
+    std::vector<SparseMatrix<T>> kinematic_projection_matrices;
+    //Matrix<SparseMatrix<T>,Dynamic,Dynamic> inverse_inertia_matrix;
     Matrix<SparseMatrix<T>,Dynamic,Dynamic> full_matrix;
     Matrix<T,Dynamic,1> right_hand_side;
     SparseMatrix<T> jacobian;
@@ -24,6 +26,12 @@ public:
     NONLINEAR_EQUATION(){};
     ~NONLINEAR_EQUATION(){};
 
+    int Velocity_DOF() const{
+        int dof=0;
+        for(int i=0;i<kinematic_projection_matrices.size();i++){
+            dof+=kinematic_projection_matrices[i].rows();}
+        return dof;
+    }
     T Evaluate(){return right_hand_side.squaredNorm()/2;}
     void Gradient(Matrix<T,Dynamic,1>& gradient) const{gradient=-jacobian.adjoint()*right_hand_side;}
     void RHS(Matrix<T,Dynamic,1>& rhs) const{rhs=right_hand_side;}
@@ -32,6 +40,8 @@ public:
     int System_Size(){return right_hand_side.size();}
 
     void Identify_DOF(const DATA<TV>& data,const FORCE<TV>& force,int index);
+    void Unpack_Velocities(DATA<TV>& data,const Matrix<T,Dynamic,1>& velocities);
+    void Initialize(DATA<TV>& data,FORCE<TV>& force);
     void Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool stochastic);
     DEFINE_TYPE_NAME("NONLINEAR_EQUATION")
 };

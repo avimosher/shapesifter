@@ -30,8 +30,9 @@ Linearize(SIMULATION<TV>& simulation,const T dt,const T time)
     FORCE<TV>& force=simulation.force;
 
     // zero velocities
-    current_velocities.resize(data.Velocity_DOF(),1);current_velocities.setZero();
-    data.Unpack_Velocities(current_velocities);
+    equation->Initialize(data,force);
+    current_velocities.resize(equation->Velocity_DOF(),1);current_velocities.setZero();
+    equation->Unpack_Velocities(data,current_velocities);
 
     // zero forces
     force.Pack_Forces(solve_forces);
@@ -51,12 +52,14 @@ Linearize_Around(SIMULATION<TV>& simulation,const T dt,const T time)
     DATA<TV>& data=simulation.data;
     FORCE<TV>& force=simulation.force;
     // sk is solve_vector
-    int velocity_dof=data.Velocity_DOF();
+    int velocity_dof=equation->Velocity_DOF();
     Vector solve_velocities=sk.block(0,0,velocity_dof,1);
     solve_forces.Set(sk.block(velocity_dof,0,sk.rows()-velocity_dof,1));
     data.Unpack_Positions(positions);
     force.Increment_Forces(solve_forces,1);
-    data.Unpack_Velocities(current_velocities+solve_velocities);
+    
+    candidate_velocities=current_velocities+solve_velocities;
+    equation->Unpack_Velocities(data,candidate_velocities);
     data.Step();
     equation->Linearize(data,force,dt,time,false);
     force.Increment_Forces(solve_forces,-1);
@@ -66,7 +69,7 @@ template<class TV> void TRUST_REGION<TV>::
 Increment_X(SIMULATION<TV>& simulation)
 {
     // sk is solve_vector
-    int velocity_dof=simulation.data.Velocity_DOF();
+    int velocity_dof=equation->Velocity_DOF();
     Vector solve_velocities=sk.block(0,0,velocity_dof,1);
     solve_forces.Set(sk.block(velocity_dof,0,sk.rows()-velocity_dof,1));
     simulation.force.Increment_Forces(solve_forces,1);

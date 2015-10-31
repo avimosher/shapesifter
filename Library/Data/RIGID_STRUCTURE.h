@@ -24,8 +24,9 @@ public:
     T radius;
     T collision_radius;
     TV collision_extent; // require to be in the Z direction for now
+    bool kinematic;
 
-    RIGID_STRUCTURE(){}
+    RIGID_STRUCTURE():kinematic(false){}
     ~RIGID_STRUCTURE(){}
 
     static Matrix<T,1,1> Segment_Segment_Displacement(const Matrix<Matrix<T,1,1>,2,1>& s1,const Matrix<Matrix<T,1,1>,2,1>& s2,Matrix<T,2,1>& weights){return Matrix<T,1,1>();}

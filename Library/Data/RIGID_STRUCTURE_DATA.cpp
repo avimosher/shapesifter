@@ -73,13 +73,34 @@ Step(const DATA<TV>& data)
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RIGID_STRUCTURE_DATA<TV>::
-Inertia(const T dt,std::vector<Triplet<T>>& force_terms,Matrix<T,Dynamic,1>& rhs)
+Inertia(const T dt,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& inverse_inertia,Matrix<T,Dynamic,1>& rhs)
 {
     T one_over_dt=1/dt;
+    std::vector<Triplet<T>> inverse_inertia_terms;
     for(int i=0;i<structures.size();i++){
+        auto structure=structures[i];
         DiagonalMatrix<T,s> inertia_matrix=one_over_dt*structures[i]->Inertia_Matrix();
         Flatten_Term(i,i,inertia_matrix,force_terms);
-        rhs.template block<s,1>(s*i,0)=-(inertia_matrix*structures[i]->twist.Pack());}
+        rhs.template block<s,1>(s*i,0)=-(inertia_matrix*structures[i]->twist.Pack());
+        DiagonalMatrix<T,s> inverse_inertia_matrix(inertia_matrix.inverse());
+        Flatten_Term(i,i,inverse_inertia_matrix,inverse_inertia_terms);}
+    inverse_inertia.resize(structures.size()*s,structures.size()*s);
+    inverse_inertia.setFromTriplets(inverse_inertia_terms.begin(),inverse_inertia_terms.end());
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void RIGID_STRUCTURE_DATA<TV>::
+Kinematic_Projection(SparseMatrix<T>& kinematic_projection)
+{
+    int index=0;
+    std::vector<Triplet<T>> projection_terms;
+    for(int i=0;i<structures.size();i++){
+        auto structure=structures[i];
+        if(!structure->kinematic){
+            DiagonalMatrix<T,s> projection_matrix;projection_matrix.setIdentity();
+            Flatten_Term(index++,i,projection_matrix,projection_terms);
+        }}
+    kinematic_projection.resize(s*index,s*structures.size());
+    kinematic_projection.setFromTriplets(projection_terms.begin(),projection_terms.end());
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RIGID_STRUCTURE_DATA<TV>::

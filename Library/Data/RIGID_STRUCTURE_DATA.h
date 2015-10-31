@@ -71,7 +71,8 @@ public:
     virtual void Pack_Positions(Block<Matrix<T,Dynamic,1>>& positions);
     virtual void Unpack_Positions(const Matrix<T,Dynamic,1>& positions);
     void Step(const DATA<TV>& data);
-    virtual void Inertia(const T dt,std::vector<Triplet<T>>& force_terms,Matrix<T,Dynamic,1>& rhs);
+    virtual void Inertia(const T dt,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& inverse_inertia,Matrix<T,Dynamic,1>& rhs);
+    virtual void Kinematic_Projection(SparseMatrix<T>& kinematic_projection);
     virtual void Viewer(osg::Node* node);
 
     DEFINE_TYPE_NAME("RIGID_STRUCTURE_DATA")

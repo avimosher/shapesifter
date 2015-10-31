@@ -39,6 +39,7 @@ public:
 
     STORED_FORCE<T> solve_forces;
     Vector current_velocities;
+    Vector candidate_velocities;
     Vector positions;
 
     TRUST_REGION();

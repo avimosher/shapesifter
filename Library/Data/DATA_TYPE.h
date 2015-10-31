@@ -29,7 +29,8 @@ public:
     virtual T Print(){return T();}
     virtual void Viewer(osg::Node* node){};
     virtual std::string Name() const{return "DATA_TYPE";}
-    virtual void Inertia(const T dt,std::vector<Triplet<T>>& force_terms,Matrix<T,Dynamic,1>& rhs){};
+    virtual void Inertia(const T dt,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& inverse_inertia,Matrix<T,Dynamic,1>& rhs){};
+    virtual void Kinematic_Projection(SparseMatrix<T>& kinematic_projection){};
 };
 
 }
