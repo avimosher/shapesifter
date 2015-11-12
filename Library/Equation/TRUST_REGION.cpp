@@ -81,7 +81,9 @@ Increment_X(SIMULATION<TV>& simulation)
     // store errors
     T one_over_maxabs=1;
     if(rhs.rows()>0){
-        one_over_maxabs=1/rhs.array().abs().maxCoeff();}
+        T maxabs=rhs.array().abs().maxCoeff();
+        if(!maxabs){maxabs=1;}
+        one_over_maxabs=1/maxabs;}
     equation->Store_Errors(simulation.data,rhs.block(0,0,velocity_dof,1)*one_over_maxabs);
     solve_forces.Set(rhs.block(velocity_dof,0,rhs.rows()-velocity_dof,1)*one_over_maxabs);
     simulation.force.Store_Errors(solve_forces);
