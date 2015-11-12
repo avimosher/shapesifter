@@ -51,13 +51,13 @@ public:
 };
 
 template<class TV>
-class VOLUME_EXCLUSION_CONSTRAINT : public FORCE_TYPE<TV>
+class VOLUME_EXCLUSION_CONSTRAINT:public FORCE_TYPE<TV>
 {
     typedef typename TV::Scalar T;
     typedef typename ROTATION<TV>::SPIN T_SPIN;
 public:
     enum DEFINITIONS{d=TV::RowsAtCompileTime,t=T_SPIN::RowsAtCompileTime};
-    using FORCE_TYPE<TV>::stored_forces;
+    using FORCE_TYPE<TV>::stored_forces;using FORCE_TYPE<TV>::errors;
     std::vector<CONSTRAINT> constraints;
     std::vector<CONSTRAINT> constant_forces;
     std::vector<T> rhs;
@@ -72,11 +72,11 @@ public:
     {}
     ~VOLUME_EXCLUSION_CONSTRAINT(){}
 
-    void Archive(cereal::BinaryOutputArchive& archive){archive(constraints,constant_forces,force_memory,call_count);}
-    void Archive(cereal::BinaryInputArchive& archive){archive(constraints,constant_forces,force_memory,call_count);}
+    void Archive(cereal::BinaryOutputArchive& archive){archive(constraints,constant_forces,force_memory,call_count,errors);}
+    void Archive(cereal::BinaryInputArchive& archive){archive(constraints,constant_forces,force_memory,call_count,errors);}
 
-    void Archive(cereal::JSONOutputArchive& archive){archive(constraints,constant_forces,force_memory,call_count);}
-    void Archive(cereal::JSONInputArchive& archive){archive(constraints,constant_forces,force_memory,call_count);}
+    void Archive(cereal::JSONOutputArchive& archive){archive(constraints,constant_forces,force_memory,call_count,errors);}
+    void Archive(cereal::JSONInputArchive& archive){archive(constraints,constant_forces,force_memory,call_count,errors);}
 
     int DOF() const{return constraints.size();}
     std::shared_ptr<FORCE_REFERENCE<T>> Create_Stored_Force() const;

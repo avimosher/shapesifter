@@ -30,6 +30,14 @@ Increment_Forces(const STORED_FORCE<T>& stored_force,T ratio)
         force_type->Increment_Forces(stored_force[i],ratio);}
 }
 ///////////////////////////////////////////////////////////////////////
+template<class TV> void FORCE<TV>::
+Store_Errors(const STORED_FORCE<T>& stored_error)
+{
+    for(int i=0;i<this->size();i++){
+        auto force_type=(*this)[i];
+        force_type->Store_Errors(stored_error[i]);}
+}
+///////////////////////////////////////////////////////////////////////
 template<class TV> bool FORCE<TV>::
 Equations_Changed() const
 {

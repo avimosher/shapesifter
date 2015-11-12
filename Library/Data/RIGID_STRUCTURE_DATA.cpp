@@ -66,6 +66,13 @@ Unpack_Positions(const Matrix<T,Dynamic,1>& positions)
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RIGID_STRUCTURE_DATA<TV>::
+Store_Errors(const Matrix<T,Dynamic,1>& errors)
+{
+    for(int i=0;i<structures.size();i++){
+        structures[i]->error.Unpack(errors.template block<s,1>(i*s,0));}
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void RIGID_STRUCTURE_DATA<TV>::
 Step(const DATA<TV>& data)
 {
     for(int i=0;i<structures.size();i++){
@@ -138,29 +145,6 @@ Viewer(osg::Node* node)
                 unitSphereDrawable->setColor(color);
                 basicShapesGeode->addDrawable(unitSphereDrawable);
             }
-#if 0
-            auto lineGeometry=new osg::Geometry();
-            auto vertices=new osg::Vec3Array(2);
-            (*vertices)[0].set(0,0,0);
-            (*vertices)[0].set(0,1,0);
-            lineGeometry->setVertexArray(vertices);
-            auto colors=new osg::Vec4Array;
-            colors->push_back(osg::Vec4(0.0f,1.0f,0.0f,1.0f));
-            lineGeometry->setColorArray(colors);
-            lineGeometry->setColorBinding(osg::Geometry::BIND_OVERALL);
-            auto normals=new osg::Vec3Array;
-            normals->push_back(osg::Vec3f(0.0f,-1.0f,0.0f));
-            lineGeometry->setNormalArray(normals);
-            lineGeometry->setNormalBinding(osg::Geometry::BIND_OVERALL);
-            osg::StateSet* stateset=new osg::StateSet;
-            osg::LineWidth* lineWidth=new osg::LineWidth();
-            lineWidth->setWidth(4.0f);
-            stateset->setAttributeAndModes(lineWidth,osg::StateAttribute::ON);
-            stateset->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
-            lineGeometry->setStateSet(stateset);
-            lineGeometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES,0,2));
-            basicShapesGeode->addDrawable(lineGeometry);
-#endif            
             /*auto program=new osg::Program;
             auto fragmentShader=new osg::Shader(osg::Shader::FRAGMENT);
             fragmentShader->setShaderSource(
@@ -192,6 +176,9 @@ Viewer(osg::Node* node)
             stateSet->setAttributeAndModes(program,osg::StateAttribute::ON);*/
             basicShapesGeode->getOrCreateStateSet()->setAttribute(new osg::PolygonMode(osg::PolygonMode::FRONT_AND_BACK,osg::PolygonMode::LINE));
             transform->addChild(basicShapesGeode);
+            auto line=createLine(osg::Vec4(1.0f,1.0f,1.0f,1.0f));
+            line->setName("LINE");
+            transform->addChild(line);
             rigid_group->addChild(transform);
         }
         group->addChild(rigid_group);
@@ -199,6 +186,8 @@ Viewer(osg::Node* node)
     for(int i=0;i<structures.size();i++){
         auto transform=(osg::PositionAttitudeTransform*)rigid_group->getChild(i);
         OSG_HELPERS<TV>::Initialize_Transform(structures[i]->frame,transform);
+        std::vector<TV> points={TV(),structures[i]->error.linear};
+        updateLine((osg::Geode*)transform->getChild(1),points);
     }
 }
 ///////////////////////////////////////////////////////////////////////

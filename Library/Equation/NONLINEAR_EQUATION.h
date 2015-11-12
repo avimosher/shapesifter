@@ -41,6 +41,7 @@ public:
 
     void Identify_DOF(const DATA<TV>& data,const FORCE<TV>& force,int index);
     void Unpack_Velocities(DATA<TV>& data,const Matrix<T,Dynamic,1>& velocities);
+    void Store_Errors(DATA<TV>& data,const Matrix<T,Dynamic,1>& errors);
     void Initialize(DATA<TV>& data,FORCE<TV>& force);
     void Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool stochastic);
     DEFINE_TYPE_NAME("NONLINEAR_EQUATION")

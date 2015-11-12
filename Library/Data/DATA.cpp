@@ -77,6 +77,16 @@ Unpack_Positions(const Matrix<T,Dynamic,1>& positions)
         data_type->Unpack_Positions(positions.block(current_position,0,data_size,1));
         current_position+=data_size;}
 }
+///////////////////////////////////////////////////////////////////////
+template<class TV> void DATA<TV>::
+Store_Errors(const Matrix<T,Dynamic,1>& errors)
+{
+    int current_position=0;
+    for(auto data_type : (*this)){
+        int data_size=data_type->Velocity_DOF();
+        data_type->Store_Errors(errors.block(current_position,0,data_size,1));
+        current_position+=data_size;}
+}
 /////////////////////////////////////////////////////////////////////// 
 template<class TV> void DATA<TV>::
 Step()

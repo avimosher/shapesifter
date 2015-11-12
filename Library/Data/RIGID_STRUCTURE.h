@@ -19,6 +19,7 @@ public:
     enum DEFINITIONS{PositionSize=FRAME<TV>::STATIC_SIZE,VelocitySize=TWIST<TV>::STATIC_SIZE};
     std::string name;
     FRAME<TV> frame;
+    TWIST<TV> error;
     TWIST<TV> twist;
     MOMENT<TV> moi;
     T radius;
@@ -93,6 +94,7 @@ public:
     template<class Archive>
     void serialize(Archive& archive) {archive(CEREAL_NVP(name),
             CEREAL_NVP(frame),
+            CEREAL_NVP(error),
             CEREAL_NVP(moi),
             CEREAL_NVP(twist),
             CEREAL_NVP(radius),

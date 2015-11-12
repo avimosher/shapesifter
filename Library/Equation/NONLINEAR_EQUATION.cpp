@@ -17,7 +17,7 @@ Identify_DOF(const DATA<TV>& data,const FORCE<TV>& force,int index)
 {
     int current_index=0;
     for(int i=0;i<data.size();i++){
-        int data_size=data[i]->Velocity_DOF();
+        int data_size=kinematic_projection_matrices[i].rows();//=data[i]->Velocity_DOF();
         if(index<current_index+data_size){
             data[i]->Identify_DOF(index-current_index);
             return;}
@@ -46,6 +46,22 @@ Unpack_Velocities(DATA<TV>& data,const Matrix<T,Dynamic,1>& velocities)
     Matrix<T,Dynamic,1> full_velocity;
     Merge_Block_Vectors(full_velocities,full_velocity);
     data.Unpack_Velocities(full_velocity);
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void NONLINEAR_EQUATION<TV>::
+Store_Errors(DATA<TV>& data,const Matrix<T,Dynamic,1>& errors)
+{
+    assert(data.size()==1);
+    Matrix<Matrix<T,Dynamic,1>,Dynamic,1> full_errors(data.size());
+    int current_index=0;
+    for(int i=0;i<data.size();i++){
+        int compressed_size=kinematic_projection_matrices[i].rows();
+        full_errors[i]=kinematic_projection_matrices[i].transpose()*errors.block(current_index,0,current_index+compressed_size,1);
+        current_index+=compressed_size;
+    }
+    Matrix<T,Dynamic,1> full_error;
+    Merge_Block_Vectors(full_errors,full_error);
+    data.Store_Errors(full_error);
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void NONLINEAR_EQUATION<TV>::
@@ -107,8 +123,6 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     Identify_DOF(data,force,index);
     LOG::cout<<"Max value at index "<<index<<" is "<<right_hand_side.maxCoeff(&index)<<std::endl;
     Identify_DOF(data,force,index);*/
-    //LOG::cout<<"Gradient: "<<(-jacobian.adjoint()*right_hand_side).transpose()<<std::endl;
-    //LOG::cout<<"Jacobian: "<<std::endl<<jacobian<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(NONLINEAR_EQUATION)

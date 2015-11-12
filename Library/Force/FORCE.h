@@ -42,6 +42,7 @@ public:
     void Pack_Forces(STORED_FORCE<T>& stored_force) const;
     void Unpack_Forces(const STORED_FORCE<T>& stored_force);
     void Increment_Forces(const STORED_FORCE<T>& stored_force,T ratio);
+    void Store_Errors(const STORED_FORCE<T>& store_force);
     void Viewer(const DATA<TV>& data,osg::Group*& root);
     bool Equations_Changed() const;
 };

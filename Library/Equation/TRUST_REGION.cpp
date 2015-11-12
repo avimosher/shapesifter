@@ -43,6 +43,7 @@ Linearize(SIMULATION<TV>& simulation,const T dt,const T time)
     data.Pack_Positions(positions);
 
     equation->Linearize(data,force,dt,time,true);
+    equation->RHS(rhs);
     force.Pack_Forces(solve_forces);
 }
 ///////////////////////////////////////////////////////////////////////
@@ -75,6 +76,15 @@ Increment_X(SIMULATION<TV>& simulation)
     simulation.force.Increment_Forces(solve_forces,1);
     simulation.force.Pack_Forces(solve_forces);
     current_velocities+=solve_velocities;
+    rhs=try_rhs;
+    
+    // store errors
+    T one_over_maxabs=1;
+    if(rhs.rows()>0){
+        one_over_maxabs=1/rhs.array().abs().maxCoeff();}
+    equation->Store_Errors(simulation.data,rhs.block(0,0,velocity_dof,1)*one_over_maxabs);
+    solve_forces.Set(rhs.block(velocity_dof,0,rhs.rows()-velocity_dof,1)*one_over_maxabs);
+    simulation.force.Store_Errors(solve_forces);
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
@@ -114,11 +124,14 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
             if(simulation.force.Equations_Changed() || iteration%preconditioner_refresh_frequency==0){Update_Preconditioner();}
             status=CONTINUE;}
         if(simulation.substeps){
-            std::string frame_name="Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration)+" radius "+std::to_string(radius)+" real "+std::to_string(int(status==CONTINUE))+ " f "+std::to_string(f);
-            std::cout<<"WRITING FRAME "<<frame_name<<std::endl;
+            //std::string frame_name="Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration)+" radius "+std::to_string(radius)+" real "+std::to_string(int(status==CONTINUE))+ " f "+std::to_string(f);
+            std::string frame_name="Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration)+" real "+std::to_string(int(status==CONTINUE))+ " f "+std::to_string(f);
             simulation.Write(frame_name);}
         if(status==CONTRACT){status=CONTINUE;}
     }while(status==CONTINUE);
+    std::string frame_name="End frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration)+" real "+std::to_string(int(status==CONTINUE))+ " f "+std::to_string(f);
+    simulation.Write(frame_name);
+
     LOG::cout<<"SOLVE STEPS: "<<iteration<<" Failed due to radius: "<<failed_radius<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
@@ -140,6 +153,7 @@ template<class TV> void TRUST_REGION<TV>::
 Update_Hessian()
 {
     equation->Hessian(hessian);
+    equation->Jacobian(jacobian);
     nvars=hessian.rows();
 }
 ///////////////////////////////////////////////////////////////////////
@@ -160,6 +174,13 @@ Update_One_Step(SIMULATION<TV>& simulation,const T dt,const T time)
             T gs=gk.dot(sk);
             T sBs=sk.dot(hessian.template selfadjointView<Lower>()*sk);
             predicted_reduction=-(gs+sBs/2);
+            //Jsk=jacobian*sk;
+            //componentwise_prediction=gk.cwiseProduct(Jsk)+Jsk.cwiseProduct(Jsk)/2;
+            equation->RHS(try_rhs);
+            //LOG::cout<<"Componentwise quality: "<<componentwise_prediction.sum()<<std::endl<<rhs.Diff(try_rhs).cwiseQuotient(componentwise_prediction)<<std::endl;
+            //int index;
+            //LOG::cout<<"Min value at index "<<index<<" is "<<componentwise_prediction.minCoeff(&index)<<std::endl;
+            //LOG::cout<<"Max value at index "<<index<<" is "<<componentwise_prediction.maxCoeff(&index)<<std::endl;
             if(predicted_reduction<0){step_status=ENEGMOVE;}
             step_quality=actual_reduction/predicted_reduction;
             LOG::cout<<"AP: "<<step_quality<<" old f: "<<f<<" try f: "<<try_f<<" ared: "<<actual_reduction<<" pred: "<<predicted_reduction<<" radius: "<<radius<<" gs: "<<gs<<" sBs: "<<sBs<<" norm_sk_scaled: "<<norm_sk_scaled<<std::endl;}
@@ -173,13 +194,14 @@ Update_One_Step(SIMULATION<TV>& simulation,const T dt,const T time)
                 gk=try_g;
                 norm_gk=gk.norm();
                 //tol=std::min(0.5,sqrt(norm_gk))*norm_gk;
-                if(step_quality>expand_threshold_ap && norm_sk_scaled>=expand_threshold_rad*radius){
+                if(step_quality>expand_threshold_ap){// && norm_sk_scaled>=expand_threshold_rad*radius){
                     step_status=EXPAND;}
                 else{step_status=MOVED;}}
             else{step_status=FAILEDCG;}}
         else if(step_quality<0){step_status=NEGRATIO;}
         else{step_status=CONTRACT;}}
 
+    LOG::cout<<"Step status: "<<step_status<<std::endl;
     switch(step_status){
         case NEGRATIO:{
             T gksk=gk.dot(sk);
@@ -191,12 +213,12 @@ Update_One_Step(SIMULATION<TV>& simulation,const T dt,const T time)
         case FAILEDCG:
         case ENEGMOVE:
             step_status=CONTRACT;
-            radius=norm_sk_scaled*contract_factor;
-            //radius*=contract_factor;
+            //radius=norm_sk_scaled*contract_factor;
+            radius*=contract_factor;
             break;
         case EXPAND:
-            radius=std::max(expand_factor*norm_sk_scaled,radius);
-            //radius*=expand_factor;
+            //radius=std::max(expand_factor*norm_sk_scaled,radius);
+            radius*=expand_factor;
             break;
     };
     return step_status;

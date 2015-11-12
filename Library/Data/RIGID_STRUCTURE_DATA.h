@@ -70,6 +70,7 @@ public:
     virtual void Unpack_Velocities(const Matrix<T,Dynamic,1>& velocities);
     virtual void Pack_Positions(Block<Matrix<T,Dynamic,1>>& positions);
     virtual void Unpack_Positions(const Matrix<T,Dynamic,1>& positions);
+    virtual void Store_Errors(const Matrix<T,Dynamic,1>& errors);
     void Step(const DATA<TV>& data);
     virtual void Inertia(const T dt,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& inverse_inertia,Matrix<T,Dynamic,1>& rhs);
     virtual void Kinematic_Projection(SparseMatrix<T>& kinematic_projection);

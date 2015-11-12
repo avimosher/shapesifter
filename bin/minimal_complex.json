@@ -18,14 +18,14 @@
         },
         {"type": "RIGID_STRUCTURE",
          "position": [0,0,0],
-         "radius": 0.2,
+         "radius": 0.1,
          "name": "link"
         },
-        
         {"type": "TRUST_REGION",
          "name": "evolution"},
         {"type": "BROWNIAN_FORCE",
          "temperature": 300},
+        {"type": "VOLUME_EXCLUSION_CONSTRAINT"},
         {"type": "RELATIVE_POSITION_CONSTRAINT",
          "constraints": [
              {

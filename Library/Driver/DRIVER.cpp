@@ -32,7 +32,7 @@ Advance_To_Target_Time(const T target_time)
     bool done=false;
     for(int substep=1;!done;substep++){
         Advance_One_Time_Step(target_time,done);
-        simulation->Write("End frame "+std::to_string(simulation->current_frame));
+        //simulation->Write("End frame "+std::to_string(simulation->current_frame));
         simulation->current_frame++;
         LOG::cout<<"\n\nFrame "<<simulation->current_frame<<std::endl;
     }

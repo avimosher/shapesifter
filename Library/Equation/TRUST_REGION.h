@@ -18,8 +18,9 @@ public:
     enum STATUS{UNKNOWN,CONTINUE,SUCCESS,EMAXITER,ETOLG,MOVED,EXPAND,CONTRACT,FAILEDCG,ENEGMOVE,NEGRATIO};
     EQUATION<TV>* equation;
     SparseMatrix<T> hessian;
+    SparseMatrix<T> jacobian;
     Preconditioner preconditioner;
-    Vector gk,sk,try_g,zj,rj,dj,zj_old,yj,wd,wz,inverse_scale;
+    Vector gk,sk,try_g,zj,rj,dj,zj_old,yj,wd,wz,inverse_scale,Jsk,componentwise_prediction,rhs,try_rhs;
     T f;
     T norm_gk;
     

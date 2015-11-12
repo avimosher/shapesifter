@@ -11,8 +11,6 @@
 #include <Utilities/OSG_HELPERS.h>
 #include <iostream>
 #include <math.h>
-#include <osg/Geometry>
-#include <osg/Geode>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::
@@ -55,39 +53,20 @@ Viewer(const DATA<TV>& data,osg::Node* node)
 {
     osg::Group* group=node->asGroup();
     osg::Group* relative_position_group=(osg::Group*)getNamedChild(group,Static_Name());
+    osg::Group* relative_position_error_group=(osg::Group*)getNamedChild(group,"relative_position_error_group");
     if(!relative_position_group){
         relative_position_group=new osg::Group();
         relative_position_group->setName(Static_Name());
+        relative_position_error_group=new osg::Group();
+        relative_position_error_group->setName("relative_position_error_group");
         for(int i=0;i<constraints.size();i++){
-            auto lineGeometry=new osg::Geometry();
-            auto vertices=new osg::Vec3Array(2);
-            lineGeometry->setVertexArray(vertices);
-            auto colors=new osg::Vec4Array;
-            colors->push_back(osg::Vec4(1.0f,1.0f,0.0f,1.0f));
-            lineGeometry->setColorArray(colors);
-            lineGeometry->setColorBinding(osg::Geometry::BIND_OVERALL);
-            auto normals=new osg::Vec3Array;
-            normals->push_back(osg::Vec3f(0.0f,-1.0f,0.0f));
-            lineGeometry->setNormalArray(normals);
-            lineGeometry->setNormalBinding(osg::Geometry::BIND_OVERALL);
-
-            lineGeometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES,0,2));
-
-            osg::StateSet* stateset=new osg::StateSet;
-            stateset->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
-            lineGeometry->setStateSet(stateset);
-
-            auto lineGeode=new osg::Geode();
-            lineGeode->addDrawable(lineGeometry);
-            relative_position_group->addChild(lineGeode);
-        }
+            relative_position_group->addChild(createLine(osg::Vec4(1.0f,1.0f,0.0f,1.0f)));
+            relative_position_error_group->addChild(createLine(osg::Vec4(1.0f,1.0f,1.0f,1.0f)));}
         group->addChild(relative_position_group);
+        group->addChild(relative_position_error_group);
     }
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
     for(int i=0;i<constraints.size();i++){
-        auto lineGeode=(osg::Geode*)relative_position_group->getChild(i);
-        auto lineGeometry=(osg::Geometry*)lineGeode->getDrawable(0);
-        auto vertices=(osg::Vec3Array*)lineGeometry->getVertexArray();
         const CONSTRAINT& constraint=constraints[i];
         int body_index1=constraint.s1;
         int body_index2=constraint.s2;
@@ -95,9 +74,14 @@ Viewer(const DATA<TV>& data,osg::Node* node)
         auto rigid_structure2=rigid_data->structures[body_index2];
         auto firstAttachment=rigid_structure1->frame*constraint.v1;
         auto secondAttachment=rigid_structure2->frame*constraint.v2;
-        (*vertices)[0].set(firstAttachment(0),firstAttachment(1),firstAttachment(2));
-        (*vertices)[1].set(secondAttachment(0),secondAttachment(1),secondAttachment(2));
-        lineGeometry->setVertexArray(vertices);
+        std::vector<TV> points={firstAttachment,secondAttachment};
+        updateLine((osg::Geode*)relative_position_group->getChild(i),points);
+
+        if(errors.rows()==constraints.size()){
+            auto meanAttachment=(firstAttachment+secondAttachment)/2;
+            auto offsetAttachment=meanAttachment+TV::Unit(2)*errors(i);
+            std::vector<TV> error_points={meanAttachment,offsetAttachment};
+            updateLine((osg::Geode*)relative_position_error_group->getChild(i),error_points);}
     }
 }
 ///////////////////////////////////////////////////////////////////////

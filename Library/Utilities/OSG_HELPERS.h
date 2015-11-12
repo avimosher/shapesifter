@@ -4,6 +4,7 @@
 #include <Data/FRAME.h>
 #include <Eigen/Geometry>
 #include <osg/Geode>
+#include <osg/Geometry>
 #include <osg/PositionAttitudeTransform>
 #include <iostream>
 
@@ -73,6 +74,41 @@ inline osg::Vec4 colorMap(int index)
         osg::Vec4(0.776,0.333,0.227,1)};
 //        osg::Vec4(0.635,0.212,0.11,1)};
     return colors[std::hash<int>()(index)%colors.size()];
+}
+
+inline osg::Geode* createLine(osg::Vec4 color)
+{
+    auto errorLineGeometry=new osg::Geometry();
+    auto errorVertices=new osg::Vec3Array(2);
+    errorLineGeometry->setVertexArray(errorVertices);
+    auto errorColors=new osg::Vec4Array;
+    errorColors->push_back(color);
+    errorLineGeometry->setColorArray(errorColors);
+    errorLineGeometry->setColorBinding(osg::Geometry::BIND_OVERALL);
+    auto errorNormals=new osg::Vec3Array;
+    errorNormals->push_back(osg::Vec3f(0.0f,-1.0f,0.0f));
+    errorLineGeometry->setNormalArray(errorNormals);
+    errorLineGeometry->setNormalBinding(osg::Geometry::BIND_OVERALL);
+
+    errorLineGeometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES,0,2));
+
+    osg::StateSet* errorStateset=new osg::StateSet;
+    errorStateset->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
+    errorLineGeometry->setStateSet(errorStateset);
+
+    auto errorLineGeode=new osg::Geode();
+    errorLineGeode->addDrawable(errorLineGeometry);
+    return errorLineGeode;
+}
+
+template<class TV>
+inline void updateLine(osg::Geode* lineGeode,const std::vector<TV>& points)
+{
+    auto lineGeometry=(osg::Geometry*)lineGeode->getDrawable(0);
+    auto vertices=(osg::Vec3Array*)lineGeometry->getVertexArray();
+    for(int i=0;i<points.size();i++){
+        (*vertices)[i].set(points[i](0),points[i](1),points[i](2));}
+    lineGeometry->setVertexArray(vertices);
 }
 
 }

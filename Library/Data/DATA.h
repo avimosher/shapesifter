@@ -58,6 +58,7 @@ public:
     void Unpack_Velocities(const Matrix<T,Dynamic,1>& velocities);
     void Pack_Positions(Matrix<T,Dynamic,1>& positions);
     void Unpack_Positions(const Matrix<T,Dynamic,1>& positions);
+    void Store_Errors(const Matrix<T,Dynamic,1>& errors);
     void Step();
     void Viewer(osg::Group*& root);
     DEFINE_TYPE_NAME("DATA")

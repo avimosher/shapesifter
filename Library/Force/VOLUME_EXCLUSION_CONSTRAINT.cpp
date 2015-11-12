@@ -166,27 +166,19 @@ Viewer(const DATA<TV>& data,osg::Node* node)
         auto rigid_structure2=rigid_data->structures[body_index2];
         auto firstAttachment=rigid_structure1->frame.position;
         auto secondAttachment=rigid_structure2->frame.position;
-        (*vertices)[0].set(firstAttachment(0),firstAttachment(1),firstAttachment(2));
-        (*vertices)[1].set(secondAttachment(0),secondAttachment(1),secondAttachment(2));
-        lineGeometry->setVertexArray(vertices);
-        auto colors=new osg::Vec4Array;
-        colors->push_back(osg::Vec4(1.0f,0.0f,0.0f,1.0f));
-        lineGeometry->setColorArray(colors);
-        lineGeometry->setColorBinding(osg::Geometry::BIND_OVERALL);
-        auto normals=new osg::Vec3Array;
-        normals->push_back(osg::Vec3f(0.0f,-1.0f,0.0f));
-        lineGeometry->setNormalArray(normals);
-        lineGeometry->setNormalBinding(osg::Geometry::BIND_OVERALL);
-        
-        lineGeometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES,0,2));
+        std::vector<TV> points={firstAttachment,secondAttachment};
+        auto lineGeode=createLine(osg::Vec4(1.0f,0.0f,0.0f,1.0f));
+        updateLine(lineGeode,points);
+        volume_exclusion_group->addChild(lineGeode);
 
-        osg::StateSet* stateset=new osg::StateSet;
-        stateset->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
-        lineGeometry->setStateSet(stateset);
-
-        auto lineGeode=new osg::Geode();
-        lineGeode->addDrawable(lineGeometry);
-        volume_exclusion_group->addChild(lineGeode);}
+        if(errors.rows()==constraints.size()){
+            auto errorLineGeode=createLine(osg::Vec4(1.0f,1.0f,1.0f,1.0f));
+            auto mean=(firstAttachment+secondAttachment)/2;
+            auto offset=mean+TV::Unit(2)*errors(i);
+            std::vector<TV> error_points={mean,offset};
+            updateLine(errorLineGeode,error_points);
+            volume_exclusion_group->addChild(errorLineGeode);}
+    }
     group->addChild(volume_exclusion_group);
 }
 ///////////////////////////////////////////////////////////////////////

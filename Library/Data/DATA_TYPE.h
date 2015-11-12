@@ -24,6 +24,7 @@ public:
     virtual void Unpack_Velocities(const Matrix<T,Dynamic,1>& velocities){};
     virtual void Pack_Positions(Block<Matrix<T,Dynamic,1>>& positions){};
     virtual void Unpack_Positions(const Matrix<T,Dynamic,1>& positions){};
+    virtual void Store_Errors(const Matrix<T,Dynamic,1>& errors){};
     virtual void Step(const DATA<TV>& data){};
     template<class Archive> void serialize(Archive& archive){}
     virtual T Print(){return T();}
