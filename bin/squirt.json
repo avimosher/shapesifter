@@ -1,0 +1,46 @@
+{
+    "output_directory": "squirt",
+    "dt": 0.1,
+    "last_time": 10,
+    "root": [
+        {"type": "DATA",
+         "eta": 3.5},
+        {"type": "RIGID_STRUCTURE_DATA"},
+        {"type": "RIGID_STRUCTURE",
+         "name": "left",
+         "position": [0, 0, 0],
+         "radius": 1
+        },
+        {"type": "RIGID_STRUCTURE",
+         "name": "right",
+         "position": [3, 0, 0],
+         "radius": 1
+        },
+        {"type": "RIGID_STRUCTURE",
+         "name": "center",
+         "position": [1.5, 0.1, 0],
+         "radius": 0.1
+        },
+        {"type": "DEFINED_FORCE",
+         "forces": [
+             {"structure": "left",
+              "force": [100,0,0]},
+             {"structure": "right",
+              "force": [-100,0,0]}]},
+        {"type": "RELATIVE_POSITION_CONSTRAINT",
+         "constraints": [
+             {"structure1": "left",
+              "offset1": [0, 0, 0],
+              "structure2": "center",
+              "offset2": [0, 0, 0],
+              "distance": 1.9},
+             {"structure1": "right",
+              "offset1": [0, 0, 0],
+              "structure2": "center",
+              "offset2": [0, 0, 0],
+              "distance": 1.9}
+         ]
+        },
+        {"type": "TRUST_REGION"}
+    ]
+}
