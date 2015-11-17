@@ -30,13 +30,14 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             T random_displacement=data.random.Gaussian(T(),translational_variance);
             TV random_orientation=data.random.template Direction<TV>();
             stored_right_hand_side.template block<d,1>((t+d)*i,0)=linear_drag*random_displacement*random_orientation*one_over_dt;
-            
+
             T rotational_resistance=8*M_PI*eta*std::pow(radius,3);
             T rotational_diffusion_coefficient=kT/rotational_resistance;
             T_SPIN random_spin_orientation=data.random.template Direction<T_SPIN>();
             T rotational_variance=sqrt(2*rotational_diffusion_coefficient*dt);
             T random_angle=data.random.Gaussian(T(),rotational_variance);
-            stored_right_hand_side.template block<T_SPIN::SizeAtCompileTime,1>(TWIST<TV>::STATIC_SIZE*i+TV::SizeAtCompileTime,0)=random_spin_orientation*rotational_resistance*random_angle*one_over_dt;}}
+            stored_right_hand_side.template block<T_SPIN::SizeAtCompileTime,1>(TWIST<TV>::STATIC_SIZE*i+TV::SizeAtCompileTime,0)=random_spin_orientation*rotational_resistance*random_angle*one_over_dt;}
+        LOG::cout<<"stored Brownian RHS"<<std::endl<<stored_right_hand_side<<std::endl;}
     right_hand_side+=stored_right_hand_side;
     constraint_terms.resize(0,rigid_data->Velocity_DOF());
     constraint_forces.resize(rigid_data->Velocity_DOF(),0);

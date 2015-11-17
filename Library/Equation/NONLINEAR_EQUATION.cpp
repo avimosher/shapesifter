@@ -92,9 +92,12 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     for(int i=0;i<data.size();i++){
         data[i]->Inertia(dt,force_terms[i],inverse_inertia_matrices[i],full_right_hand_side[i]);}
 
+    LOG::cout<<"RHS before forces: "<<std::endl<<full_right_hand_side[0]<<std::endl;
     for(int i=0;i<force.size();i++){
         // TODO: force_terms needs to be properly handled when there are multiple data types
-        force[i]->Linearize(data,dt,time,force_terms[0],full_matrix(i+1,0),full_matrix(0,i+1),full_right_hand_side[0],full_right_hand_side[i+1],stochastic);}
+        force[i]->Linearize(data,dt,time,force_terms[0],full_matrix(i+1,0),full_matrix(0,i+1),full_right_hand_side[0],full_right_hand_side[i+1],stochastic);
+        LOG::cout<<"RHS after force "<<force[i]->Name()<<": "<<std::endl<<full_right_hand_side[0]<<std::endl;
+    }
     for(int i=0;i<data.size();i++){
         full_matrix(i,i).setFromTriplets(force_terms[i].begin(),force_terms[i].end());
         full_right_hand_side[i]=kinematic_projection_matrices[i]*inverse_inertia_matrices[i]*full_right_hand_side[i];

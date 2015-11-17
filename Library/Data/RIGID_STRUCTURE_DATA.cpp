@@ -80,6 +80,16 @@ Step(const DATA<TV>& data)
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RIGID_STRUCTURE_DATA<TV>::
+Eliminate_Rotation(const DATA<TV>& data)
+{
+    for(int i=0;i<structures.size();i++){
+        structures[i]->frame.orientation=ROTATION<TV>();
+        structures[i]->twist.linear=TV();
+        structures[i]->twist.angular=T_SPIN();
+    }
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void RIGID_STRUCTURE_DATA<TV>::
 Inertia(const T dt,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& inverse_inertia,Matrix<T,Dynamic,1>& rhs)
 {
     T one_over_dt=1/dt;

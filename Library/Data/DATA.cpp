@@ -95,6 +95,12 @@ Step()
 }
 /////////////////////////////////////////////////////////////////////// 
 template<class TV> void DATA<TV>::
+Eliminate_Rotation()
+{
+    for(auto data_type : (*this)){data_type->Eliminate_Rotation(*this);}
+}
+/////////////////////////////////////////////////////////////////////// 
+template<class TV> void DATA<TV>::
 Viewer(osg::Group*& root)
 {
     for(auto data_type : (*this)){data_type->Viewer(root);}

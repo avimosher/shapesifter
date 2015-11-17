@@ -26,6 +26,7 @@ public:
     virtual void Unpack_Positions(const Matrix<T,Dynamic,1>& positions){};
     virtual void Store_Errors(const Matrix<T,Dynamic,1>& errors){};
     virtual void Step(const DATA<TV>& data){};
+    virtual void Eliminate_Rotation(const DATA<TV>& data){};
     template<class Archive> void serialize(Archive& archive){}
     virtual T Print(){return T();}
     virtual void Viewer(osg::Node* node){};

@@ -60,6 +60,7 @@ public:
     void Unpack_Positions(const Matrix<T,Dynamic,1>& positions);
     void Store_Errors(const Matrix<T,Dynamic,1>& errors);
     void Step();
+    void Eliminate_Rotation();
     void Viewer(osg::Group*& root);
     DEFINE_TYPE_NAME("DATA")
 };

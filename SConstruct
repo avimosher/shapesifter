@@ -3,20 +3,23 @@ import glob
 
 Decider('timestamp-match')
 
-options=Options()
-options.AddOptions(EnumOption('TYPE','Type of build','release',allowed_values=('release','debug')))
+variables=Variables(None,ARGUMENTS)
+variables.Add(EnumVariable('TYPE','Type of build','release',allowed_values=('release','debug')))
+#options=Options()
+#options.AddOptions(EnumOption('TYPE','Type of build','release',allowed_values=('release','debug')))
 
 external_libraries_dir="#External_Libraries/"
 external_libraries={
     'catch': {'default': 1, 'libs':[''], 'cpppath':[external_libraries_dir+'catch']},
     'cereal': {'default': 1, 'libs':[''],'cpppath':[external_libraries_dir+'cereal/include']},
     'eigen': {'default': 1, 'libs':[''],'cpppath':[external_libraries_dir+'eigen',external_libraries_dir+'eigen/unsupported']},
+    'ESBTL': {'default': 1, 'libs':['CGAL','mpfr','gmp','boost_thread'],'cpppath':[external_libraries_dir+'ESBTL/include']},
     'json': {'default': 1,'cpppath':[external_libraries_dir+'jsoncpp/dist'],'libs':['jsoncpp'],'libpath':[external_libraries_dir+'jsoncpp/dist']},
     'osg': {'default': 1,'cpppath':[external_libraries_dir+'osg/include'],'libs':['osg','osgDB','osgGA','osgViewer','libOpenThreads','libosgUtil','libosgText'],'libpath':[external_libraries_dir+'osg/lib']},
     'gl': {'default': 1,'libs':['GL']}
 }
 
-env=Environment(options=options,ENV={'PATH' : os.environ['PATH'], 'LD_LIBRARY_PATH' : os.environ['LD_LIBRARY_PATH']})
+env=Environment(variables=variables,ENV={'PATH' : os.environ['PATH'], 'LD_LIBRARY_PATH' : os.environ['LD_LIBRARY_PATH']})
 
 base_env=Environment()
 
@@ -51,7 +54,7 @@ def Find_SConscripts(env,dir):
 
 # Compiler flags
 #env.Append(CXXFLAGS="-DEIGEN_INITIALIZE_MATRICES_BY_ZERO")
-env.Append(CXXFLAGS="-std=c++1y")
+env.Append(CXXFLAGS="-std=c++1y -frounding-math")
 if env['TYPE']=='debug':        
     env.Append(CXXFLAGS="-g")
 elif env['TYPE']=='release':

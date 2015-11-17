@@ -15,7 +15,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
     for(const auto& force : forces){
         right_hand_side.template block<d,1>((t+d)*force.s,0)+=force.f;
-        right_hand_side.template block<t,1>((t+d)*force.s+d,0)+=(rigid_data->structures[force.s]->frame.orientation*force.v).cross(force.f);}
+        /*right_hand_side.template block<t,1>((t+d)*force.s+d,0)+=(rigid_data->structures[force.s]->frame.orientation*force.v).cross(force.f);*/}
     constraint_terms.resize(0,rigid_data->Velocity_DOF());
     constraint_forces.resize(rigid_data->Velocity_DOF(),0);
 }

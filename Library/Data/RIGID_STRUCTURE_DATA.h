@@ -72,6 +72,7 @@ public:
     virtual void Unpack_Positions(const Matrix<T,Dynamic,1>& positions);
     virtual void Store_Errors(const Matrix<T,Dynamic,1>& errors);
     void Step(const DATA<TV>& data);
+    void Eliminate_Rotation(const DATA<TV>& data);
     virtual void Inertia(const T dt,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& inverse_inertia,Matrix<T,Dynamic,1>& rhs);
     virtual void Kinematic_Projection(SparseMatrix<T>& kinematic_projection);
     virtual void Viewer(osg::Node* node);
