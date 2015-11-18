@@ -18,10 +18,6 @@ fi
 if [ ! -d eigen ]
 then
     hg clone https://avimosher@bitbucket.org/eigen/eigen
-#    wget http://bitbucket.org/eigen/eigen/get/3.3-alpha1.tar.gz
-#    tar -xvf 3.3-alpha1.tar.gz
-#    mv eigen-eigen-09a8e2186610 eigen
-#    patch eigen/unsupported/Eigen/src/IterativeSolvers/IncompleteCholesky.h patches/eigen/incomplete_cholesky.patch
 fi
 
 if [ ! -d jsoncpp ]
@@ -51,6 +47,7 @@ then
     wget http://downloads.sourceforge.net/project/esbtl/ESBTL-1.0-beta01.tar.bz2
     tar -xvf ESBTL-1.0-beta01.tar.bz2
     mv ESBTL-1.0-beta01 ESBTL
+    patch ESBTL/include/ESBTL/line_reader.h patches/ESBTL/line_reader.h.patch
 fi
 
 

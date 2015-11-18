@@ -1,0 +1,15 @@
+Only in ESBTL/examples/Simple: CMakeCache.txt
+Only in ESBTL/examples/Simple: CMakeFiles
+Only in ESBTL/examples/Simple: cmake_install.cmake
+Only in ESBTL/examples/Simple: generic_select
+Only in ESBTL/examples/Simple: Makefile
+Only in ESBTL/examples/Simple: read_models
+Only in ESBTL/examples/Simple: select_in_reader
+Only in ESBTL/examples/Simple: select_in_system
+Only in ESBTL/examples/Simple: to_xyzr
+Only in ESBTL/examples/Simple: write_selection
+diff -r ESBTL-1.0-beta01/include/ESBTL/line_reader.h ESBTL/include/ESBTL/line_reader.h
+53a54
+> public:
+92d92
+< public:
