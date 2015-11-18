@@ -1,0 +1,40 @@
+{
+    "output_directory": "runs/absolute_position_constraint",
+    "dt": 0.1,
+    "last_time": 10,
+    "root": [
+        {"type": "DATA",
+         "eta": 3.5},
+        {"type": "RIGID_STRUCTURE_DATA"},
+        {"type": "RIGID_STRUCTURE",
+         "name": "left",
+         "position": [3.5, 2, 1],
+         "collision_extent": 1,
+         "radius": 1
+        },
+        {"type": "BROWNIAN_FORCE",
+         "temperature": 3000},
+        {"type": "ABSOLUTE_POSITION_CONSTRAINT",
+         "constraints": [
+             {"structure": "left",
+              "type": "linear",
+              "direction": [1,0,0],
+              "magnitude": 3.5},
+             {"structure": "left",
+              "type": "linear",
+              "direction": [0,1,0],
+              "magnitude": 2},
+             {"structure": "left",
+              "type": "linear",
+              "direction": [0,0,1],
+              "magnitude": 1},
+             {"structure": "left",
+              "type": "angular",
+              "orientation": {
+                  "angle": 0,
+                  "axis": [1,0,0]}}
+         ]
+        },
+        {"type": "TRUST_REGION"}
+    ]
+}
