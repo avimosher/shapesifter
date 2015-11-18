@@ -13,7 +13,7 @@ external_libraries={
     'catch': {'default': 1, 'libs':[''], 'cpppath':[external_libraries_dir+'catch']},
     'cereal': {'default': 1, 'libs':[''],'cpppath':[external_libraries_dir+'cereal/include']},
     'eigen': {'default': 1, 'libs':[''],'cpppath':[external_libraries_dir+'eigen',external_libraries_dir+'eigen/unsupported']},
-    'ESBTL': {'default': 1, 'libs':['CGAL','mpfr','gmp','boost_thread'],'cpppath':[external_libraries_dir+'ESBTL/include']},
+    'ESBTL': {'default': 0, 'flags': ['NDEBUG'],'libs':['CGAL','mpfr','gmp','boost_thread'],'cpppath':[external_libraries_dir+'ESBTL/include']},
     'json': {'default': 1,'cpppath':[external_libraries_dir+'jsoncpp/dist'],'libs':['jsoncpp'],'libpath':[external_libraries_dir+'jsoncpp/dist']},
     'osg': {'default': 1,'cpppath':[external_libraries_dir+'osg/include'],'libs':['osg','osgDB','osgGA','osgViewer','libOpenThreads','libosgUtil','libosgText'],'libpath':[external_libraries_dir+'osg/lib']},
     'gl': {'default': 1,'libs':['GL']}
@@ -29,20 +29,24 @@ jsoncpp='#External_Libraries/jsoncpp/dist/jsoncpp.cpp'
 jsoncpp_obj=builder(target=os.path.splitext(jsoncpp)[0],source=jsoncpp)
 base_env.SharedLibrary(target='#External_Libraries/jsoncpp/dist/jsoncpp',source=jsoncpp_obj)
 
-
-for name,lib in external_libraries.items():
-    defaults={'default':0,'flags':'','linkflags':'','cpppath':[],'libpath':[]}
-    for f in defaults.keys(): lib.setdefault(f,defaults[f])
-    env.Append(CPPPATH=lib['cpppath'])
-    env.Append(LIBPATH=lib['libpath'])
-    env.Append(LIBS=lib['libs'])
-    env.Append(LINKFLAGS=lib['linkflags'])
+def Load_External(env):
+    for name,lib in external_libraries.items():
+        defaults={'default':0,'flags':'','linkflags':'','cpppath':[],'libpath':[],'flags':[]}
+        for f in defaults.keys(): lib.setdefault(f,defaults[f])
+        if env.get('USE_'+name.upper()) or lib['default']:
+            env.Append(CPPDEFINES=lib['flags'])
+            env.Append(CPPPATH=lib['cpppath'])
+            env.Append(LIBPATH=lib['libpath'])
+            env.Append(LIBS=lib['libs'])
+            env.Append(LINKFLAGS=lib['linkflags'])
 
 def Automatic_Program(target,source,env):
+    Load_External(env)
     program=env.Program(target=target,source=source)
     env.Install('#bin',target)
     
 def Automatic_Library(target,source,env):
+    Load_External(env)
     library=env.SharedLibrary(target=target,source=source)
     env.Install('#bin',library)
 

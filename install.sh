@@ -46,6 +46,13 @@ then
     cd ..
 fi
 
+if [ ! -d ESBTL ]
+then
+    wget http://downloads.sourceforge.net/project/esbtl/ESBTL-1.0-beta01.tar.bz2
+    tar -xvf ESBTL-1.0-beta01.tar.bz2
+    mv ESBTL-1.0-beta01 ESBTL
+fi
+
 
 if [ ! -d osg ]
 then
