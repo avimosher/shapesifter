@@ -11,6 +11,7 @@
 namespace Mechanics{
 template<class TV> class DATA;
 template<class TV> class FORCE;
+template<class TV> class MATRIX_BUNDLE;
 
 template<class TV>
 class FORCE_TYPE
@@ -29,7 +30,7 @@ public:
     virtual void Unpack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information){stored_forces=force_information->value;};
     virtual void Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,int increment){stored_forces+=increment*force_information->value;};
     virtual void Store_Errors(std::shared_ptr<FORCE_REFERENCE<T>> force_information){errors=force_information->value;};
-    virtual void Linearize(DATA<TV>& data,const T dt,const T time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,SparseMatrix<T>& constraint_forces,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)=0;
+    virtual void Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,MATRIX_BUNDLE<TV>& system,bool stochastic)=0;
     virtual int DOF() const{return stored_forces.size();}
     virtual void Identify_DOF(int index) const{LOG::cout<<Name()<<" DOF "<<index<<std::endl;}
     virtual void Archive(cereal::BinaryOutputArchive& archive){};

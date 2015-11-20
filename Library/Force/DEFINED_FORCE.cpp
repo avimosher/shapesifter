@@ -1,6 +1,7 @@
 #include <Data/DATA.h>
 #include <Data/RIGID_STRUCTURE_DATA.h>
 #include <Driver/SIMULATION.h>
+#include <Equation/MATRIX_BUNDLE.h>
 #include <Force/DEFINED_FORCE.h>
 #include <Force/FORCE.h>
 #include <Parsing/PARSER_REGISTRY.h>
@@ -9,13 +10,16 @@
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void DEFINED_FORCE<TV>::
-Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,SparseMatrix<T>& constraint_forces,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
+Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic)
 {
-    typedef typename ROTATION<TV>::SPIN T_SPIN;
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
+    SparseMatrix<T>& constraint_forces=system.template Matrix_Block<RIGID_STRUCTURE_DATA<TV>,DEFINED_FORCE<TV>>(data,force);
+    SparseMatrix<T>& constraint_terms=system.template Matrix_Block<DEFINED_FORCE<TV>,RIGID_STRUCTURE_DATA<TV>>(data,force);
+    Matrix<T,Dynamic,1>& right_hand_side=system.template RHS<RIGID_STRUCTURE_DATA<TV>>(data,force);
+
     for(const auto& force : forces){
         right_hand_side.template block<d,1>((t+d)*force.s,0)+=force.f;
-        /*right_hand_side.template block<t,1>((t+d)*force.s+d,0)+=(rigid_data->structures[force.s]->frame.orientation*force.v).cross(force.f);*/}
+        right_hand_side.template block<t,1>((t+d)*force.s+d,0)+=(rigid_data->structures[force.s]->frame.orientation*force.v).cross(force.f);}
     constraint_terms.resize(0,rigid_data->Velocity_DOF());
     constraint_forces.resize(rigid_data->Velocity_DOF(),0);
 }

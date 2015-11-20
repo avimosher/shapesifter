@@ -7,13 +7,13 @@
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TEST_FORCE<TV>::
-Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,SparseMatrix<T>& constraint_forces,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
+Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic)
 {
     // let's say the test force is F=-kv, and v is our only system variable (?)
     // so v=v*-k*dt*v
     for(auto& test_data : data) {
         T k=4;
-        force_terms.push_back(Triplet<T>(0,0,k*dt));
+        //force_terms.push_back(Triplet<T>(0,0,k*dt));
     }
 }
 ///////////////////////////////////////////////////////////////////////

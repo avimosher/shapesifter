@@ -10,5 +10,4 @@ with open(pdb_filename,"r") as pdb_handle:
     pdb_content=pdb_handle.read()
     process=Popen(['./convert_structure'],stdout=PIPE,stdin=PIPE)
     stdout_data=process.communicate(input=pdb_content)
-    print stdout_data
-
+    print stdout_data[0]

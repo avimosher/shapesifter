@@ -2,6 +2,7 @@
 #define __NONLINEAR_EQUATION__
 
 #include <Equation/EQUATION.h>
+#include <Equation/MATRIX_BUNDLE.h>
 #include <Utilities/TYPE_UTILITIES.h>
 #include <Eigen/Sparse>
 #include <Eigen/IterativeLinearSolvers>
@@ -14,14 +15,17 @@ class NONLINEAR_EQUATION : public EQUATION<TV>
 {
     typedef typename TV::Scalar T;
 public:
+    MATRIX_BUNDLE<TV> system;
+
     std::vector<SparseMatrix<T>> inverse_inertia_matrices;
     std::vector<SparseMatrix<T>> kinematic_projection_matrices;
     //Matrix<SparseMatrix<T>,Dynamic,Dynamic> inverse_inertia_matrix;
-    Matrix<SparseMatrix<T>,Dynamic,Dynamic> full_matrix;
+    //Matrix<SparseMatrix<T>,Dynamic,Dynamic> jacobian_blocks;
+    //SparseMatrix<T> hessian;
     Matrix<T,Dynamic,1> right_hand_side;
     SparseMatrix<T> jacobian;
     SparseMatrix<T> inverse_inertia;
-    Matrix<Matrix<T,Dynamic,1>,Dynamic,1> full_right_hand_side;
+    //Matrix<Matrix<T,Dynamic,1>,Dynamic,1> full_right_hand_side;
 
     NONLINEAR_EQUATION(){};
     ~NONLINEAR_EQUATION(){};
@@ -33,7 +37,10 @@ public:
         return dof;
     }
     T Evaluate(){return right_hand_side.squaredNorm()/2;}
-    void Gradient(Matrix<T,Dynamic,1>& gradient) const{gradient=-jacobian.adjoint()*right_hand_side;}
+    void Gradient(Matrix<T,Dynamic,1>& gradient) const{
+        //gradient=-jacobian.adjoint()*Matrix<T,Dynamic,1>::Ones(jacobian.rows());
+        gradient=-jacobian.adjoint()*right_hand_side;
+    }
     void RHS(Matrix<T,Dynamic,1>& rhs) const{rhs=right_hand_side;}
     void Hessian(SparseMatrix<T>& hessian) const{hessian=jacobian.adjoint()*jacobian;}
     void Jacobian(SparseMatrix<T>& jacobian_out) const{jacobian_out=jacobian;}

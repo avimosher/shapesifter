@@ -10,8 +10,10 @@ class ABSOLUTE_POSITION_CONSTRAINT : public FORCE_TYPE<TV>
 {
     typedef typename TV::Scalar T;
     typedef typename ROTATION<TV>::SPIN T_SPIN;
-public:
     enum DEFINITIONS{d=TV::RowsAtCompileTime,t=T_SPIN::RowsAtCompileTime};
+    typedef Matrix<T,1,t+d> CONSTRAINT_VECTOR;
+    typedef Matrix<T,t+d,1> FORCE_VECTOR;
+public:
     using FORCE_TYPE<TV>::stored_forces;
     struct LINEAR_CONSTRAINT{
         int s;
@@ -43,7 +45,7 @@ public:
     int Size()
     {return linear_constraints.size()+angular_constraints.size()*t;}
 
-    void Linearize(DATA<TV>& data,const T dt,const T time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,SparseMatrix<T>& constraint_forces,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic);
+    void Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic);
     DEFINE_TYPE_NAME("ABSOLUTE_POSITION_CONSTRAINT")
 };
 }

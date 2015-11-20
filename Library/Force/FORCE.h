@@ -34,6 +34,12 @@ public:
         return std::static_pointer_cast<SUBTYPE>(*found);
     }
 
+    template<class SUBTYPE> int Index() const {
+        Finder<std::shared_ptr<FORCE_TYPE<TV>>> finder={SUBTYPE::Static_Name()};
+        auto found=std::find_if(this->begin(),this->end(),finder);
+        return std::distance(this->begin(),found);
+    }
+
     template<class Archive>
     void serialize(Archive& archive)
     {for(int i=0;i<(*this).size();i++){(*this)[i]->Archive(archive);}}

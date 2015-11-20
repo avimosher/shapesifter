@@ -92,11 +92,6 @@ Increment_X(SIMULATION<TV>& simulation)
 template<class TV> void TRUST_REGION<TV>::
 Step(SIMULATION<TV>& simulation,const T dt,const T time)
 {
-    // TODO: REMOVE THIS
-    {
-        LOG::cout.precision(17);
-        //simulation.data.Eliminate_Rotation();
-    }
     // loosely based on trustOptim implementation
     int iteration=0;
     auto status=CONTINUE;

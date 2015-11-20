@@ -1,5 +1,6 @@
 #include <Data/DATA.h>
 #include <Data/RIGID_STRUCTURE_DATA.h>
+#include <Equation/MATRIX_BUNDLE.h>
 #include <Force/ASSOCIATION_DISSOCIATION_CONSTRAINT.h>
 #include <Force/FORCE.h>
 #include <Indexing/RIGID_STRUCTURE_INDEX_MAP.h>
@@ -126,9 +127,13 @@ Interaction_Candidates(DATA<TV>& data,const T dt,int type_index,int type1,int ty
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::
-Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,SparseMatrix<T>& constraint_forces,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
+Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic)
 {
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
+    SparseMatrix<T>& constraint_forces=system.template Matrix_Block<RIGID_STRUCTURE_DATA<TV>,ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>>(data,force);
+    SparseMatrix<T>& constraint_terms=system.template Matrix_Block<ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>,RIGID_STRUCTURE_DATA<TV>>(data,force);
+    Matrix<T,Dynamic,1>& right_hand_side=system.template RHS<RIGID_STRUCTURE_DATA<TV>>(data,force);
+    Matrix<T,Dynamic,1>& constraint_right_hand_side=system.template RHS<ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>>(data,force);
     if(stochastic){
         for(auto memory : force_memory){memory.second.second.setZero();}
         constraints.clear();
@@ -141,7 +146,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
     angular_to_constraint.template block<t,t>(0,d).setIdentity();
     std::vector<Triplet<LINEAR_CONSTRAINT_MATRIX>> linear_terms;
     std::vector<Triplet<ANGULAR_CONSTRAINT_MATRIX>> angular_terms;
-    constraint_rhs.resize(constraints.size()*(d+t));
+    constraint_right_hand_side.resize(constraints.size()*(d+t));
     stored_forces.resize(constraints.size()*(d+t));
     for(int i=0;i<constraints.size();i++){
         auto interaction_index=constraints[i];
@@ -174,8 +179,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
         angular_terms.push_back(Triplet<ANGULAR_CONSTRAINT_MATRIX>(i,s1,-dC_dA1.eval()));
         ROTATION<TV> composed_rotation(relative_orientation_inverse*(structure2->frame.orientation*RC).inverse()*(structure1->frame.orientation*RC));
         T_SPIN total_rotation_error=second_rotation_error_vector-first_rotation_error_vector;
-        constraint_rhs.template block<d,1>(d*i,0)=-direction;
-        constraint_rhs.template block<t,1>(d*constraints.size()+i*t,0)=-total_rotation_error;
+        constraint_right_hand_side.template block<d,1>(d*i,0)=-direction;
+        constraint_right_hand_side.template block<t,1>(d*constraints.size()+i*t,0)=-total_rotation_error;
         auto& remembered=force_memory[interaction_index];
         if(remembered.first!=call_count){remembered.second.setZero();}
         stored_forces.template block<d+t,1>((d+t)*i,0)=remembered.second;

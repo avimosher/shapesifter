@@ -52,6 +52,12 @@ public:
         return std::static_pointer_cast<SUBTYPE>(*found);
     }
 
+    template<class SUBTYPE> int Index() const {
+        Finder<std::shared_ptr<DATA_TYPE<TV>>> finder={SUBTYPE::Static_Name()};
+        auto found=std::find_if(this->begin(),this->end(),finder);
+        return std::distance(this->begin(),found);
+    }
+
     int Velocity_DOF() const;
     int Position_DOF() const;
     void Pack_Velocities(Matrix<T,Dynamic,1>& velocities);

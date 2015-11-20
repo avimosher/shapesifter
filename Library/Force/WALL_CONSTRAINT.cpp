@@ -1,5 +1,6 @@
 #include <Data/DATA.h>
 #include <Data/RIGID_STRUCTURE_DATA.h>
+#include <Equation/MATRIX_BUNDLE.h>
 #include <Force/FORCE.h>
 #include <Force/WALL_CONSTRAINT.h>
 #include <Indexing/RIGID_STRUCTURE_INDEX_MAP.h>
@@ -47,15 +48,18 @@ Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,int incre
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void WALL_CONSTRAINT<TV>::
-Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,SparseMatrix<T>& constraint_forces,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
+Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic)
 {
     if(stochastic){
         for(auto& memory : force_memory){std::get<1>(memory.second)=(T)0;std::get<0>(memory.second)=-1;}
         for(auto& constant_memory : constant_force_memory){std::get<1>(constant_memory.second)=(T)0;std::get<0>(constant_memory.second)=-1;}}
 
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
-    typedef Matrix<T,1,RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE> CONSTRAINT_VECTOR;
-    typedef Matrix<T,RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE,1> FORCE_VECTOR;
+    SparseMatrix<T>& constraint_forces=system.template Matrix_Block<RIGID_STRUCTURE_DATA<TV>,WALL_CONSTRAINT<TV>>(data,force);
+    SparseMatrix<T>& constraint_terms=system.template Matrix_Block<WALL_CONSTRAINT<TV>,RIGID_STRUCTURE_DATA<TV>>(data,force);
+    Matrix<T,Dynamic,1>& right_hand_side=system.template RHS<RIGID_STRUCTURE_DATA<TV>>(data,force);
+    Matrix<T,Dynamic,1>& constraint_right_hand_side=system.template RHS<WALL_CONSTRAINT<TV>>(data,force);
+    std::vector<Triplet<T>>& force_terms=system.template Matrix_Block_Terms<RIGID_STRUCTURE_DATA<TV>>(data,force);
     std::vector<Triplet<CONSTRAINT_VECTOR>> terms;
     std::vector<Triplet<FORCE_VECTOR>> forces;
 
@@ -114,8 +118,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                             constant_forces.push_back(constraint);
                             RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Penalty_Force_Derivative(s,threshold,std::get<1>(constant_memory),relative_position*direction,offset,spin,force_terms);}
                         right_hand_side.template block<t+d,1>(s*(t+d),0)-=force_direction*right_hand_side_force;}}}}}
-    constraint_rhs.resize(rhs.size(),1);
-    for(int i=0;i<rhs.size();i++){constraint_rhs(i,0)=rhs[i];}
+    constraint_right_hand_side.resize(rhs.size(),1);
+    for(int i=0;i<rhs.size();i++){constraint_right_hand_side(i,0)=rhs[i];}
     constraint_terms.resize(constraints.size(),rigid_data->Velocity_DOF());
     Flatten_Matrix(terms,constraint_terms);
     constraint_forces.resize(rigid_data->Velocity_DOF(),constraints.size());

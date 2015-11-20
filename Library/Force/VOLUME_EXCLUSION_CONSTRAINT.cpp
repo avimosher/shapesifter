@@ -1,6 +1,7 @@
 #include <Data/DATA.h>
 #include <Data/RIGID_STRUCTURE_DATA.h>
 #include <Driver/SIMULATION.h>
+#include <Equation/MATRIX_BUNDLE.h>
 #include <Force/FORCE.h>
 #include <Force/VOLUME_EXCLUSION_CONSTRAINT.h>
 #include <Indexing/RIGID_STRUCTURE_INDEX_MAP.h>
@@ -62,11 +63,14 @@ Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,int incre
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
-Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,SparseMatrix<T>& constraint_forces,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
+Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic)
 {
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
-    typedef Matrix<T,1,RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE> CONSTRAINT_VECTOR;
-    typedef Matrix<T,RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE,1> FORCE_VECTOR;
+     SparseMatrix<T>& constraint_forces=system.template Matrix_Block<RIGID_STRUCTURE_DATA<TV>,VOLUME_EXCLUSION_CONSTRAINT<TV>>(data,force);
+    SparseMatrix<T>& constraint_terms=system.template Matrix_Block<VOLUME_EXCLUSION_CONSTRAINT<TV>,RIGID_STRUCTURE_DATA<TV>>(data,force);
+    Matrix<T,Dynamic,1>& right_hand_side=system.template RHS<RIGID_STRUCTURE_DATA<TV>>(data,force);
+    Matrix<T,Dynamic,1>& constraint_right_hand_side=system.template RHS<VOLUME_EXCLUSION_CONSTRAINT<TV>>(data,force);
+    std::vector<Triplet<T>>& force_terms=system.template Matrix_Block_Terms<RIGID_STRUCTURE_DATA<TV>>(data,force);
     std::vector<Triplet<CONSTRAINT_VECTOR>> terms;
     std::vector<Triplet<FORCE_VECTOR>> forces;
     int new_constraints=0;
@@ -140,8 +144,8 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
                 right_hand_side.template block<t+d,1>(s2*(t+d),0)-=force_directions[1]*right_hand_side_force;}}}
     LOG::cout<<"Existing constraints: "<<constraint_count.peek()<<" old: "<<old_constraints<<" new: "<<new_constraints<<std::endl;
     equations_changed=new_constraints>0 || old_constraints!=constraint_count.peek();
-    constraint_rhs.resize(rhs.size(),1);
-    for(int i=0;i<rhs.size();i++){constraint_rhs(i,0)=rhs[i];}
+    constraint_right_hand_side.resize(rhs.size(),1);
+    for(int i=0;i<rhs.size();i++){constraint_right_hand_side(i,0)=rhs[i];}
     constraint_terms.resize(constraints.size(),rigid_data->Velocity_DOF());
     Flatten_Matrix(terms,constraint_terms);
     constraint_forces.resize(rigid_data->Velocity_DOF(),constraints.size());

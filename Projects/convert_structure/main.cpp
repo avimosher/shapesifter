@@ -48,9 +48,8 @@ int main(int argc,char **argv)
 
     OBB obb_hull;
     obb_hull.build_from_convex_hull(points);
-    //std::cout<<"OBB convex hull volume: "<<obb_hull.volume()<<std::endl;
     //std::cout<<"Position: "<<obb_hull.position().transpose()<<std::endl;
-    std::cout<<"Extents: "<<obb_hull.extents().transpose()<<std::endl;
+    std::cout<<"{\"extents\": ["<<obb_hull.extents()[0]<<", "<<obb_hull.extents()[1]<<", "<<obb_hull.extents()[2]<<"]}"<<std::endl;
     //std::cout<<"Rotation: "<<obb_hull.rotation()<<std::endl;
     return EXIT_SUCCESS;
 }

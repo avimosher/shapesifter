@@ -1,5 +1,6 @@
 #include <Data/DATA.h>
 #include <Data/RIGID_STRUCTURE_DATA.h>
+#include <Equation/MATRIX_BUNDLE.h>
 #include <Driver/SIMULATION.h>
 #include <Force/FORCE.h>
 #include <Force/RELATIVE_POSITION_CONSTRAINT.h>
@@ -14,14 +15,18 @@
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::
-Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,SparseMatrix<T>& constraint_forces,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
+Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic)
 {
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
-    typedef Matrix<T,1,RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE> CONSTRAINT_VECTOR;
-    typedef Matrix<T,RIGID_STRUCTURE_INDEX_MAP<TV>::STATIC_SIZE,1> FORCE_VECTOR;
+    SparseMatrix<T>& constraint_forces=system.template Matrix_Block<RIGID_STRUCTURE_DATA<TV>,RELATIVE_POSITION_CONSTRAINT<TV>>(data,force);
+    SparseMatrix<T>& constraint_terms=system.template Matrix_Block<RELATIVE_POSITION_CONSTRAINT<TV>,RIGID_STRUCTURE_DATA<TV>>(data,force);
+    VECTOR& right_hand_side=system.template RHS<RIGID_STRUCTURE_DATA<TV>>(data,force);
+    VECTOR& constraint_right_hand_side=system.template RHS<RELATIVE_POSITION_CONSTRAINT<TV>>(data,force);
+    std::vector<Triplet<T>>& force_terms=system.template Matrix_Block_Terms<RIGID_STRUCTURE_DATA<TV>>(data,force);
+
     std::vector<Triplet<CONSTRAINT_VECTOR>> terms;
     std::vector<Triplet<FORCE_VECTOR>> forces;
-    constraint_rhs.resize(constraints.size(),1);
+    constraint_right_hand_side.resize(constraints.size(),1);
     for(int i=0;i<constraints.size();i++){
         const CONSTRAINT& constraint=constraints[i];
         std::vector<int> indices={constraint.s1,constraint.s2};
@@ -39,7 +44,7 @@ Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>&
             right_hand_side.template block<t+d,1>(indices[s]*(t+d),0)-=sgn*force_direction*stored_forces[i];
             forces.push_back(Triplet<FORCE_VECTOR>(indices[s],i,sgn*force_direction));}
 
-        constraint_rhs[i]=(constraint.target_distance-relative_position.norm());
+        constraint_right_hand_side[i]=(constraint.target_distance-relative_position.norm());
         RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Force_Derivatives(indices,stored_forces[i],relative_position,rotated_offsets,spins,force_terms);}
     constraint_terms.resize(constraints.size(),rigid_data->Velocity_DOF());
     Flatten_Matrix(terms,constraint_terms);
