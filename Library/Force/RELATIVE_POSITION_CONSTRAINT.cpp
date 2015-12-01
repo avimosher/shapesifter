@@ -45,8 +45,11 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
             forces.push_back(Triplet<FORCE_VECTOR>(indices[s],i,sgn*force_direction));}
 
         constraint_right_hand_side[i]=(constraint.target_distance-relative_position.norm());
-        RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Force_Derivatives(indices,stored_forces[i],relative_position,rotated_offsets,spins,force_terms);}
+        RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Force_Derivatives(indices,stored_forces[i],relative_position,rotated_offsets,spins,force_terms);
+        RIGID_STRUCTURE_INDEX_MAP<TV>::template Compute_Constraint_Second_Derivatives<RIGID_STRUCTURE_DATA<TV>,RIGID_STRUCTURE_DATA<TV>>();
+    }
     constraint_terms.resize(constraints.size(),rigid_data->Velocity_DOF());
+    //Flatten_Matrix<RELATIVE_POSITION_CONSTRAINT<TV>,RIGID_STRUCTURE_DATA<TV>>(terms,system);
     Flatten_Matrix(terms,constraint_terms);
     constraint_forces.resize(rigid_data->Velocity_DOF(),constraints.size());
     Flatten_Matrix(forces,constraint_forces);

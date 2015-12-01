@@ -15,10 +15,12 @@ public:
     Matrix<SparseMatrix<T>,Dynamic,Dynamic> jacobian_blocks;
     Matrix<Matrix<T,Dynamic,1>,Dynamic,1> right_hand_side_blocks;
     std::vector<std::vector<Triplet<T>>> matrix_block_terms;
+    Matrix<std::vector<Triplet<T>>,Dynamic,Dynamic> hessian_block_terms;
 
     void Initialize(const DATA<TV>& data,const FORCE<TV>& force){
         int full_size=data.size()+force.size();
         jacobian_blocks.resize(full_size,full_size);
+        hessian_block_terms.resize(full_size,full_size);
         right_hand_side_blocks.resize(full_size);
         matrix_block_terms.resize(data.size());
 
@@ -26,6 +28,7 @@ public:
             int data_size=data[i]->Velocity_DOF();
             matrix_block_terms[i].clear();
             jacobian_blocks(i,i).resize(data_size,data_size);
+            hessian_block_terms(i,i).clear();
             right_hand_side_blocks[i].resize(data_size);
             right_hand_side_blocks[i].setZero();}
     }

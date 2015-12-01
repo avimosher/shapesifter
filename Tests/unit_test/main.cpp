@@ -33,7 +33,7 @@ TEST_CASE("Rigid structure","[rigid structure]"){
 }
 
 TEST_CASE("VOLUME_EXCLUSION_CONSTRAINT","[derivatives]"){
-    RANDOM<T> random;
+    /*RANDOM<T> random;
     SECTION("derivative"){
         SIMULATION<TV> simulation;
         auto rigid_data=simulation.data.template Find_Or_Create<RIGID_STRUCTURE_DATA<TV>>();
@@ -58,7 +58,7 @@ TEST_CASE("VOLUME_EXCLUSION_CONSTRAINT","[derivatives]"){
         //std::cout<<equation.jacobian<<std::endl;
         
         REQUIRE(1);
-    }
+        }*/
 }
 
 TEST_CASE("Derivatives","[derivatives]"){
