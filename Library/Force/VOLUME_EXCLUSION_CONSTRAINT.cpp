@@ -66,8 +66,6 @@ template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
 Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic)
 {
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
-     SparseMatrix<T>& constraint_forces=system.template Matrix_Block<RIGID_STRUCTURE_DATA<TV>,VOLUME_EXCLUSION_CONSTRAINT<TV>>(data,force);
-    SparseMatrix<T>& constraint_terms=system.template Matrix_Block<VOLUME_EXCLUSION_CONSTRAINT<TV>,RIGID_STRUCTURE_DATA<TV>>(data,force);
     Matrix<T,Dynamic,1>& right_hand_side=system.template RHS<RIGID_STRUCTURE_DATA<TV>>(data,force);
     Matrix<T,Dynamic,1>& constraint_right_hand_side=system.template RHS<VOLUME_EXCLUSION_CONSTRAINT<TV>>(data,force);
     std::vector<Triplet<T>>& force_terms=system.template Matrix_Block_Terms<RIGID_STRUCTURE_DATA<TV>>(data,force);
@@ -104,7 +102,6 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
             TV direction=relative_position.normalized();
             T threshold=structure1->collision_radius+structure2->collision_radius;
             T constraint_violation=relative_position.norm()-threshold;
-            //LOG::cout<<"Relative position: "<<relative_position.transpose()<<" normalized: "<<direction.transpose()<<" offset 1: "<<offsets[0].transpose()<<" offset 2: "<<offsets[1].transpose()<<std::endl;
             T slack_distance=-.005;
             T push_out_distance=1e-8;
             if(constraint_violation<0){
@@ -123,7 +120,6 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
                             std::get<1>(memory)=std::get<1>(constant_memory)*sqr(constraint_violation);}}
                     else{
                         old_constraints++;}
-                    //LOG::cout<<"Constraint between "<<s1<<" and "<<s2<<" with force: "<<std::get<1>(memory)<<std::endl;
                     right_hand_side_force=std::get<1>(memory);
                     for(int s=0,sgn=-1;s<2;s++,sgn+=2){
                         terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),indices[s],sgn*RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(spins[s],offsets[s],relative_position)));
@@ -138,18 +134,15 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
                     constant_forces.push_back(constraint);
                     RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Penalty_Force_Derivatives(indices,threshold,std::get<1>(constant_memory),relative_position,offsets,spins,force_terms);
                 }
-                //LOG::cout<<"Force applied to body "<<s1<<": "<<(force_direction1*right_hand_side_force).transpose()<<std::endl;
-                //LOG::cout<<"Force applied to body "<<s2<<": "<<(-force_direction2*right_hand_side_force).transpose()<<std::endl;
                 right_hand_side.template block<t+d,1>(s1*(t+d),0)+=force_directions[0]*right_hand_side_force;
                 right_hand_side.template block<t+d,1>(s2*(t+d),0)-=force_directions[1]*right_hand_side_force;}}}
     LOG::cout<<"Existing constraints: "<<constraint_count.peek()<<" old: "<<old_constraints<<" new: "<<new_constraints<<std::endl;
     equations_changed=new_constraints>0 || old_constraints!=constraint_count.peek();
     constraint_right_hand_side.resize(rhs.size(),1);
     for(int i=0;i<rhs.size();i++){constraint_right_hand_side(i,0)=rhs[i];}
-    constraint_terms.resize(constraints.size(),rigid_data->Velocity_DOF());
-    Flatten_Matrix(terms,constraint_terms);
-    constraint_forces.resize(rigid_data->Velocity_DOF(),constraints.size());
-    Flatten_Matrix(forces,constraint_forces);
+
+    system.Flatten_Jacobian_Block(data,force,*this,*rigid_data,terms);
+    system.Flatten_Jacobian_Block(data,force,*rigid_data,*this,forces);
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::

@@ -18,8 +18,6 @@ template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::
 Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic)
 {
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
-    SparseMatrix<T>& constraint_forces=system.template Matrix_Block<RIGID_STRUCTURE_DATA<TV>,RELATIVE_POSITION_CONSTRAINT<TV>>(data,force);
-    SparseMatrix<T>& constraint_terms=system.template Matrix_Block<RELATIVE_POSITION_CONSTRAINT<TV>,RIGID_STRUCTURE_DATA<TV>>(data,force);
     VECTOR& right_hand_side=system.template RHS<RIGID_STRUCTURE_DATA<TV>>(data,force);
     VECTOR& constraint_right_hand_side=system.template RHS<RELATIVE_POSITION_CONSTRAINT<TV>>(data,force);
     std::vector<Triplet<T>>& force_terms=system.template Matrix_Block_Terms<RIGID_STRUCTURE_DATA<TV>>(data,force);
@@ -48,12 +46,10 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
         RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Force_Derivatives(indices,stored_forces[i],relative_position,rotated_offsets,spins,force_terms);
         RIGID_STRUCTURE_INDEX_MAP<TV>::template Compute_Constraint_Second_Derivatives<RIGID_STRUCTURE_DATA<TV>,RIGID_STRUCTURE_DATA<TV>>();
     }
-    constraint_terms.resize(constraints.size(),rigid_data->Velocity_DOF());
-    //Flatten_Matrix<RELATIVE_POSITION_CONSTRAINT<TV>,RIGID_STRUCTURE_DATA<TV>>(terms,system);
-    Flatten_Matrix(terms,constraint_terms);
-    constraint_forces.resize(rigid_data->Velocity_DOF(),constraints.size());
-    Flatten_Matrix(forces,constraint_forces);
+    // This has to go before Flatten calls - it determines the DOF for this
     stored_forces.resize(constraints.size());
+    system.Flatten_Jacobian_Block(data,force,*this,*rigid_data,terms);
+    system.Flatten_Jacobian_Block(data,force,*rigid_data,*this,forces);
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::

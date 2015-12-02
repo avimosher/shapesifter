@@ -17,6 +17,7 @@ public:
     ~DATA_TYPE(){}
 
     virtual int Size()=0;
+    virtual int DOF() const{return Velocity_DOF();}
     virtual int Velocity_DOF() const {return 0;}
     virtual int Position_DOF() const {return 0;}
     virtual void Identify_DOF(int index) const{LOG::cout<<Name()<<" DOF "<<index<<std::endl;}

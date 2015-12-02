@@ -166,7 +166,6 @@ Update_One_Step(SIMULATION<TV>& simulation,const T dt,const T time)
     T try_f,step_quality,predicted_reduction;
     Solve_Trust_Conjugate_Gradient(sk);
     T norm_sk_scaled=Norm(preconditioner,sk,wd);
-    LOG::cout<<"sk: norm: "<<norm_sk_scaled<<std::endl<<sk<<std::endl;
     if(!finite(norm_sk_scaled)){step_status=FAILEDCG;}
     else{
         Linearize_Around(simulation,dt,time);
@@ -179,7 +178,7 @@ Update_One_Step(SIMULATION<TV>& simulation,const T dt,const T time)
             //Jsk=jacobian*sk;
             //componentwise_prediction=gk.cwiseProduct(Jsk)+Jsk.cwiseProduct(Jsk)/2;
             equation->RHS(try_rhs);
-            LOG::cout<<"Try RHS: "<<std::endl<<try_rhs<<std::endl;
+            //LOG::cout<<"Try RHS: "<<std::endl<<try_rhs<<std::endl;
             //LOG::cout<<"Componentwise quality: "<<componentwise_prediction.sum()<<std::endl<<rhs.Diff(try_rhs).cwiseQuotient(componentwise_prediction)<<std::endl;
             //int index;
             //LOG::cout<<"Min value at index "<<index<<" is "<<componentwise_prediction.minCoeff(&index)<<std::endl;

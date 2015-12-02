@@ -3,9 +3,9 @@
 
 #include <Data/DATA.h>
 #include <Force/FORCE.h>
+#include <Utilities/EIGEN_HELPERS.h>
 
 namespace Mechanics{
-
 
 template<class TV>
 class MATRIX_BUNDLE
@@ -38,9 +38,14 @@ public:
         if(data_index<data.size()){return data_index;}
         return data_index+force.template Index<SUBTYPE>();
     }
-    
+
     template<class SUBTYPE1,class SUBTYPE2>
     SparseMatrix<T>& Matrix_Block(const DATA<TV>& data,const FORCE<TV>& force){
+        return jacobian_blocks(Index<SUBTYPE1>(data,force),Index<SUBTYPE2>(data,force));
+    }
+
+    template<class SUBTYPE1,class SUBTYPE2>
+    SparseMatrix<T>& Matrix_Block(const DATA<TV>& data,const FORCE<TV>& force,const SUBTYPE1& row_object,const SUBTYPE2& column_object){
         return jacobian_blocks(Index<SUBTYPE1>(data,force),Index<SUBTYPE2>(data,force));
     }
 
@@ -66,6 +71,13 @@ public:
                     jacobian_blocks(i,j)=kinematic_projection_matrices[i]*jacobian_blocks(i,j);}
                 if(j<data.size()){
                     jacobian_blocks(i,j)=jacobian_blocks(i,j)*kinematic_projection_matrices[j].transpose();}}}
+    }
+
+    template<class SUBTYPE1,class SUBTYPE2,class T_MATRIX>
+    void Flatten_Jacobian_Block(const DATA<TV>& data,const FORCE<TV>& force,const SUBTYPE1& row_object,const SUBTYPE2& column_object,const std::vector<Triplet<T_MATRIX>>& terms){
+        SparseMatrix<T>& block=Matrix_Block(data,force,row_object,column_object);
+        block.resize(row_object.DOF(),column_object.DOF());
+        Flatten_Matrix(terms,block);
     }
 };
 }
