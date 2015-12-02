@@ -42,7 +42,7 @@ public:
     void serialize(Archive& archive)
     {archive(linear_constraints,angular_constraints);}
 
-    int Size()
+    virtual int DOF() const
     {return linear_constraints.size()+angular_constraints.size()*t;}
 
     void Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic);

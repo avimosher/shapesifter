@@ -26,14 +26,12 @@ template<class TV> void ABSOLUTE_POSITION_CONSTRAINT<TV>::
 Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic)
 {
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
-    SparseMatrix<T>& constraint_forces=system.template Matrix_Block<RIGID_STRUCTURE_DATA<TV>,ABSOLUTE_POSITION_CONSTRAINT<TV>>(data,force);
-    SparseMatrix<T>& constraint_terms=system.template Matrix_Block<ABSOLUTE_POSITION_CONSTRAINT<TV>,RIGID_STRUCTURE_DATA<TV>>(data,force);
-    Matrix<T,Dynamic,1>& right_hand_side=system.template RHS<RIGID_STRUCTURE_DATA<TV>>(data,force);
-    Matrix<T,Dynamic,1>& constraint_right_hand_side=system.template RHS<ABSOLUTE_POSITION_CONSTRAINT<TV>>(data,force);
+    Matrix<T,Dynamic,1>& right_hand_side=system.RHS(data,force,*rigid_data);
+    Matrix<T,Dynamic,1>& constraint_right_hand_side=system.RHS(data,force,*this);
 
     std::vector<Triplet<CONSTRAINT_VECTOR>> terms;
     std::vector<Triplet<FORCE_VECTOR>> forces;
-    constraint_right_hand_side.resize(Size());
+    constraint_right_hand_side.resize(DOF());
     for(int i=0;i<linear_constraints.size();i++){
         const LINEAR_CONSTRAINT& constraint=linear_constraints[i];
         auto structure=rigid_data->structures[constraint.s];
@@ -64,11 +62,9 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
             constraint_right_hand_side[index]=-rotation_error_vector[j];
             stored_torque[j]=stored_forces[index];}
         right_hand_side.template block<t,1>(constraint.s*(t+d)+d,0)-=stored_torque;}
-    constraint_terms.resize(Size(),rigid_data->Velocity_DOF());
-    Flatten_Matrix(terms,constraint_terms);
-    constraint_forces.resize(rigid_data->Velocity_DOF(),Size());
-    Flatten_Matrix(forces,constraint_forces);
-    stored_forces.resize(Size());
+    stored_forces.resize(DOF());
+    system.Flatten_Jacobian_Block(data,force,*this,*rigid_data,terms);
+    system.Flatten_Jacobian_Block(data,force,*rigid_data,*this,forces);
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(ABSOLUTE_POSITION_CONSTRAINT)
@@ -91,7 +87,7 @@ DEFINE_AND_REGISTER_PARSER(ABSOLUTE_POSITION_CONSTRAINT,void)
             constraint.s=s;
             Parse_Rotation((*it)["orientation"],constraint.orientation);
             absolute_position_constraint->angular_constraints.push_back(constraint);}}
-    absolute_position_constraint->stored_forces.resize(absolute_position_constraint->Size());
+    absolute_position_constraint->stored_forces.resize(absolute_position_constraint->DOF());
     absolute_position_constraint->stored_forces.setZero();
     return 0;
 }

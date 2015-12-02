@@ -66,9 +66,9 @@ template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
 Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic)
 {
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
-    Matrix<T,Dynamic,1>& right_hand_side=system.template RHS<RIGID_STRUCTURE_DATA<TV>>(data,force);
-    Matrix<T,Dynamic,1>& constraint_right_hand_side=system.template RHS<VOLUME_EXCLUSION_CONSTRAINT<TV>>(data,force);
-    std::vector<Triplet<T>>& force_terms=system.template Matrix_Block_Terms<RIGID_STRUCTURE_DATA<TV>>(data,force);
+    Matrix<T,Dynamic,1>& right_hand_side=system.RHS(data,force,*rigid_data);
+    Matrix<T,Dynamic,1>& constraint_right_hand_side=system.RHS(data,force,*this);
+    std::vector<Triplet<T>>& force_terms=system.Matrix_Block_Terms(data,force,*rigid_data);
     std::vector<Triplet<CONSTRAINT_VECTOR>> terms;
     std::vector<Triplet<FORCE_VECTOR>> forces;
     int new_constraints=0;

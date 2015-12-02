@@ -55,11 +55,9 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
         for(auto& constant_memory : constant_force_memory){std::get<1>(constant_memory.second)=(T)0;std::get<0>(constant_memory.second)=-1;}}
 
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
-    SparseMatrix<T>& constraint_forces=system.template Matrix_Block<RIGID_STRUCTURE_DATA<TV>,WALL_CONSTRAINT<TV>>(data,force);
-    SparseMatrix<T>& constraint_terms=system.template Matrix_Block<WALL_CONSTRAINT<TV>,RIGID_STRUCTURE_DATA<TV>>(data,force);
-    Matrix<T,Dynamic,1>& right_hand_side=system.template RHS<RIGID_STRUCTURE_DATA<TV>>(data,force);
-    Matrix<T,Dynamic,1>& constraint_right_hand_side=system.template RHS<WALL_CONSTRAINT<TV>>(data,force);
-    std::vector<Triplet<T>>& force_terms=system.template Matrix_Block_Terms<RIGID_STRUCTURE_DATA<TV>>(data,force);
+    Matrix<T,Dynamic,1>& right_hand_side=system.RHS(data,force,*rigid_data);
+    Matrix<T,Dynamic,1>& constraint_right_hand_side=system.RHS(data,force,*this);
+    std::vector<Triplet<T>>& force_terms=system.Matrix_Block_Terms(data,force,*rigid_data);
     std::vector<Triplet<CONSTRAINT_VECTOR>> terms;
     std::vector<Triplet<FORCE_VECTOR>> forces;
 
@@ -120,10 +118,8 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
                         right_hand_side.template block<t+d,1>(s*(t+d),0)-=force_direction*right_hand_side_force;}}}}}
     constraint_right_hand_side.resize(rhs.size(),1);
     for(int i=0;i<rhs.size();i++){constraint_right_hand_side(i,0)=rhs[i];}
-    constraint_terms.resize(constraints.size(),rigid_data->Velocity_DOF());
-    Flatten_Matrix(terms,constraint_terms);
-    constraint_forces.resize(rigid_data->Velocity_DOF(),constraints.size());
-    Flatten_Matrix(forces,constraint_forces);
+    system.Flatten_Jacobian_Block(data,force,*this,*rigid_data,terms);
+    system.Flatten_Jacobian_Block(data,force,*rigid_data,*this,forces);
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(WALL_CONSTRAINT)

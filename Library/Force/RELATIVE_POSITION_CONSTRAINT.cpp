@@ -18,9 +18,9 @@ template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::
 Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic)
 {
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
-    VECTOR& right_hand_side=system.template RHS<RIGID_STRUCTURE_DATA<TV>>(data,force);
-    VECTOR& constraint_right_hand_side=system.template RHS<RELATIVE_POSITION_CONSTRAINT<TV>>(data,force);
-    std::vector<Triplet<T>>& force_terms=system.template Matrix_Block_Terms<RIGID_STRUCTURE_DATA<TV>>(data,force);
+    VECTOR& right_hand_side=system.RHS(data,force,*rigid_data);
+    VECTOR& constraint_right_hand_side=system.RHS(data,force,*this);
+    std::vector<Triplet<T>>& force_terms=system.Matrix_Block_Terms(data,force,*rigid_data);
 
     std::vector<Triplet<CONSTRAINT_VECTOR>> terms;
     std::vector<Triplet<FORCE_VECTOR>> forces;

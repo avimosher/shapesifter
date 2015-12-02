@@ -33,7 +33,7 @@ public:
             right_hand_side_blocks[i].setZero();}
     }
 
-    template<class SUBTYPE> int Index(const DATA<TV>& data,const FORCE<TV>& force){
+    template<class SUBTYPE> int Index(const DATA<TV>& data,const FORCE<TV>& force,const SUBTYPE& object){
         int data_index=data.template Index<SUBTYPE>();
         if(data_index<data.size()){return data_index;}
         return data_index+force.template Index<SUBTYPE>();
@@ -46,17 +46,17 @@ public:
 
     template<class SUBTYPE1,class SUBTYPE2>
     SparseMatrix<T>& Matrix_Block(const DATA<TV>& data,const FORCE<TV>& force,const SUBTYPE1& row_object,const SUBTYPE2& column_object){
-        return jacobian_blocks(Index<SUBTYPE1>(data,force),Index<SUBTYPE2>(data,force));
+        return jacobian_blocks(Index(data,force,row_object),Index(data,force,column_object));
     }
 
     template<class SUBTYPE>
-    Matrix<T,Dynamic,1>& RHS(const DATA<TV>& data,const FORCE<TV>& force){
-        return right_hand_side_blocks(Index<SUBTYPE>(data,force));
+    Matrix<T,Dynamic,1>& RHS(const DATA<TV>& data,const FORCE<TV>& force,const SUBTYPE& object){
+        return right_hand_side_blocks(Index(data,force,object));
     }
 
     template<class SUBTYPE>
-    std::vector<Triplet<T>>& Matrix_Block_Terms(const DATA<TV>& data,const FORCE<TV>& force){
-        return matrix_block_terms[Index<SUBTYPE>(data,force)];
+    std::vector<Triplet<T>>& Matrix_Block_Terms(const DATA<TV>& data,const FORCE<TV>& force,const SUBTYPE& object){
+        return matrix_block_terms[Index(data,force,object)];
     }
 
     void Scale_Blocks(const DATA<TV>& data,const FORCE<TV>& force,std::vector<SparseMatrix<T>>& kinematic_projection_matrices,std::vector<SparseMatrix<T>>& inverse_inertia_matrices){

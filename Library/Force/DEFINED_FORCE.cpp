@@ -13,9 +13,9 @@ template<class TV> void DEFINED_FORCE<TV>::
 Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic)
 {
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
-    SparseMatrix<T>& constraint_forces=system.template Matrix_Block<RIGID_STRUCTURE_DATA<TV>,DEFINED_FORCE<TV>>(data,force);
-    SparseMatrix<T>& constraint_terms=system.template Matrix_Block<DEFINED_FORCE<TV>,RIGID_STRUCTURE_DATA<TV>>(data,force);
-    Matrix<T,Dynamic,1>& right_hand_side=system.template RHS<RIGID_STRUCTURE_DATA<TV>>(data,force);
+    SparseMatrix<T>& constraint_forces=system.Matrix_Block(data,force,*rigid_data,*this);
+    SparseMatrix<T>& constraint_terms=system.Matrix_Block(data,force,*this,*rigid_data);
+    Matrix<T,Dynamic,1>& right_hand_side=system.RHS(data,force,*rigid_data);
 
     for(const auto& force : forces){
         right_hand_side.template block<d,1>((t+d)*force.s,0)+=force.f;

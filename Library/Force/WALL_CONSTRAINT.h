@@ -45,6 +45,9 @@ public:
 
     ~WALL_CONSTRAINT(){}
 
+    virtual int DOF() const
+    {return constraints.size();}
+
     std::shared_ptr<FORCE_REFERENCE<T>> Create_Stored_Force() const;
     void Pack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information);
     void Unpack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information);
