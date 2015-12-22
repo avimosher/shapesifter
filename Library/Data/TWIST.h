@@ -22,7 +22,7 @@ public:
     TWIST(){}
     ~TWIST(){}
 
-    const Eigen::Matrix<T,STATIC_SIZE,1> Pack()
+    const Eigen::Matrix<T,STATIC_SIZE,1> Pack() const
     {
         Eigen::Matrix<T,STATIC_SIZE,1> packed;
         packed.template block<TV::SizeAtCompileTime,1>(0,0)=linear;

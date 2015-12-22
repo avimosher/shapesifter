@@ -7,6 +7,8 @@
 #include <Force/VOLUME_EXCLUSION_CONSTRAINT.h>
 #include <Indexing/RIGID_STRUCTURE_INDEX_MAP.h>
 #include <Utilities/RANDOM.h>
+#include <Eigen/CXX11/Tensor>
+#include <Eigen/KroneckerProduct>
 #include <catch.hpp>
 
 using namespace Mechanics;
@@ -15,6 +17,88 @@ typedef Eigen::Matrix<T,3,1> TV;
 
 unsigned int Factorial(int number){
     return number<=1?number:Factorial(number-1)*number;
+}
+
+T Evaluate(const TV& v){
+    return v.normalized().sum();
+}
+
+TV Evaluate_Vector(const TV& v){
+    return v.normalized();
+}
+
+TEST_CASE("Tensor"){
+    Eigen::TensorFixedSize<T,Eigen::Sizes<3,3,3>> t,d;
+    t(1,1,1)=5;
+    d(2,2,2)=1;
+    std::cout<<t*d<<std::endl;;
+}
+
+TEST_CASE("Hessian"){
+    RANDOM<T> random;
+    T epsilon=1e-6;
+    TV x1=random.template Direction<TV>();
+    TV x2=random.template Direction<TV>();
+    TV f0=x2-x1;
+    TV dx1=epsilon*random.template Direction<TV>();
+    TV dx2=epsilon*random.template Direction<TV>();
+
+    SECTION("dnf_dVelocity"){
+        TV dnf_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::dnf_dVelocity(f0,f0.norm(),1);
+        T expected_change=dnf_dv.dot(dx1);
+        T actual_change=(x2+dx1-x1).norm()-f0.norm();
+        //std::cout<<"(Expected-actual)/norm: "<<(expected_change-actual_change)/dx1.norm()<<std::endl;
+        REQUIRE(std::fabs(actual_change-expected_change)<1e-2*epsilon);
+    }
+
+    SECTION("dnfinv_dVelocity"){
+        TV dnfinv_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::dnfinv_dVelocity(f0,f0.norm(),1);
+        T expected_change=dnfinv_dv.dot(dx1);
+        T actual_change=1/(x2+dx1-x1).norm()-1/f0.norm();
+        std::cout<<"(Expected-actual)/norm: "<<(expected_change-actual_change)/dx1.norm()<<std::endl;
+        REQUIRE(std::fabs(actual_change-expected_change)<1e-2*epsilon);
+    }
+
+    SECTION("d2nfinv_dVelocity2"){
+        Matrix<T,3,3> d2nfinv_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::d2nfinv_dVelocity2(f0,f0.norm(),1,1);
+        // analytical first derivatives
+        TV d0=RIGID_STRUCTURE_INDEX_MAP<TV>::dnfinv_dVelocity(f0,f0.norm(),1);
+        TV d1=RIGID_STRUCTURE_INDEX_MAP<TV>::dnfinv_dVelocity(f0+dx1,(f0+dx1).norm(),1);
+        TV delta=d2nfinv_dv*dx1;
+        //std::cout<<"Quality d2: "<<(d1-d0-delta).norm()/sqr(epsilon)<<std::endl;
+        REQUIRE((d1-d0-delta).norm()<epsilon);
+    }
+
+    SECTION("df_dVelocity"){
+        Matrix<T,3,3> df_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::df_dVelocity(f0,1);
+        TV actual=Evaluate_Vector(x2+dx2-x1)-Evaluate_Vector(x2-x1);
+        TV estimated=(df_dv.transpose()*dx2);
+        //std::cout<<"Actual: "<<actual.transpose()<<" estimated: "<<estimated.transpose()<<" quality: "<<(actual-estimated).norm()/dx2.norm()<<std::endl;
+        REQUIRE(std::fabs((actual-estimated).norm())<1e-2*epsilon);
+    }
+
+    SECTION("d2f_dVelocity2"){
+        TensorFixedSize<T,Sizes<3,3,3>> d2f_dv2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2f_dVelocity2(f0,1,1);
+        Matrix<T,3,3> d0=RIGID_STRUCTURE_INDEX_MAP<TV>::df_dVelocity(f0,1);
+        Matrix<T,3,3> d1=RIGID_STRUCTURE_INDEX_MAP<TV>::df_dVelocity(f0+dx1,1);
+        Matrix<T,3,3> delta;delta.setZero();
+        for(int i=0;i<3;i++){
+            for(int j=0;j<3;j++){
+                for(int k=0;k<3;k++){
+                    delta(i,j)+=d2f_dv2(j,k,i)*dx1(k);
+                }}}
+        std::cout<<d1-d0<<std::endl;
+        std::cout<<delta<<std::endl;
+        //TV delta=d2f_dv2*dx1;
+        /*std::cout<<"d1-d0: "<<(d1-d0).transpose()<<std::endl;
+        std::cout<<"delta: "<<delta.transpose()<<std::endl;
+        std::cout<<"Quality d3: "<<(d1-d0-delta).norm()/epsilon<<std::endl;
+        REQUIRE((d1-d0-delta).norm()<1e-2*epsilon);*/
+    }
+
+    SECTION("full Hessian"){
+
+    }
 }
 
 
@@ -125,7 +209,7 @@ TEST_CASE("Derivatives","[derivatives]"){
                     mod_spins[s2]+=delta;
                     TV actual_direction=overall_sign*(positions[1]+ROTATION<TV>::From_Rotation_Vector(mod_spins[1])*base_offsets[1]-(positions[0]+ROTATION<TV>::From_Rotation_Vector(mod_spins[0])*base_offsets[0])).normalized();
                     //std::cout<<"Direction: "<<direction.transpose()<<" estimated: "<<estimated_direction.transpose()<<" actual: "<<actual_direction.transpose()<<" relative: "<<relative_position.transpose()<<std::endl;
-                    std::cout<<"Quality: "<<(actual_direction-estimated_direction).norm()/delta.norm()<<std::endl;
+                    //std::cout<<"Quality: "<<(actual_direction-estimated_direction).norm()/delta.norm()<<std::endl;
                     REQUIRE((actual_direction-estimated_direction).norm()<2*delta.norm());
                 }
             }
@@ -158,7 +242,7 @@ TEST_CASE("Derivatives","[derivatives]"){
             TV estimated_force=force+derivative*delta;
             TV new_relative=(positions[1]+delta-positions[0]);
             TV actual_force=sqr(new_relative.norm()-threshold)*new_relative.normalized();
-            std::cout<<"Quality: "<<(actual_force-estimated_force).norm()/delta.norm()<<std::endl;
+            //std::cout<<"Quality: "<<(actual_force-estimated_force).norm()/delta.norm()<<std::endl;
             REQUIRE((actual_force-estimated_force).norm()<delta.norm());
         }
     }
@@ -194,7 +278,7 @@ TEST_CASE("Derivatives","[derivatives]"){
                     mod_spins[s2]+=delta;
                     TV new_relative_position=positions[1]+ROTATION<TV>::From_Rotation_Vector(mod_spins[1])*base_offsets[1]-(positions[0]+ROTATION<TV>::From_Rotation_Vector(mod_spins[0])*base_offsets[0]);
                     TV actual_torque=overall_sign*(ROTATION<TV>::From_Rotation_Vector(mod_spins[s1])*base_offsets[s1]).cross(sqr(new_relative_position.norm()-threshold)*new_relative_position.normalized());
-                    std::cout<<"Quality: "<<(actual_torque-estimated_torque).norm()/delta.norm()<<std::endl;
+                    //std::cout<<"Quality: "<<(actual_torque-estimated_torque).norm()/delta.norm()<<std::endl;
                     REQUIRE((actual_torque-estimated_torque).norm()<delta.norm());
 
                 }

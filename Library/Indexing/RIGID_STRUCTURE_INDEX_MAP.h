@@ -12,10 +12,12 @@ template<class TV>
 class RIGID_STRUCTURE_INDEX_MAP
 {
     typedef typename TV::Scalar T;
-    typedef Matrix<T,1,TV::RowsAtCompileTime> TV_T;
     typedef typename ROTATION<TV>::SPIN T_SPIN;
-public:
     enum DEFINITIONS{STATIC_SIZE=TWIST<TV>::STATIC_SIZE,d=TV::RowsAtCompileTime,t=T_SPIN::RowsAtCompileTime};
+    typedef Matrix<T,1,d> TV_T;
+    typedef Matrix<T,d,d> M_VxV;
+    typedef Matrix<T,d,t> M_VxT;
+public:
 
     RIGID_STRUCTURE_INDEX_MAP(){}
     ~RIGID_STRUCTURE_INDEX_MAP(){}
@@ -43,9 +45,10 @@ public:
         return 2*q.cross(offset)*dw_dspin-2*(Cross_Product_Matrix(offset)*w+Cross_Product_Matrix(q.cross(offset))+Cross_Product_Matrix(q)*Cross_Product_Matrix(offset))*dq_dspin;
     }
 
-    static Matrix<T,1,t+d> dConstraint_dTwist(const TV& spin,const TV& offset,const TV& relative_position){
+    static Matrix<T,1,t+d> dConstraint_dTwist(const TV& spin,const TV& offset,const TV& relative_position,const T target){
         static const T eps=1e-8;
         T relative_position_norm=relative_position.norm();
+        //TV normalized_relative_position=(relative_position_norm>eps?(TV)((relative_position_norm-target)*relative_position/relative_position_norm):TV::UnitX());
         TV normalized_relative_position=(relative_position_norm>eps?(TV)(relative_position/relative_position_norm):TV::UnitX());
         Matrix<T,1,t+d> final;
         final.template block<1,d>(0,0)=normalized_relative_position.transpose();
@@ -124,9 +127,117 @@ public:
                 Compute_Penalty_Force_Derivative(indices[s1],indices[s2],s1,s2,threshold,(s1==s2?1:-1)*force_constant,relative_position,rotated_offsets[s1],rotated_offsets[s2],spins[s2],force_terms);}}
     }
 
-    template<class SUBTYPE1,class SUBTYPE2>
-    static void Compute_Constraint_Second_Derivatives(){
+
+    /*static void Second_Derivative_Angular(){
+        (-2*ostar*dq_db).contractColumns().outer(dw_da);
+        +2q.cross(o).contractColumns()*d2w_dadb;
+        2(ostar*
         
+        }*/
+
+    /*static void d2ao_da2(){
+        (q.cross(o).cross(a)).sum()*d2q_da2(a);
+    }
+
+    static Matrix<TV,3,3> d2q_da2(const TV& a){
+        T na=a.norm();
+        TV dna_da=a/na;
+        a_terms-=(T).25*sin(na/2)*dna_da.outer(dna_da)/na;
+        a_terms+=(T)1.5*cos(na/2)/na^2*(eye-dna_da^2);
+        a_terms-=sin(na/2)*((3/na^3)*(eye-dna_da^2));
+        }*/
+
+    static Matrix<T,3,3> df2mf1_dVelocity(int term_sign){
+        return term_sign*Matrix<T,3,3>::Identity();
+    }
+
+    // d(|f2-f1})/dv
+    static Matrix<T,3,1> dnf_dVelocity(const TV& f,const T& nf,int term_sign){
+        return term_sign*f/nf;
+    }
+
+    // d(1/|f2-f1|)/dv
+    static Matrix<T,3,1> dnfinv_dVelocity(const TV& f,const T& nf,int term_sign){
+        return -1/(nf*nf)*dnf_dVelocity(f,nf,term_sign);
+    }
+
+    // d2(1/|f2-f1|)/dv1/dv2
+    static Matrix<T,3,3> d2nfinv_dVelocity2(const TV& f,const T& nf,int ts1,int ts2){
+        TV dnf_dv1=dnf_dVelocity(f,nf,ts1);
+        TV dnf_dv2=dnf_dVelocity(f,nf,ts2);
+        TV dnfinv_dv2=dnfinv_dVelocity(f,nf,ts2);
+        const M_VxV& df_dv2=df2mf1_dVelocity(ts2);
+        return 2/cube(nf)*dnf_dv1*dnf_dv2.transpose()-1/sqr(nf)*ts1*(df_dv2/nf+f*dnfinv_dv2.transpose());
+    }
+
+    // d2(|f2-f1|)/dv1/dv2
+    static Matrix<T,3,3> d2n_dVelocity2(const TV& f,int ts1,int ts2){
+        T nf=f.norm();
+        return (df2mf1_dVelocity(ts2)/nf+f*dnfinv_dVelocity(f,nf,ts2).transpose())*df2mf1_dVelocity(ts1);//+f.sum()/nf*
+    }
+
+    static Matrix<T,3,3> df_dVelocity(const TV& f,int ts){
+        T nf=f.norm();
+        return df2mf1_dVelocity(ts)/nf+f*dnfinv_dVelocity(f,nf,ts).transpose();
+    }
+
+    static TensorFixedSize<T,Sizes<3,3,3>> Outer_Product(const Matrix<T,3,3>& m,const Matrix<T,3,1>& v,const std::vector<int>& indices){
+        TensorFixedSize<T,Sizes<3,3,3>> tensor;
+        std::cout<<"Indices size: "<<indices.size();
+        for(int i=0;i<3;i++){std::cout<<" "<<indices[i];}
+        std::cout<<std::endl;
+        Matrix<int,3,1> index;index<<0,0,0;
+        for(index[0]=0;index[0]<3;index[0]++){
+            for(index[1]=0;index[1]<3;index[1]++){
+                for(index[2]=0;index[2]<3;index[2]++){
+                    tensor(index[0],index[1],index[2])=m(index(indices[0]),index(indices[1]))*v(index(indices[2]));}}}
+        return tensor;
+    }
+
+    static TensorFixedSize<T,Sizes<3,3,3>> d2f_dVelocity2(const TV& f,int ts1,int ts2){
+        T nf=f.norm();
+        Matrix<T,3,3> df_dv1=df2mf1_dVelocity(ts1);
+        Matrix<T,3,3> df_dv2=df2mf1_dVelocity(ts2);
+        TV dnfinv_dv1=dnfinv_dVelocity(f,nf,ts1);
+        TV dnfinv_dv2=dnfinv_dVelocity(f,nf,ts2);
+        Matrix<T,3,3> d2nfinv_dv2=d2nfinv_dVelocity2(f,nf,ts1,ts2);
+        TensorFixedSize<T,Sizes<3,3,3>> t1,t2,t3;
+        t1=Outer_Product(df_dv1,dnfinv_dv2,{2,0,1});
+        t2=Outer_Product(df_dv2,dnfinv_dv1,{2,1,0});
+        t3=Outer_Product(d2nfinv_dv2,f,{0,1,2});
+        return t1+t2+t3;
+    }
+    
+    template<class DT,class FT>
+    static void Compute_Constraint_Second_Derivatives(const std::vector<int>& indices,const int constraint_index,const T scalar_force,const TV& relative_position,std::vector<Quadruplet<T>>& hessian_terms){
+        for(int f=0;f<2;f++){
+            int f_sign=(f==0?-1:1);
+            for(int s1=0;s1<2;s1++){
+                int s1_sign=(s1==0?-1:1);
+                for(int s2=0;s2<2;s2++){
+                    int s2_sign=(s2==0?-1:1);
+                    // linear part WRT linear
+                    Flatten_Quadruplet_Term<T,t+d,t+d,t+d,d,d,d>(indices[s1],indices[s2],indices[f],0,0,0,d2f_dVelocity2(relative_position,s1_sign,s2_sign)*(T)f_sign*scalar_force,hessian_terms);
+                //Flatten_Matrix_Term<T,t+d,t+d,d,d>(indices[s1],indices[s2],0,0,d2f_dVelocity2(relative_position,(s1==0?-1:1),(s2==0?-1:1)),hessian_terms);
+                // term corresponding to the actual constraint row
+                //Flatten_Matrix_Term<T,t+d,t+d,d,d>(indices[s1],indices[s2],0,0,df_dVelocity());
+                }
+
+                // second derivatives that have one force term and one velocity
+                Flatten_Quadruplet_Term<T...>(indices[s1],f_sign*df_dVelocity(relative_position,s1_sign));
+                // also put it in for the transpose term
+            }
+            
+            
+        }
+        // include second derivatives of the constraint equation itself (only double velocity)
+        for(int s1=0;s1<2;s1++){
+            int s1_sign=(s1==0?-1:1);
+            for(int s2=0;s2<2;s2++){
+                int s2_sign=(s2==0?-1:1);
+                d2n_dVelocity2(relative_position,s1_sign,s2_sign);
+            }
+        }
     }
 
 

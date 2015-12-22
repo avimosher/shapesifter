@@ -21,9 +21,9 @@ public:
     virtual int Velocity_DOF() const {return 0;}
     virtual int Position_DOF() const {return 0;}
     virtual void Identify_DOF(int index) const{LOG::cout<<Name()<<" DOF "<<index<<std::endl;}
-    virtual void Pack_Velocities(Block<Matrix<T,Dynamic,1>>& velocities){};
+    virtual void Pack_Velocities(Block<Matrix<T,Dynamic,1>>& velocities) const{};
     virtual void Unpack_Velocities(const Matrix<T,Dynamic,1>& velocities){};
-    virtual void Pack_Positions(Block<Matrix<T,Dynamic,1>>& positions){};
+    virtual void Pack_Positions(Block<Matrix<T,Dynamic,1>>& positions) const{};
     virtual void Unpack_Positions(const Matrix<T,Dynamic,1>& positions){};
     virtual void Store_Errors(const Matrix<T,Dynamic,1>& errors){};
     virtual void Step(const DATA<TV>& data){};

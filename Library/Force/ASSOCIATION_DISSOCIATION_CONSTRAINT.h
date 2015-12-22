@@ -53,7 +53,7 @@ public:
     virtual ~STORED_ASSOCIATION_DISSOCIATION_CONSTRAINT(){}
 
     void setZero(){value.setZero();}
-    virtual int Size(){return constraints.size()*(d+t);}
+    virtual int Size() const{return constraints.size()*(d+t);}
     DEFINE_TYPE_NAME("STORED_ASSOCIATION_DISSOCIATION_CONSTRAINT");
 };
 

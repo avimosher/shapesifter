@@ -39,6 +39,11 @@ public:
         for(int i=0;i<TV::RowsAtCompileTime;i++){direction(i)=Gaussian();}
         return direction.normalized();
     }
+
+    template<class TV> void Direction(TV& direction){
+        for(int i=0;i<direction.size();i++){direction(i)=Gaussian();}
+        direction.normalize();
+    }
 };
 }
 #endif

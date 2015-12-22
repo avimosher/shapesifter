@@ -3,6 +3,7 @@
 
 #include <Utilities/LOG.h>
 #include <Utilities/MATH.h>
+#include <Eigen/CXX11/Tensor>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 #include <json/json.h>
@@ -58,6 +59,11 @@ Matrix<T,3,1> cwiseMinMag(const Matrix<T,3,1>& v1,const Matrix<T,3,1>& v2)
 
 // define utilities for manipulating form of Eigen matrices with non-scalar entries
 namespace Mechanics{
+
+template<class T>
+using Quadruplet = std::tuple<int,int,int,T>; // row, col, o-index, value
+
+
 template<class T,int dim>
 void Flatten_Term(int row,int col,const Eigen::DiagonalMatrix<T,dim>& term,std::vector<Eigen::Triplet<T>>& flat_terms)
 {
@@ -81,6 +87,17 @@ void Flatten_Matrix_Term(int row,int col,int block_row,int block_col,const Eigen
     for(int i=0;i<rows_per_block;i++){
         for(int j=0;j<cols_per_block;j++){
             flat_terms.push_back(Eigen::Triplet<T>(rows_per_block*block_row+rows*row+i,cols_per_block*block_col+cols*col+j,term(i,j)));}}
+}
+
+template<class T,int d1,int d2,int d3,int d1_per_block,int d2_per_block,int d3_per_block>
+void Flatten_Quadruplet_Term(int d1_index,int d2_index,int d3_index,int d1_block,int d2_block,int d3_block,const Eigen::TensorFixedSize<T,Eigen::Sizes<d1_per_block,d2_per_block,d3_per_block>>& term,std::vector<Quadruplet<T>>& flat_terms)
+{
+    // d_per_block: rows per sub-block
+    // d: rows per outer block
+    for(int i=0;i<d1_per_block;i++){
+        for(int j=0;j<d2_per_block;j++){
+            for(int k=0;k<d3_per_block;k++){
+                flat_terms.push_back(Quadruplet<T>(d1_per_block*d1_block+d1*d1_index+i,d2_per_block*d2_block+d2*d2_index+j,d3_per_block*d3_block+d3*d3_index+k,term(i,j,k)));}}}
 }
 
 template<class T,int rows,int cols>

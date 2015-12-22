@@ -9,24 +9,37 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+
+#include <Data/DATA.h>
+#include <Data/RIGID_STRUCTURE.h>
+#include <Data/RIGID_STRUCTURE_DATA.h>
+#include <Driver/SIMULATION.h>
+#include <Equation/NONLINEAR_EQUATION.h>
 using namespace Mechanics;
 
 int main(int argc,char **argv)
 {
-    /*typedef double T;
+    typedef double T;
     typedef Matrix<T,3,1> TV;
     auto simulation=std::make_shared<SIMULATION<TV>>();
+    DATA<TV>& data=simulation->data;
+    FORCE<TV>& force=simulation->force;
 
-    auto rigid_data=std::make_shared<RIGID_STRUCTURE_DATA<TV>>(); 
-    simulation->data.push_back(rigid_data);
+    auto rigid_data=data.template Find_Or_Create<RIGID_STRUCTURE_DATA<TV>>();
     auto structure1=std::make_shared<RIGID_STRUCTURE<TV>>();
     structure1->frame.position=TV();
     structure1->name="first";
+    structure1->radius=1;
+    structure1->Initialize_Inertia(3.5);
     rigid_data->structures.push_back(structure1);
     auto structure2=std::make_shared<RIGID_STRUCTURE<TV>>();
     structure2->frame.position=2*TV::UnitX();
     structure2->name="second";
+    structure2->radius=1;
+    structure2->Initialize_Inertia(3.5);
+    structure2->twist.linear[0]=0;
     rigid_data->structures.push_back(structure2);
+
 
     auto relative_position_constraint=simulation->force.template Find_Or_Create<RELATIVE_POSITION_CONSTRAINT<TV>>();
     typename RELATIVE_POSITION_CONSTRAINT<TV>::CONSTRAINT constraint;
@@ -36,7 +49,42 @@ int main(int argc,char **argv)
     constraint.v2=TV::UnitY();
     constraint.target_distance=2;
     relative_position_constraint->constraints.push_back(constraint);
+    relative_position_constraint->stored_forces.resize(1);
+    relative_position_constraint->stored_forces.setZero();
 
+
+    T dt=0.1;
+    T time=0;
+    auto equation=new NONLINEAR_EQUATION<TV>();
+    equation->Initialize(data,force);
+    equation->Linearize(data,force,dt,time,false);
+    Matrix<T,Dynamic,1> unknowns=equation->Get_Unknowns(data,force);
+    data.random.Direction(unknowns);
+    equation->Increment_Unknowns(unknowns,data,force);
+    equation->Linearize(data,force,dt,time,false);
+
+    Matrix<T,Dynamic,1> gradient0;equation->Gradient(gradient0);
+
+    T epsilon=1e-6;
+    data.random.Direction(unknowns);
+    unknowns*=epsilon;
+
+    
+    SparseMatrix<T> hessian;
+    equation->Hessian(hessian);
+    Matrix<T,Dynamic,1> predicted_delta=hessian*unknowns;
+
+
+    equation->Increment_Unknowns(unknowns,data,force);
+    equation->Linearize(data,force,dt,time,false);
+
+    Matrix<T,Dynamic,1> gradient1;equation->Gradient(gradient1);
+
+    std::cout<<(gradient1-gradient0).transpose()<<std::endl;
+    std::cout<<predicted_delta.transpose()<<std::endl;
+    std::cout<<"Quality: "<<(gradient1-gradient0-predicted_delta).norm()/epsilon<<std::endl;
+
+    /*
     Matrix<T,Dynamic,1> positions;
     simulation->data.Pack_Positions(positions);
 

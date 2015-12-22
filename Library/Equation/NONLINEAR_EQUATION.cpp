@@ -13,6 +13,39 @@
 #include <Eigen/IterativeSolvers>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
+template<class TV> Matrix<typename TV::Scalar,Dynamic,1> NONLINEAR_EQUATION<TV>::
+Get_Unknowns(const DATA<TV>& data,const FORCE<TV>& force) const
+{
+    Matrix<T,Dynamic,1> velocities,forces,unknowns;
+    data.Pack_Velocities(velocities);
+    STORED_FORCE<T> stored_force;
+    force.Pack_Forces(stored_force);
+    forces=stored_force.Vector();
+    unknowns.resize(velocities.size()+forces.size());
+    for(int i=0;i<velocities.size();i++){
+        unknowns(i)=velocities(i);}
+    for(int i=0;i<forces.size();i++){
+        unknowns(i+velocities.size())=forces(i);}
+    return unknowns;
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void NONLINEAR_EQUATION<TV>::
+Increment_Unknowns(const Matrix<T,Dynamic,1>& unknowns,DATA<TV>& data,FORCE<TV>& force)
+{
+    int velocity_dof=Velocity_DOF();
+    Matrix<T,Dynamic,1> solve_velocities=unknowns.block(0,0,velocity_dof,1);
+    STORED_FORCE<T> stored_force;
+    force.Pack_Forces(stored_force);
+    stored_force.Set(unknowns.block(velocity_dof,0,unknowns.size()-velocity_dof,1));
+    force.Increment_Forces(stored_force,1);
+
+    Matrix<T,Dynamic,1> current_velocities;
+    data.Pack_Velocities(current_velocities);
+    Matrix<T,Dynamic,1> candidate_velocities=current_velocities+solve_velocities;
+    Unpack_Velocities(data,candidate_velocities);
+    data.Step();
+}
+///////////////////////////////////////////////////////////////////////
 template<class TV> void NONLINEAR_EQUATION<TV>::
 Identify_DOF(const DATA<TV>& data,const FORCE<TV>& force,int index)
 {
@@ -79,7 +112,7 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     system.Initialize(data,force);
     inverse_inertia_matrices.resize(data.size());
     for(int i=0;i<data.size();i++){
-        data[i]->Inertia(dt,system.matrix_block_terms[i],inverse_inertia_matrices[i],system.right_hand_side_blocks[i]);}
+        data[i]->Inertia(dt,system.jacobian_block_terms[i],inverse_inertia_matrices[i],system.right_hand_side_blocks[i]);}
     for(int i=0;i<force.size();i++){
         force[i]->Linearize(data,force,dt,time,system,stochastic);}
     system.Scale_Blocks(data,force,kinematic_projection_matrices,inverse_inertia_matrices);
@@ -87,8 +120,12 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     Merge_Block_Matrices(system.jacobian_blocks,jacobian);
     Merge_Block_Vectors(system.right_hand_side_blocks,right_hand_side);
 
+    system.Assemble_Hessian_Blocks(data,force,right_hand_side);
     // build the Hessian
-    //hessian=jacobian.adjoint()*jacobian;
+    SparseMatrix<T> hessian_addition;
+    Merge_Block_Matrices(system.hessian_blocks,hessian_addition);
+    std::cout<<hessian_addition<<std::endl;
+    hessian=jacobian.adjoint()*jacobian;//+hessian_addition;
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(NONLINEAR_EQUATION)

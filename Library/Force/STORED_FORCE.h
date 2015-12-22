@@ -13,7 +13,8 @@ public:
 
     FORCE_REFERENCE(){}
     virtual ~FORCE_REFERENCE(){};
-    virtual int Size(){return value.size();}
+    virtual int Size() const{return value.size();}
+    virtual const Matrix<T,Dynamic,1>& Vector() const{return value;}
     DEFINE_TYPE_NAME("FORCE_REFERENCE");
 };
 
@@ -37,16 +38,27 @@ public:
         return std::static_pointer_cast<SUBTYPE>(*std::find_if(this->begin(),this->end(),finder));
     }
 
-    int Size(){return this->size();}
+    int Size() const{return this->size();}
 
     void Resize(int size){
-        if(Size()!=size){
-            this->resize(size);
-        }
+        if(Size()!=size){this->resize(size);}
     }
 
     void setZero(){
         for(auto& stored_force:(*this)){stored_force->value.setZero();}
+    }
+
+    Matrix<T,Dynamic,1> Vector() const
+    {
+        int total_size=0;
+        for(int i=0;i<Size();i++){total_size+=(*this)[i]->Size();}
+        Matrix<T,Dynamic,1> vector(total_size);
+        int current_position=0;
+        for(int i=0;i<Size();i++){
+            int size=(*this)[i]->Size();
+            vector.block(current_position,0,size,1)=(*this)[i]->Vector();
+            current_position+=size;}
+        return vector;
     }
 
     void Set(const Matrix<T,Dynamic,1>& input_values){

@@ -38,7 +38,7 @@ Identify_DOF(int index) const
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RIGID_STRUCTURE_DATA<TV>::
-Pack_Velocities(Block<Matrix<T,Dynamic,1>>& velocities)
+Pack_Velocities(Block<Matrix<T,Dynamic,1>>& velocities) const
 {
     for(int i=0;i<structures.size();i++){
         velocities.template block<TWIST<TV>::STATIC_SIZE,1>(i*TWIST<TV>::STATIC_SIZE,0)=structures[i]->twist.Pack();}
@@ -52,7 +52,7 @@ Unpack_Velocities(const Matrix<T,Dynamic,1>& velocities)
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RIGID_STRUCTURE_DATA<TV>::
-Pack_Positions(Block<Matrix<T,Dynamic,1>>& positions)
+Pack_Positions(Block<Matrix<T,Dynamic,1>>& positions) const
 {
     for(int i=0;i<structures.size();i++){
         positions.template block<FRAME<TV>::STATIC_SIZE,1>(i*FRAME<TV>::STATIC_SIZE,0)=structures[i]->frame.Pack();}
@@ -76,6 +76,7 @@ template<class TV> void RIGID_STRUCTURE_DATA<TV>::
 Step(const DATA<TV>& data)
 {
     for(int i=0;i<structures.size();i++){
+        LOG::cout<<structures[i]->name<<" velocity: "<<structures[i]->twist.linear.transpose()<<std::endl;
         structures[i]->frame=Updated_Frame(data,structures[i]->frame,structures[i]->twist);}
 }
 ///////////////////////////////////////////////////////////////////////

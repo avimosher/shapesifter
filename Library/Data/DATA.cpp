@@ -35,7 +35,7 @@ Position_DOF() const
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void DATA<TV>::
-Pack_Velocities(Matrix<T,Dynamic,1>& velocities)
+Pack_Velocities(Matrix<T,Dynamic,1>& velocities) const
 {
     velocities.resize(Velocity_DOF());
     int current_position=0;
@@ -57,7 +57,7 @@ Unpack_Velocities(const Matrix<T,Dynamic,1>& velocities)
 }
 /////////////////////////////////////////////////////////////////////// 
 template<class TV> void DATA<TV>::
-Pack_Positions(Matrix<T,Dynamic,1>& positions)
+Pack_Positions(Matrix<T,Dynamic,1>& positions) const
 {
     positions.resize(Position_DOF());
     int current_position=0;

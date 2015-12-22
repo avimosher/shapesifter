@@ -31,6 +31,7 @@ Initialize_Inertia(const T eta)
         moi.rotation(2)=4.0f/3.0f*E*E/(2-S/(p*p))*rotational_drag;
         for(int spin=0;spin<2;spin++){
             moi.rotation(spin)=4.0f/3.0f*(1/(p*p)-p*p)/(2-S*(2-1/(p*p)))*rotational_drag;}}
+    initialized=true;
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> TV RIGID_STRUCTURE<TV>::
@@ -72,8 +73,7 @@ DEFINE_AND_REGISTER_PARSER(RIGID_STRUCTURE,void)
     Parse_Rotation(node["orientation"],structure->frame.orientation);
     structure->name=node["name"].asString();
     structure->Initialize_Inertia(simulation.data.globals["eta"]);
-    auto data_element=simulation.data.template Find_Or_Create<RIGID_STRUCTURE_DATA<TV>>();
-    auto rigid_structure_data=std::static_pointer_cast<RIGID_STRUCTURE_DATA<TV>>(data_element);
+    auto rigid_structure_data=simulation.data.template Find_Or_Create<RIGID_STRUCTURE_DATA<TV>>();
     rigid_structure_data->structures.push_back(structure);
     return 0;
 }

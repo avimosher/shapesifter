@@ -46,7 +46,7 @@ public:
     virtual ~STORED_VOLUME_EXCLUSION_CONSTRAINT(){}
 
     void setZero(){value.setZero();}
-    virtual int Size(){return constraints.size();}
+    virtual int Size() const{return constraints.size();}
     DEFINE_TYPE_NAME("STORED_VOLUME_EXCLUSION_CONSTRAINT");
 };
 

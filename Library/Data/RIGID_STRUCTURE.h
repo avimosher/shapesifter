@@ -15,6 +15,7 @@ class RIGID_STRUCTURE
 {
     typedef typename TV::Scalar T;
     typedef typename ROTATION<TV>::SPIN T_SPIN;
+    bool initialized;
 public:
     enum DEFINITIONS{PositionSize=FRAME<TV>::STATIC_SIZE,VelocitySize=TWIST<TV>::STATIC_SIZE};
     std::string name;
@@ -27,7 +28,7 @@ public:
     TV collision_extent; // require to be in the Z direction for now
     bool kinematic;
 
-    RIGID_STRUCTURE():kinematic(false){}
+    RIGID_STRUCTURE():initialized(false),kinematic(false){}
     ~RIGID_STRUCTURE(){}
 
     static Matrix<T,1,1> Segment_Segment_Displacement(const Matrix<Matrix<T,1,1>,2,1>& s1,const Matrix<Matrix<T,1,1>,2,1>& s2,Matrix<T,2,1>& weights){return Matrix<T,1,1>();}
@@ -78,6 +79,7 @@ public:
 
     DiagonalMatrix<T,VelocitySize> Inertia_Matrix()
     {
+        assert(initialized);
         Matrix<T,VelocitySize,1> inertia;
         inertia<<moi.translation,
             moi.rotation;

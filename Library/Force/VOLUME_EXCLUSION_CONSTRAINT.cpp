@@ -122,7 +122,7 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
                         old_constraints++;}
                     right_hand_side_force=std::get<1>(memory);
                     for(int s=0,sgn=-1;s<2;s++,sgn+=2){
-                        terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),indices[s],sgn*RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(spins[s],offsets[s],relative_position)));
+                        terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),indices[s],sgn*RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(spins[s],offsets[s],relative_position,slack_distance+push_out_distance)));
                         forces.push_back(Triplet<FORCE_VECTOR>(indices[s],constraints.size(),sgn*force_directions[s]));}
                     RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Force_Derivatives(indices,right_hand_side_force,relative_position,offsets,spins,force_terms);
                     rhs.push_back(-constraint_violation+slack_distance+push_out_distance);

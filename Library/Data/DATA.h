@@ -60,9 +60,9 @@ public:
 
     int Velocity_DOF() const;
     int Position_DOF() const;
-    void Pack_Velocities(Matrix<T,Dynamic,1>& velocities);
+    void Pack_Velocities(Matrix<T,Dynamic,1>& velocities) const;
     void Unpack_Velocities(const Matrix<T,Dynamic,1>& velocities);
-    void Pack_Positions(Matrix<T,Dynamic,1>& positions);
+    void Pack_Positions(Matrix<T,Dynamic,1>& positions) const;
     void Unpack_Positions(const Matrix<T,Dynamic,1>& positions);
     void Store_Errors(const Matrix<T,Dynamic,1>& errors);
     void Step();

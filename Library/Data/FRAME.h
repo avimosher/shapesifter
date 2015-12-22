@@ -29,7 +29,7 @@ public:
         return orientation._transformVector(vector)+position;
     }
 
-    const Eigen::Matrix<T,STATIC_SIZE,1> Pack()
+    const Eigen::Matrix<T,STATIC_SIZE,1> Pack() const
     {
         Eigen::Matrix<T,STATIC_SIZE,1> packed;
         packed.template block<TV::SizeAtCompileTime,1>(0,0)=position;
