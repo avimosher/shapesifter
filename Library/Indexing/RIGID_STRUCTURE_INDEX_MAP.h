@@ -103,7 +103,7 @@ public:
         Compute_Constraint_Force_Derivative(index,index,0,0,scalar_force,relative_position,rotated_offset,rotated_offset,spin,force_terms);
     }
 
-    static void Compute_Constraint_Force_Derivatives(const std::vector<int>& indices,const T scalar_force,const TV& relative_position,const std::vector<TV>& rotated_offsets,const std::vector<T_SPIN>& spins,std::vector<Triplet<T>>& force_terms){
+    static void Compute_Constraint_Force_Derivatives(const std::array<int,2>& indices,const T scalar_force,const TV& relative_position,const std::array<TV,2>& rotated_offsets,const std::array<T_SPIN,2>& spins,std::vector<Triplet<T>>& force_terms){
         for(int s1=0;s1<2;s1++){ // structure of the force term
             for(int s2=0;s2<2;s2++){ // structure we're taking derivative with respect to
                 Compute_Constraint_Force_Derivative(indices[s1],indices[s2],s1,s2,(s1==s2?1:-1)*scalar_force,relative_position,rotated_offsets[s1],rotated_offsets[s2],spins[s2],force_terms);}}
@@ -121,7 +121,7 @@ public:
         Compute_Penalty_Force_Derivative(index,index,0,0,threshold,force_constant,relative_position,rotated_offset,rotated_offset,spin,force_terms);
     }
 
-    static void Compute_Penalty_Force_Derivatives(const std::vector<int>& indices,const T threshold,const T force_constant,const TV& relative_position,const std::vector<TV>& rotated_offsets,const std::vector<T_SPIN>& spins,std::vector<Triplet<T>>& force_terms){
+    static void Compute_Penalty_Force_Derivatives(const std::array<int,2>& indices,const T threshold,const T force_constant,const TV& relative_position,const std::array<TV,2>& rotated_offsets,const std::array<T_SPIN,2>& spins,std::vector<Triplet<T>>& force_terms){
         for(int s1=0;s1<2;s1++){ // structure of the force term
             for(int s2=0;s2<2;s2++){ // structure we're taking derivative with respect to
                 Compute_Penalty_Force_Derivative(indices[s1],indices[s2],s1,s2,threshold,(s1==s2?1:-1)*force_constant,relative_position,rotated_offsets[s1],rotated_offsets[s2],spins[s2],force_terms);}}
@@ -208,8 +208,7 @@ public:
         return t1+t2+t3;
     }
     
-    template<class DT,class FT>
-    static void Compute_Constraint_Second_Derivatives(const std::vector<int>& indices,const int constraint_index,const T scalar_force,const TV& relative_position,std::vector<Quadruplet<T>>& hessian_terms){
+    static void Compute_Constraint_Second_Derivatives(const std::array<int,2>& indices,const int constraint_index,const T scalar_force,const TV& relative_position,std::vector<Quadruplet<T>>& hessian_terms){
         for(int f=0;f<2;f++){
             int f_sign=(f==0?-1:1);
             for(int s1=0;s1<2;s1++){
@@ -224,20 +223,20 @@ public:
                 }
 
                 // second derivatives that have one force term and one velocity
-                Flatten_Quadruplet_Term<T...>(indices[s1],f_sign*df_dVelocity(relative_position,s1_sign));
+                //Flatten_Quadruplet_Term<T...>(indices[s1],f_sign*df_dVelocity(relative_position,s1_sign));
                 // also put it in for the transpose term
             }
             
             
         }
         // include second derivatives of the constraint equation itself (only double velocity)
-        for(int s1=0;s1<2;s1++){
+        /*for(int s1=0;s1<2;s1++){
             int s1_sign=(s1==0?-1:1);
             for(int s2=0;s2<2;s2++){
                 int s2_sign=(s2==0?-1:1);
                 d2n_dVelocity2(relative_position,s1_sign,s2_sign);
             }
-        }
+            }*/
     }
 
 

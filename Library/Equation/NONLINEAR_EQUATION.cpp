@@ -112,19 +112,22 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     system.Initialize(data,force);
     inverse_inertia_matrices.resize(data.size());
     for(int i=0;i<data.size();i++){
-        data[i]->Inertia(dt,system.jacobian_block_terms[i],inverse_inertia_matrices[i],system.right_hand_side_blocks[i]);}
+        data[i]->Inertia(dt,system.jacobian_block_terms[i],inverse_inertia_matrices[i],system.error_blocks[i]);}
     for(int i=0;i<force.size();i++){
-        force[i]->Linearize(data,force,dt,time,system,stochastic);}
-    system.Scale_Blocks(data,force,kinematic_projection_matrices,inverse_inertia_matrices);
+        force[i]->Identify_Interactions_And_Compute_Errors(data,force,dt,time,system,stochastic);}
+    system.Scale_Errors(data,force,kinematic_projection_matrices,inverse_inertia_matrices);
+    for(int i=0;i<force.size();i++){
+        force[i]->Compute_Derivatives(data,force,system);}
+    system.Scale_Derivatives(data,force,kinematic_projection_matrices,inverse_inertia_matrices);
     jacobian.resize(data.Velocity_DOF(),data.Velocity_DOF());
     Merge_Block_Matrices(system.jacobian_blocks,jacobian);
-    Merge_Block_Vectors(system.right_hand_side_blocks,right_hand_side);
+    Merge_Block_Vectors(system.error_blocks,error);
 
-    system.Assemble_Hessian_Blocks(data,force,right_hand_side);
+    system.Assemble_Hessian_Blocks(data,force,error);
     // build the Hessian
     SparseMatrix<T> hessian_addition;
     Merge_Block_Matrices(system.hessian_blocks,hessian_addition);
-    std::cout<<hessian_addition<<std::endl;
+    //std::cout<<hessian_addition<<std::endl;
     hessian=jacobian.adjoint()*jacobian;//+hessian_addition;
 }
 ///////////////////////////////////////////////////////////////////////

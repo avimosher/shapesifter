@@ -30,6 +30,10 @@ public:
     virtual void Unpack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information){stored_forces=force_information->value;};
     virtual void Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,int increment){stored_forces+=increment*force_information->value;};
     virtual void Store_Errors(std::shared_ptr<FORCE_REFERENCE<T>> force_information){errors=force_information->value;};
+    
+    virtual void Identify_Interactions_And_Compute_Errors(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,MATRIX_BUNDLE<TV>& system,bool stochastic)
+    {Linearize(data,force,dt,time,system,stochastic);}
+    virtual void Compute_Derivatives(DATA<TV>& data,FORCE<TV>& force,MATRIX_BUNDLE<TV>& system){};
     virtual void Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,MATRIX_BUNDLE<TV>& system,bool stochastic)=0;
     virtual int DOF() const{return stored_forces.size();}
     virtual void Identify_DOF(int index) const{LOG::cout<<Name()<<" DOF "<<index<<std::endl;}

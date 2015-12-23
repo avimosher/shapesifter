@@ -5,6 +5,7 @@
 #include <Utilities/EIGEN_HELPERS.h>
 #include <cereal/archives/binary.hpp>
 #include <cereal/archives/json.hpp>
+#include <cereal/types/array.hpp>
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/types/string.hpp>
 #include <cereal/types/tuple.hpp>

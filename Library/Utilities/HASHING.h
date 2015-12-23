@@ -5,6 +5,7 @@
 
 namespace std
 {
+
 template<class A,class B>
 class hash<std::pair<A,B>>
 {
@@ -33,7 +34,18 @@ class hash<tuple<A,B,C>>
         hash_combine(hash_result,std::get<2>(p));
         return hash_result;
     }
-};    
+};
+
+template<class A>
+class hash<array<A,2>>
+{
+  public:
+    size_t operator()(const array<A,2>& p) const {
+        std::size_t hash_result=std::hash<A>()(p[0]);
+        hash_combine(hash_result,p[1]);
+        return hash_result;
+    }
+};
 }
 
 #endif

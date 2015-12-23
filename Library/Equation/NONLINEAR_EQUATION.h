@@ -19,7 +19,7 @@ public:
 
     std::vector<SparseMatrix<T>> inverse_inertia_matrices;
     std::vector<SparseMatrix<T>> kinematic_projection_matrices;
-    Matrix<T,Dynamic,1> right_hand_side;
+    Matrix<T,Dynamic,1> error;
     SparseMatrix<T> hessian;
     SparseMatrix<T> jacobian;
     SparseMatrix<T> inverse_inertia;
@@ -33,12 +33,12 @@ public:
             dof+=kinematic_projection_matrices[i].rows();}
         return dof;
     }
-    T Evaluate(){return right_hand_side.squaredNorm()/2;}
-    void Gradient(Matrix<T,Dynamic,1>& gradient) const{gradient=-jacobian.adjoint()*right_hand_side;}
-    void RHS(Matrix<T,Dynamic,1>& rhs) const{rhs=right_hand_side;}
+    T Evaluate(){return error.squaredNorm()/2;}
+    void Gradient(Matrix<T,Dynamic,1>& gradient) const{gradient=-jacobian.adjoint()*error;}
+    void RHS(Matrix<T,Dynamic,1>& rhs) const{rhs=error;}
     void Hessian(SparseMatrix<T>& hessian_out) const{hessian_out=hessian;}
     void Jacobian(SparseMatrix<T>& jacobian_out) const{jacobian_out=jacobian;}
-    int System_Size(){return right_hand_side.size();}
+    int System_Size(){return error.size();}
 
     Matrix<T,Dynamic,1> Get_Unknowns(const DATA<TV>& data,const FORCE<TV>& force) const;
     void Increment_Unknowns(const Matrix<T,Dynamic,1>& unknowns,DATA<TV>& data,FORCE<TV>& force);

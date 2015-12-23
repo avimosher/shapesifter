@@ -28,12 +28,12 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
     constraint_right_hand_side.resize(constraints.size(),1);
     for(int i=0;i<constraints.size();i++){
         const CONSTRAINT& constraint=constraints[i];
-        std::vector<int> indices={constraint.s1,constraint.s2};
+        std::array<int,2> indices={constraint.s1,constraint.s2};
         auto structure1=rigid_data->structures[indices[0]];
         auto structure2=rigid_data->structures[indices[1]];
-        std::vector<FRAME<TV>> frames={structure1->frame,structure2->frame};
-        std::vector<T_SPIN> spins={structure1->twist.angular,structure2->twist.angular};
-        std::vector<TV> rotated_offsets={frames[0].orientation*constraint.v1,frames[1].orientation*constraint.v2};
+        std::array<FRAME<TV>,2> frames={structure1->frame,structure2->frame};
+        std::array<T_SPIN,2> spins={structure1->twist.angular,structure2->twist.angular};
+        std::array<TV,2> rotated_offsets={frames[0].orientation*constraint.v1,frames[1].orientation*constraint.v2};
         TV relative_position=data.Minimum_Offset(frames[0]*constraint.v1,frames[1]*constraint.v2);
 
         for(int s=0,sgn=-1;s<2;s++,sgn+=2){
@@ -47,7 +47,7 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
 
         constraint_right_hand_side[i]=(constraint.target_distance-relative_position.norm());
         RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Force_Derivatives(indices,stored_forces[i],relative_position,rotated_offsets,spins,force_terms);
-        RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Second_Derivatives(indices,stored_forces[i],relative_position,hessian_terms);
+        //RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Second_Derivatives(indices,i,stored_forces[i],relative_position,hessian_terms);
     }
     // This has to go before Flatten calls - it determines the DOF for this force
     stored_forces.resize(constraints.size());
