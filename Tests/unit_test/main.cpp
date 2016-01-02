@@ -89,6 +89,22 @@ TEST_CASE("Hessian"){
                 }}}
         std::cout<<d1-d0<<std::endl;
         std::cout<<delta<<std::endl;
+        std::cout<<"Quality: "<<(d1-d0-delta).norm()/epsilon<<std::endl;
+        //TV delta=d2f_dv2*dx1;
+        /*std::cout<<"d1-d0: "<<(d1-d0).transpose()<<std::endl;
+        std::cout<<"delta: "<<delta.transpose()<<std::endl;
+        std::cout<<"Quality d3: "<<(d1-d0-delta).norm()/epsilon<<std::endl;
+        REQUIRE((d1-d0-delta).norm()<1e-2*epsilon);*/
+    }
+
+    SECTION("d2n_dVelocity2"){
+        Matrix<T,3,3> d2n_dv2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2n_dVelocity2(f0,-1,-1);
+        Matrix<T,3,1> d0=RIGID_STRUCTURE_INDEX_MAP<TV>::dnf_dVelocity(f0,f0.norm(),-1);
+        Matrix<T,3,1> d1=RIGID_STRUCTURE_INDEX_MAP<TV>::dnf_dVelocity(f0-dx1,(f0-dx1).norm(),-1);
+        Matrix<T,3,1> delta=d2n_dv2*dx1;
+        std::cout<<d1-d0<<std::endl;
+        std::cout<<delta<<std::endl;
+        std::cout<<"Quality: "<<(d1-d0-delta).norm()/epsilon<<std::endl;
         //TV delta=d2f_dv2*dx1;
         /*std::cout<<"d1-d0: "<<(d1-d0).transpose()<<std::endl;
         std::cout<<"delta: "<<delta.transpose()<<std::endl;
@@ -97,7 +113,7 @@ TEST_CASE("Hessian"){
     }
 
     SECTION("full Hessian"){
-
+        
     }
 }
 

@@ -34,7 +34,7 @@ public:
         return dof;
     }
     T Evaluate(){return error.squaredNorm()/2;}
-    void Gradient(Matrix<T,Dynamic,1>& gradient) const{gradient=-jacobian.adjoint()*error;}
+    void Gradient(Matrix<T,Dynamic,1>& gradient) const{gradient=jacobian.adjoint()*error;}
     void RHS(Matrix<T,Dynamic,1>& rhs) const{rhs=error;}
     void Hessian(SparseMatrix<T>& hessian_out) const{hessian_out=hessian;}
     void Jacobian(SparseMatrix<T>& jacobian_out) const{jacobian_out=jacobian;}

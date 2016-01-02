@@ -76,7 +76,7 @@ template<class TV> void RIGID_STRUCTURE_DATA<TV>::
 Step(const DATA<TV>& data)
 {
     for(int i=0;i<structures.size();i++){
-        LOG::cout<<structures[i]->name<<" velocity: "<<structures[i]->twist.linear.transpose()<<std::endl;
+        //LOG::cout<<structures[i]->name<<" velocity: "<<structures[i]->twist.linear.transpose()<<std::endl;
         structures[i]->frame=Updated_Frame(data,structures[i]->frame,structures[i]->twist);}
 }
 ///////////////////////////////////////////////////////////////////////
@@ -99,7 +99,7 @@ Inertia(const T dt,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& inverse
         auto structure=structures[i];
         DiagonalMatrix<T,s> inertia_matrix=one_over_dt*structures[i]->Inertia_Matrix();
         Flatten_Term(i,i,inertia_matrix,force_terms);
-        rhs.template block<s,1>(s*i,0)=-(inertia_matrix*structures[i]->twist.Pack());
+        rhs.template block<s,1>(s*i,0)=inertia_matrix*structures[i]->twist.Pack();
         DiagonalMatrix<T,s> inverse_inertia_matrix(inertia_matrix.inverse());
         Flatten_Term(i,i,inverse_inertia_matrix,inverse_inertia_terms);}
     inverse_inertia.resize(structures.size()*s,structures.size()*s);

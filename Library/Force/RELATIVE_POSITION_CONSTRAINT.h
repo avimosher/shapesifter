@@ -38,7 +38,8 @@ public:
     void Archive(cereal::JSONOutputArchive& archive){archive(CEREAL_NVP(errors));}
     void Archive(cereal::JSONInputArchive& archive){archive(CEREAL_NVP(errors));}
 
-    void Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic);
+    void Identify_Interactions_And_Compute_Errors(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic);
+    void Compute_Derivatives(DATA<TV>& data,FORCE<TV>& force,MATRIX_BUNDLE<TV>& system);
     void Viewer(const DATA<TV>& data,osg::Node* node);
     DEFINE_TYPE_NAME("RELATIVE_POSITION_CONSTRAINT")
 };

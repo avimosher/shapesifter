@@ -50,7 +50,7 @@ public:
     void Linearize(SIMULATION<TV>& simulation,const T dt,const T time);
     void Linearize_Around(SIMULATION<TV>& simulation,const T dt,const T time);
     void Increment_X(SIMULATION<TV>& simulation);
-    void Update_Preconditioner();
+    void Update_Preconditioner(bool identity);
     void Update_Hessian();
     STATUS Update_One_Step(SIMULATION<TV>& simulation,const T dt,const T time);
     void Solve_Trust_Conjugate_Gradient(Vector& pk);

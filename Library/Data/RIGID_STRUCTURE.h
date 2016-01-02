@@ -101,7 +101,8 @@ public:
             CEREAL_NVP(twist),
             CEREAL_NVP(radius),
             CEREAL_NVP(collision_radius),
-            CEREAL_NVP(collision_extent));}
+            CEREAL_NVP(collision_extent),
+            CEREAL_NVP(initialized));}
 
     TV Displacement(const DATA<TV>& data,const RIGID_STRUCTURE<TV>& structure,TV& offset1,TV& offset2) const;
     void Initialize_Inertia(const T eta);

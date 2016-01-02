@@ -60,36 +60,10 @@ class VOLUME_EXCLUSION_CONSTRAINT:public FORCE_TYPE<TV>
     typedef Matrix<T,t+d,1> FORCE_VECTOR;
 public:
     using FORCE_TYPE<TV>::stored_forces;using FORCE_TYPE<TV>::errors;
-
-
     enum CONSTRAINT_FIELDS{CONSTRAINT_FORCE_DIRECTIONS,CONSTRAINT_SPINS,CONSTRAINT_OFFSETS,CONSTRAINT_RELATIVE_POSITION};
     typedef std::tuple<std::array<FORCE_VECTOR,2>,std::array<T_SPIN,2>,std::array<TV,2>,TV> CONSTRAINT;
-    /*struct CONSTRAINT{
-        INDEX_PAIR indices;
-        std::array<FORCE_VECTOR,2> force_directions;
-        std::array<T_SPIN,2> spins;
-        std::array<TV,2> offsets;
-        TV relative_position;
-
-        CONSTRAINT(const INDEX_PAIR& i_in,const std::array<FORCE_VECTOR,2>& fd_in,const std::array<T_SPIN,2>& s_in,const std::array<TV,2>& o_in,const TV& r_in)
-            :indices(i_in),force_directions(fd_in),spins(s_in),offsets(o_in),relative_position(r_in)
-        {}
-        };*/
-
     enum CONSTANT_FORCE_FIELDS{CONSTANT_FORCE_SPINS,CONSTANT_FORCE_OFFSETS,CONSTANT_FORCE_RELATIVE_POSITION,CONSTANT_FORCE_THRESHOLD};
     typedef std::tuple<std::array<T_SPIN,2>,std::array<TV,2>,TV,T> CONSTANT_FORCE;
-
-    /*struct CONSTANT_FORCE{
-        INDEX_PAIR indices;
-        std::array<T_SPIN,2> spins;
-        std::array<TV,2> offsets;
-        TV relative_position;
-        T threshold;
-
-        CONSTANT_FORCE(const INDEX_PAIR& i_in,const std::array<T_SPIN,2>& s_in,const std::array<TV,2>& o_in,const TV& r_in,const T t_in)
-            :indices(i_in),spins(s_in),offsets(o_in),relative_position(r_in),threshold(t_in)
-        {}
-        };*/
 
     std::vector<INDEX_PAIR> constraint_indices;
     std::vector<INDEX_PAIR> constant_force_indices;
@@ -118,7 +92,6 @@ public:
     void Pack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information);
     void Unpack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information);
     void Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,int increment);
-    void Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic);
     void Identify_Interactions_And_Compute_Errors(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic);
     void Compute_Derivatives(DATA<TV>& data,FORCE<TV>& force,MATRIX_BUNDLE<TV>& system);
     void Viewer(const DATA<TV>& data,osg::Node* node);

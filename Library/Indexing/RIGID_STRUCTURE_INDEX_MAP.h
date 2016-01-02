@@ -183,9 +183,6 @@ public:
 
     static TensorFixedSize<T,Sizes<3,3,3>> Outer_Product(const Matrix<T,3,3>& m,const Matrix<T,3,1>& v,const std::vector<int>& indices){
         TensorFixedSize<T,Sizes<3,3,3>> tensor;
-        std::cout<<"Indices size: "<<indices.size();
-        for(int i=0;i<3;i++){std::cout<<" "<<indices[i];}
-        std::cout<<std::endl;
         Matrix<int,3,1> index;index<<0,0,0;
         for(index[0]=0;index[0]<3;index[0]++){
             for(index[1]=0;index[1]<3;index[1]++){
@@ -208,36 +205,7 @@ public:
         return t1+t2+t3;
     }
     
-    static void Compute_Constraint_Second_Derivatives(const std::array<int,2>& indices,const int constraint_index,const T scalar_force,const TV& relative_position,std::vector<Quadruplet<T>>& hessian_terms){
-        for(int f=0;f<2;f++){
-            int f_sign=(f==0?-1:1);
-            for(int s1=0;s1<2;s1++){
-                int s1_sign=(s1==0?-1:1);
-                for(int s2=0;s2<2;s2++){
-                    int s2_sign=(s2==0?-1:1);
-                    // linear part WRT linear
-                    Flatten_Quadruplet_Term<T,t+d,t+d,t+d,d,d,d>(indices[s1],indices[s2],indices[f],0,0,0,d2f_dVelocity2(relative_position,s1_sign,s2_sign)*(T)f_sign*scalar_force,hessian_terms);
-                //Flatten_Matrix_Term<T,t+d,t+d,d,d>(indices[s1],indices[s2],0,0,d2f_dVelocity2(relative_position,(s1==0?-1:1),(s2==0?-1:1)),hessian_terms);
-                // term corresponding to the actual constraint row
-                //Flatten_Matrix_Term<T,t+d,t+d,d,d>(indices[s1],indices[s2],0,0,df_dVelocity());
-                }
-
-                // second derivatives that have one force term and one velocity
-                //Flatten_Quadruplet_Term<T...>(indices[s1],f_sign*df_dVelocity(relative_position,s1_sign));
-                // also put it in for the transpose term
-            }
-            
-            
-        }
-        // include second derivatives of the constraint equation itself (only double velocity)
-        /*for(int s1=0;s1<2;s1++){
-            int s1_sign=(s1==0?-1:1);
-            for(int s2=0;s2<2;s2++){
-                int s2_sign=(s2==0?-1:1);
-                d2n_dVelocity2(relative_position,s1_sign,s2_sign);
-            }
-            }*/
-    }
+    static void Compute_Constraint_Second_Derivatives(const Matrix<T,Dynamic,1>& force_balance_error,const std::array<int,2>& indices,int constraint_index,const T constraint_error,const T actual_error,const T scalar_force,const TV& relative_position,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_constraint_terms,std::vector<Triplet<T>>& constraint_force_terms);
 
 
     static Matrix<T,3,3> Compute_Orientation_Constraint_Matrix(const ROTATION<TV>& rotation,const ROTATION<TV>& relative_rotation,const int composed_rotation_sign)

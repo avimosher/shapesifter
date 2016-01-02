@@ -15,17 +15,45 @@
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::
-Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic)
+Identify_Interactions_And_Compute_Errors(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic)
 {
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
     VECTOR& right_hand_side=system.RHS(data,force,*rigid_data);
     VECTOR& constraint_right_hand_side=system.RHS(data,force,*this);
+
+    constraint_right_hand_side.resize(constraints.size(),1);
+    for(int i=0;i<constraints.size();i++){
+        const CONSTRAINT& constraint=constraints[i];
+        std::array<int,2> indices={constraint.s1,constraint.s2};
+        auto structure1=rigid_data->structures[indices[0]];
+        auto structure2=rigid_data->structures[indices[1]];
+        std::array<FRAME<TV>,2> frames={structure1->frame,structure2->frame};
+        std::array<TV,2> rotated_offsets={frames[0].orientation*constraint.v1,frames[1].orientation*constraint.v2};
+        TV relative_position=data.Minimum_Offset(frames[0]*constraint.v1,frames[1]*constraint.v2);
+        for(int s=0,sgn=-1;s<2;s++,sgn+=2){
+            // contribution to force-balance RHS
+            FORCE_VECTOR force_direction=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(rotated_offsets[s]).transpose()*relative_position.normalized(); // TODO: may be problematic for distance=0
+            right_hand_side.template block<t+d,1>(indices[s]*(t+d),0)+=sgn*force_direction*stored_forces[i];
+        }
+        constraint_right_hand_side[i]=relative_position.norm()-constraint.target_distance;
+    }
+    // This has to go before Flatten calls - it determines the DOF for this force
+    stored_forces.resize(constraints.size());
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::
+Compute_Derivatives(DATA<TV>& data,FORCE<TV>& force,MATRIX_BUNDLE<TV>& system)
+{
+    auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
     std::vector<Triplet<T>>& force_terms=system.Matrix_Block_Terms(data,force,*rigid_data);
-    std::vector<Quadruplet<T>>& hessian_terms=system.Hessian_Block_Terms(data,force,*rigid_data,*rigid_data);
+    /*std::vector<Triplet<T>>& hessian_terms=system.Hessian_Block_Terms(data,force,*rigid_data,*rigid_data);
+    std::vector<Triplet<T>>& constraint_force_terms=system.Hessian_Block_Terms(data,force,*this,*rigid_data);
+    std::vector<Triplet<T>>& force_constraint_terms=system.Hessian_Block_Terms(data,force,*rigid_data,*this);
+    VECTOR& constraint_right_hand_side=system.RHS(data,force,*this);
+    const Matrix<T,Dynamic,1>& force_balance_error=system.RHS(data,force,*rigid_data);*/
 
     std::vector<Triplet<CONSTRAINT_VECTOR>> terms;
     std::vector<Triplet<FORCE_VECTOR>> forces;
-    constraint_right_hand_side.resize(constraints.size(),1);
     for(int i=0;i<constraints.size();i++){
         const CONSTRAINT& constraint=constraints[i];
         std::array<int,2> indices={constraint.s1,constraint.s2};
@@ -40,21 +68,15 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
             terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,indices[s],sgn*RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(spins[s],rotated_offsets[s],relative_position,constraint.target_distance)));
             // contribution to force-balance RHS
             FORCE_VECTOR force_direction=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(rotated_offsets[s]).transpose()*relative_position.normalized(); // TODO: may be problematic for distance=0
-            right_hand_side.template block<t+d,1>(indices[s]*(t+d),0)-=sgn*force_direction*stored_forces[i];
-            forces.push_back(Triplet<FORCE_VECTOR>(indices[s],i,sgn*force_direction));}
-
-        LOG::cout<<"Applying force "<<stored_forces[i]*relative_position.normalized().transpose()<<" between "<<structure1->name<<" and "<<structure2->name<<std::endl;
-
-        constraint_right_hand_side[i]=(constraint.target_distance-relative_position.norm());
+            forces.push_back(Triplet<FORCE_VECTOR>(indices[s],i,sgn*force_direction));
+        }
         RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Force_Derivatives(indices,stored_forces[i],relative_position,rotated_offsets,spins,force_terms);
-        //RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Second_Derivatives(indices,i,stored_forces[i],relative_position,hessian_terms);
+        //RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Second_Derivatives(force_balance_error,indices,i,constraint_right_hand_side[i],(relative_position.norm()-constraint.target_distance),stored_forces[i],relative_position,hessian_terms,force_constraint_terms,constraint_force_terms);
     }
-    // This has to go before Flatten calls - it determines the DOF for this force
-    stored_forces.resize(constraints.size());
     system.Flatten_Jacobian_Block(data,force,*this,*rigid_data,terms);
     system.Flatten_Jacobian_Block(data,force,*rigid_data,*this,forces);
-    system.Flatten_Hessian_Block(data,force,*this,*rigid_data);
-    system.Flatten_Hessian_Block(data,force,*rigid_data,*this);
+    /*system.Flatten_Hessian_Block(data,force,*this,*rigid_data);
+      system.Flatten_Hessian_Block(data,force,*rigid_data,*this);*/
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::

@@ -16,7 +16,7 @@ public:
     Matrix<SparseMatrix<T>,Dynamic,Dynamic> hessian_blocks;
     Matrix<Matrix<T,Dynamic,1>,Dynamic,1> error_blocks;
     std::vector<std::vector<Triplet<T>>> jacobian_block_terms;
-    Matrix<std::vector<Quadruplet<T>>,Dynamic,Dynamic> hessian_block_terms;
+    Matrix<std::vector<Triplet<T>>,Dynamic,Dynamic> hessian_block_terms;
 
     void Initialize(const DATA<TV>& data,const FORCE<TV>& force){
         int full_size=data.size()+force.size();
@@ -68,41 +68,28 @@ public:
     }
 
     template<class SUBTYPE1,class SUBTYPE2>
-    std::vector<Quadruplet<T>>& Hessian_Block_Terms(const DATA<TV>& data,const FORCE<TV>& force,const SUBTYPE1& o1,const SUBTYPE2& o2){
+    std::vector<Triplet<T>>& Hessian_Block_Terms(const DATA<TV>& data,const FORCE<TV>& force,const SUBTYPE1& o1,const SUBTYPE2& o2){
         return hessian_block_terms(Index(data,force,o1),Index(data,force,o2));
-    }
-
-    void Assemble_Hessian_Blocks(const DATA<TV>& data,const FORCE<TV>& force,const Matrix<T,Dynamic,1>& o){
-        for(int i=0;i<data.size()+force.size();i++){
-            for(int j=0;j<data.size()+force.size();j++){
-                std::vector<Triplet<T>> triplets;
-                const std::vector<Quadruplet<T>>& quadruplets=hessian_block_terms(i,j);
-                for(const Quadruplet<T>& q : quadruplets){
-                    triplets.push_back(Triplet<T>(std::get<0>(q),std::get<1>(q),std::get<3>(q)*o(std::get<2>(q))));
-                }
-                hessian_blocks(i,j).setFromTriplets(triplets.begin(),triplets.end());
-            }
-        }
     }
 
     void Scale_Errors(const DATA<TV>& data,const FORCE<TV>& force,std::vector<SparseMatrix<T>>& kinematic_projection_matrices,std::vector<SparseMatrix<T>>& inverse_inertia_matrices){
         for(int i=0;i<data.size();i++){
-            error_blocks[i]=kinematic_projection_matrices[i]*error_blocks[i];}
+            error_blocks[i]=kinematic_projection_matrices[i]*inverse_inertia_matrices[i]*error_blocks[i];}
     }
 
     void Scale_Derivatives(const DATA<TV>& data,const FORCE<TV>& force,std::vector<SparseMatrix<T>>& kinematic_projection_matrices,std::vector<SparseMatrix<T>>& inverse_inertia_matrices){
         for(int i=0;i<data.size();i++){
             jacobian_blocks(i,i).setFromTriplets(jacobian_block_terms[i].begin(),jacobian_block_terms[i].end());
-            //hessian_blocks(i,i).setFromTriplets(hessian_block_terms(i,i).begin(),hessian_block_terms(i,i).end());
-            /*for(int j=0;j<data.size()+force.size();j++){
-              jacobian_blocks(i,j)=jacobian_blocks(i,j)*inverse_inertia_matrices[j];}*/
+            hessian_blocks(i,i).setFromTriplets(hessian_block_terms(i,i).begin(),hessian_block_terms(i,i).end());
+            for(int j=0;j<data.size()+force.size();j++){
+              jacobian_blocks(i,j)=inverse_inertia_matrices[i]*jacobian_blocks(i,j);}
         }
-        for(int i=0;i<data.size()+force.size();i++){
+        /*for(int i=0;i<data.size()+force.size();i++){
             for(int j=0;j<data.size()+force.size();j++){
                 if(i<data.size()){
                     jacobian_blocks(i,j)=kinematic_projection_matrices[i]*jacobian_blocks(i,j);}
                 if(j<data.size()){
-                    jacobian_blocks(i,j)=jacobian_blocks(i,j)*kinematic_projection_matrices[j].transpose();}}}
+                jacobian_blocks(i,j)=jacobian_blocks(i,j)*kinematic_projection_matrices[j].transpose();}}}*/
     }
 
     template<class SUBTYPE1,class SUBTYPE2,class T_MATRIX>

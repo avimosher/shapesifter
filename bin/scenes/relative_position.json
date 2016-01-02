@@ -21,9 +21,9 @@
         {"type": "RELATIVE_POSITION_CONSTRAINT",
          "constraints": [
              {"structure1": "left",
-              "offset1": [0, 0, 0],
+              "offset1": [0, 0, 1],
               "structure2": "right",
-              "offset2": [0, 0, 0],
+              "offset2": [0, 0, 1],
               "distance": 10}
          ]
         },

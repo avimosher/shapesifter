@@ -123,12 +123,10 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     Merge_Block_Matrices(system.jacobian_blocks,jacobian);
     Merge_Block_Vectors(system.error_blocks,error);
 
-    system.Assemble_Hessian_Blocks(data,force,error);
     // build the Hessian
-    SparseMatrix<T> hessian_addition;
-    Merge_Block_Matrices(system.hessian_blocks,hessian_addition);
-    //std::cout<<hessian_addition<<std::endl;
-    hessian=jacobian.adjoint()*jacobian;//+hessian_addition;
+    //SparseMatrix<T> hessian_addition;
+    //Merge_Block_Matrices(system.hessian_blocks,hessian_addition);
+    hessian=jacobian.adjoint()*jacobian;
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(NONLINEAR_EQUATION)

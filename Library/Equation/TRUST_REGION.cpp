@@ -8,6 +8,7 @@
 #include <Utilities/LOG.h>
 #include <Utilities/MATH.h>
 #include <Eigen/Eigenvalues>
+#include <iomanip>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> TRUST_REGION<TV>::
@@ -107,7 +108,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     equation->Gradient(gk);
     norm_gk=gk.norm();
     Update_Hessian();
-    Update_Preconditioner();
+    Update_Preconditioner(false);
 
     static int failed_radius=0;
     do{
@@ -123,7 +124,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
         // update Hessian
         if(status==MOVED || status==EXPAND){
             Update_Hessian();
-            if(simulation.force.Equations_Changed() || iteration%preconditioner_refresh_frequency==0){Update_Preconditioner();}
+            if(simulation.force.Equations_Changed() || iteration%preconditioner_refresh_frequency==0){Update_Preconditioner(false);}
             status=CONTINUE;}
         if(simulation.substeps){
             //std::string frame_name="Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration)+" radius "+std::to_string(radius)+" real "+std::to_string(int(status==CONTINUE))+ " f "+std::to_string(f);
@@ -138,10 +139,11 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
-Update_Preconditioner()
+Update_Preconditioner(bool identity)
 {
-    preconditioner.compute(hessian);
-    if(preconditioner.info()!=ComputationInfo::Success){
+    if(!identity){
+        preconditioner.compute(hessian);}
+    if(identity || preconditioner.info()!=ComputationInfo::Success){
         LOG::cout<<"Preconditioner computation failed; using identity"<<std::endl;
         SparseMatrix<T> BB(nvars,nvars);
         BB.setIdentity();
@@ -159,11 +161,31 @@ Update_Hessian()
     nvars=hessian.rows();
 }
 ///////////////////////////////////////////////////////////////////////
+template<class M>
+void Print_No_Angular(const M& m)
+{
+    for(int i=0;i<m.rows();i++){
+        if(i%6>2){continue;}
+        for(int j=0;j<m.cols();j++){
+            if(j%6>2){continue;}
+            LOG::cout<<std::setw(13)<<m(i,j)<<" ";
+        }
+        LOG::cout<<std::endl;
+    }
+}
 template<class TV> typename TRUST_REGION<TV>::STATUS TRUST_REGION<TV>::
 Update_One_Step(SIMULATION<TV>& simulation,const T dt,const T time)
 {
     auto step_status=UNKNOWN;
     T try_f,step_quality,predicted_reduction;
+    /*LOG::cout<<"Jacobian adjoint: "<<std::endl;
+    Print_No_Angular(Matrix<T,Dynamic,Dynamic>(jacobian.adjoint()));
+    LOG::cout<<"Error: "<<std::endl;
+    LOG::cout<<"Un-adjusted hessian sk:"<<std::endl;*/
+    //hessian=jacobian.adjoint()*jacobian;
+    //Solve_Trust_Conjugate_Gradient(sk);
+    //equation->Hessian(hessian);
+    LOG::cout<<std::endl<<"BEGINNING NEW STEP"<<std::endl;
     Solve_Trust_Conjugate_Gradient(sk);
     T norm_sk_scaled=Norm(preconditioner,sk,wd);
     if(!finite(norm_sk_scaled)){step_status=FAILEDCG;}
@@ -185,6 +207,10 @@ Update_One_Step(SIMULATION<TV>& simulation,const T dt,const T time)
             //LOG::cout<<"Max value at index "<<index<<" is "<<componentwise_prediction.maxCoeff(&index)<<std::endl;
             if(predicted_reduction<0){step_status=ENEGMOVE;}
             step_quality=actual_reduction/predicted_reduction;
+            LOG::cout<<"Candidate error with value "<<try_f<<":"<<std::endl;
+            Matrix<T,Dynamic,1> error;
+            equation->RHS(error);
+            Print_No_Angular(error.transpose());
             LOG::cout<<"AP: "<<step_quality<<" old f: "<<f<<" try f: "<<try_f<<" ared: "<<actual_reduction<<" pred: "<<predicted_reduction<<" radius: "<<radius<<" gs: "<<gs<<" sBs: "<<sBs<<" norm_sk_scaled: "<<norm_sk_scaled<<std::endl;}
         else{step_status=FAILEDCG;}}
     if(step_status!=FAILEDCG && step_status!=ENEGMOVE){
@@ -195,7 +221,10 @@ Update_One_Step(SIMULATION<TV>& simulation,const T dt,const T time)
                 Increment_X(simulation);
                 gk=try_g;
                 norm_gk=gk.norm();
-                //tol=std::min(0.5,sqrt(norm_gk))*norm_gk;
+                /*LOG::cout<<"Resolved error:"<<std::endl;
+                Matrix<T,Dynamic,1> error;
+                equation->RHS(error);
+                Print_No_Angular(error.transpose());*/
                 if(step_quality>expand_threshold_ap){// && norm_sk_scaled>=expand_threshold_rad*radius){
                     step_status=EXPAND;}
                 else{step_status=MOVED;}}
@@ -242,6 +271,10 @@ Solve_Trust_Conjugate_Gradient(Vector& pk)
 {
     T dot_ry,dot_ry_old,aj,tau,dBd,p_norm_gk;
     int j;
+    /*LOG::cout<<"Hessian: "<<std::endl;
+    Print_No_Angular(Matrix<T,Dynamic,Dynamic>(hessian));
+    LOG::cout<<"Gradient: "<<std::endl;
+    Print_No_Angular((-gk).transpose());*/
 
     zj.resize(hessian.rows());
     zj.setZero();
@@ -259,7 +292,7 @@ Solve_Trust_Conjugate_Gradient(Vector& pk)
             tau=Find_Tau(zj,dj);
             pk.noalias()=zj+tau*dj;
             num_CG_iterations=j+1;
-            reason<<"Negative curvature";
+            reason<<"Negative curvature: "<<dBd;
             break;}
 
         aj=rj.dot(yj)/dBd;
@@ -298,6 +331,8 @@ Solve_Trust_Conjugate_Gradient(Vector& pk)
 
     CG_stop_reason=reason.str();
     LOG::cout<<"CG reason: "<<CG_stop_reason<<" iterations: "<<num_CG_iterations<<std::endl;
+    /*LOG::cout<<"sk: "<<std::endl;Print_No_Angular(sk.transpose());
+      LOG::cout<<"H*sk: "<<std::endl;Print_No_Angular((hessian*sk).transpose());*/
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
