@@ -119,21 +119,18 @@ Identify_Interactions_And_Compute_Errors(DATA<TV>& data,FORCE<TV>& force,const T
                     else{
                         old_constraints++;}
                     right_hand_side_force=std::get<1>(memory);
-                    rhs.push_back(-constraint_violation+slack_distance+push_out_distance);
+                    rhs.push_back(constraint_violation-slack_distance-push_out_distance);
                     constraints.push_back(std::make_tuple(force_directions,spins,offsets,relative_position));
-                    constraint_indices.push_back(indices);
-
-                }
+                    constraint_indices.push_back(indices);}
                 else if(std::get<0>(memory)==call_count || std::get<0>(constant_memory)==call_count){
                     if(std::get<0>(constant_memory)!=call_count){
                         std::get<1>(constant_memory)=std::get<1>(memory)/sqr(constraint_violation);}
                     right_hand_side_force=std::get<1>(constant_memory)*sqr(constraint_violation);
                     CONSTANT_FORCE constant_force(spins,offsets,relative_position,threshold);
                     constant_forces.push_back(constant_force);
-                    constant_force_indices.push_back(indices);
-                }
-                right_hand_side.template block<t+d,1>(s1*(t+d),0)+=force_directions[0]*right_hand_side_force;
-                right_hand_side.template block<t+d,1>(s2*(t+d),0)-=force_directions[1]*right_hand_side_force;}}}
+                    constant_force_indices.push_back(indices);}
+                right_hand_side.template block<t+d,1>(s1*(t+d),0)-=force_directions[0]*right_hand_side_force;
+                right_hand_side.template block<t+d,1>(s2*(t+d),0)+=force_directions[1]*right_hand_side_force;}}}
     equations_changed=new_constraints>0 || old_constraints!=constraint_count.peek();
     constraint_right_hand_side.resize(rhs.size(),1);
     for(int i=0;i<rhs.size();i++){constraint_right_hand_side(i,0)=rhs[i];}
@@ -147,14 +144,12 @@ Compute_Derivatives(DATA<TV>& data,FORCE<TV>& force,MATRIX_BUNDLE<TV>& system)
     std::vector<Triplet<CONSTRAINT_VECTOR>> terms;
     std::vector<Triplet<FORCE_VECTOR>> forces;
 
-    T slack_distance=-.005;
-    T push_out_distance=1e-8;
     for(int i=0;i<constraints.size();i++){
         CONSTRAINT& constraint=constraints[i];
         INDEX_PAIR& indices=constraint_indices[i];
         auto& memory=force_memory[indices];
         for(int s=0,sgn=-1;s<2;s++,sgn+=2){
-            terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,indices[s],sgn*RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(std::get<CONSTRAINT_SPINS>(constraint)[s],std::get<CONSTRAINT_OFFSETS>(constraint)[s],std::get<CONSTRAINT_RELATIVE_POSITION>(constraint),slack_distance+push_out_distance)));
+            terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,indices[s],sgn*RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(std::get<CONSTRAINT_SPINS>(constraint)[s],std::get<CONSTRAINT_OFFSETS>(constraint)[s],std::get<CONSTRAINT_RELATIVE_POSITION>(constraint))));
             forces.push_back(Triplet<FORCE_VECTOR>(indices[s],i,sgn*std::get<CONSTRAINT_FORCE_DIRECTIONS>(constraint)[s]));}
         RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Force_Derivatives(indices,std::get<1>(memory),std::get<CONSTRAINT_RELATIVE_POSITION>(constraint),std::get<CONSTRAINT_OFFSETS>(constraint),std::get<CONSTRAINT_SPINS>(constraint),force_terms);}
 

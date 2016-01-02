@@ -65,7 +65,7 @@ Compute_Derivatives(DATA<TV>& data,FORCE<TV>& force,MATRIX_BUNDLE<TV>& system)
         TV relative_position=data.Minimum_Offset(frames[0]*constraint.v1,frames[1]*constraint.v2);
 
         for(int s=0,sgn=-1;s<2;s++,sgn+=2){
-            terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,indices[s],sgn*RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(spins[s],rotated_offsets[s],relative_position,constraint.target_distance)));
+            terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,indices[s],sgn*RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(spins[s],rotated_offsets[s],relative_position)));
             // contribution to force-balance RHS
             FORCE_VECTOR force_direction=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(rotated_offsets[s]).transpose()*relative_position.normalized(); // TODO: may be problematic for distance=0
             forces.push_back(Triplet<FORCE_VECTOR>(indices[s],i,sgn*force_direction));

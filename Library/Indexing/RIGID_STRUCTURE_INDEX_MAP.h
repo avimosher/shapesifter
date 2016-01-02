@@ -45,10 +45,9 @@ public:
         return 2*q.cross(offset)*dw_dspin-2*(Cross_Product_Matrix(offset)*w+Cross_Product_Matrix(q.cross(offset))+Cross_Product_Matrix(q)*Cross_Product_Matrix(offset))*dq_dspin;
     }
 
-    static Matrix<T,1,t+d> dConstraint_dTwist(const TV& spin,const TV& offset,const TV& relative_position,const T target){
+    static Matrix<T,1,t+d> dConstraint_dTwist(const TV& spin,const TV& offset,const TV& relative_position){
         static const T eps=1e-8;
         T relative_position_norm=relative_position.norm();
-        //TV normalized_relative_position=(relative_position_norm>eps?(TV)((relative_position_norm-target)*relative_position/relative_position_norm):TV::UnitX());
         TV normalized_relative_position=(relative_position_norm>eps?(TV)(relative_position/relative_position_norm):TV::UnitX());
         Matrix<T,1,t+d> final;
         final.template block<1,d>(0,0)=normalized_relative_position.transpose();

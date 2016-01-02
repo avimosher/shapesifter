@@ -101,9 +101,8 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
                                 std::get<1>(memory)=0;
                                 if(std::get<0>(constant_memory)==call_count){
                                     std::get<1>(memory)=std::get<1>(constant_memory)*sqr(constraint_violation);}}
-                            //LOG::cout<<"Constraint force with base: "<<std::get<1>(memory)<<std::endl;
                             right_hand_side_force=std::get<1>(memory);
-                            terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s,RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(spin,offset,direction*relative_position,slack_distance+push_out_distance)));
+                            terms.push_back(Triplet<CONSTRAINT_VECTOR>(constraints.size(),s,RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(spin,offset,direction*relative_position)));
                             forces.push_back(Triplet<FORCE_VECTOR>(s,constraints.size(),force_direction));
                             RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Force_Derivative(s,right_hand_side_force,direction*relative_position,offset,spin,force_terms);
                             rhs.push_back(-constraint_violation+slack_distance+push_out_distance);
@@ -111,7 +110,6 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
                         else if(std::get<0>(memory)==call_count || std::get<0>(constant_memory)==call_count){
                             if(std::get<0>(constant_memory)!=call_count){
                                 std::get<1>(constant_memory)=std::get<1>(memory)/sqr(constraint_violation);}
-                            //LOG::cout<<"Penalty force with base: "<<std::get<1>(constant_memory)<<std::endl;
                             right_hand_side_force=std::get<1>(constant_memory)*sqr(constraint_violation);
                             constant_forces.push_back(constraint);
                             RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Penalty_Force_Derivative(s,threshold,std::get<1>(constant_memory),relative_position*direction,offset,spin,force_terms);}
