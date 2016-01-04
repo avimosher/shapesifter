@@ -12,8 +12,10 @@
 #include <catch.hpp>
 
 using namespace Mechanics;
+using namespace Eigen;
 typedef double T;
-typedef Eigen::Matrix<T,3,1> TV;
+typedef Matrix<T,3,1> TV;
+typedef Matrix<T,3,1> T_SPIN;
 
 unsigned int Factorial(int number){
     return number<=1?number:Factorial(number-1)*number;
@@ -28,7 +30,7 @@ TV Evaluate_Vector(const TV& v){
 }
 
 TEST_CASE("Tensor"){
-    Eigen::TensorFixedSize<T,Eigen::Sizes<3,3,3>> t,d;
+    TensorFixedSize<T,Sizes<3,3,3>> t,d;
     t(1,1,1)=5;
     d(2,2,2)=1;
     std::cout<<t*d<<std::endl;;
@@ -55,7 +57,7 @@ TEST_CASE("Hessian"){
         TV dnfinv_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::dnfinv_dVelocity(f0,f0.norm(),1);
         T expected_change=dnfinv_dv.dot(dx1);
         T actual_change=1/(x2+dx1-x1).norm()-1/f0.norm();
-        std::cout<<"(Expected-actual)/norm: "<<(expected_change-actual_change)/dx1.norm()<<std::endl;
+        //std::cout<<"(Expected-actual)/norm: "<<(expected_change-actual_change)/dx1.norm()<<std::endl;
         REQUIRE(std::fabs(actual_change-expected_change)<1e-2*epsilon);
     }
 
@@ -87,14 +89,9 @@ TEST_CASE("Hessian"){
                 for(int k=0;k<3;k++){
                     delta(i,j)+=d2f_dv2(j,k,i)*dx1(k);
                 }}}
-        std::cout<<d1-d0<<std::endl;
+        /*std::cout<<d1-d0<<std::endl;
         std::cout<<delta<<std::endl;
-        std::cout<<"Quality: "<<(d1-d0-delta).norm()/epsilon<<std::endl;
-        //TV delta=d2f_dv2*dx1;
-        /*std::cout<<"d1-d0: "<<(d1-d0).transpose()<<std::endl;
-        std::cout<<"delta: "<<delta.transpose()<<std::endl;
-        std::cout<<"Quality d3: "<<(d1-d0-delta).norm()/epsilon<<std::endl;
-        REQUIRE((d1-d0-delta).norm()<1e-2*epsilon);*/
+        std::cout<<"Quality: "<<(d1-d0-delta).norm()/epsilon<<std::endl;*/
     }
 
     SECTION("d2n_dVelocity2"){
@@ -102,14 +99,9 @@ TEST_CASE("Hessian"){
         Matrix<T,3,1> d0=RIGID_STRUCTURE_INDEX_MAP<TV>::dnf_dVelocity(f0,f0.norm(),-1);
         Matrix<T,3,1> d1=RIGID_STRUCTURE_INDEX_MAP<TV>::dnf_dVelocity(f0-dx1,(f0-dx1).norm(),-1);
         Matrix<T,3,1> delta=d2n_dv2*dx1;
-        std::cout<<d1-d0<<std::endl;
+        /*std::cout<<d1-d0<<std::endl;
         std::cout<<delta<<std::endl;
-        std::cout<<"Quality: "<<(d1-d0-delta).norm()/epsilon<<std::endl;
-        //TV delta=d2f_dv2*dx1;
-        /*std::cout<<"d1-d0: "<<(d1-d0).transpose()<<std::endl;
-        std::cout<<"delta: "<<delta.transpose()<<std::endl;
-        std::cout<<"Quality d3: "<<(d1-d0-delta).norm()/epsilon<<std::endl;
-        REQUIRE((d1-d0-delta).norm()<1e-2*epsilon);*/
+        std::cout<<"Quality: "<<(d1-d0-delta).norm()/epsilon<<std::endl;*/
     }
 
     SECTION("full Hessian"){
@@ -130,6 +122,34 @@ TEST_CASE("Rigid structure","[rigid structure]"){
     SECTION("test stepping"){
     }*/
 
+}
+
+TEST_CASE("ASSOCIATION_DISSOCATION_CONSTRAINT"){
+    RANDOM<T> random;
+    int tests=10;
+    T epsilon=1e-6;
+    SECTION("dRdS x F"){
+        for(int i=0;i<tests;i++){
+            T_SPIN spin=random.template Direction<T_SPIN>();
+            TV base_offset=random.template Direction<TV>();
+            TV f=random.template Direction<TV>();
+            ROTATION<TV> rotation(ROTATION<TV>::From_Rotation_Vector(spin));
+            T_SPIN dspin=epsilon*random.template Direction<T_SPIN>();
+
+            TV initial=(rotation*base_offset).cross(f);
+            TV final=(ROTATION<TV>::From_Rotation_Vector(spin+dspin)*base_offset).cross(f);
+
+            
+            Matrix<T,3,3> dFdS;
+            
+            Matrix<T,3,3> derivative=RIGID_STRUCTURE_INDEX_MAP<TV>::dRotatedOffset_dSpin(spin,ROTATION<TV>::From_Rotation_Vector(spin)*base_offset);
+            for(int j=0;j<3;j++){
+                dFdS.block<3,1>(0,j)=derivative.block<3,1>(0,j).cross(f);
+            }
+            TV predicted_delta=dFdS*dspin;
+            REQUIRE((final-initial-predicted_delta).norm()<1e-2*epsilon);
+        }
+    }
 }
 
 TEST_CASE("VOLUME_EXCLUSION_CONSTRAINT","[derivatives]"){
@@ -170,7 +190,7 @@ TEST_CASE("Derivatives","[derivatives]"){
             TV x2=random.template Direction<TV>();
             TV relative_position=x2-x1;
             TV direction=relative_position.normalized();
-            Eigen::Matrix<T,3,3> derivative=RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dVelocity(relative_position);
+            Matrix<T,3,3> derivative=RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dVelocity(relative_position);
             T epsilon=1e-6;
             TV delta=epsilon*random.template Direction<TV>();
             TV estimated_direction=direction+derivative*delta;
@@ -184,7 +204,7 @@ TEST_CASE("Derivatives","[derivatives]"){
         for(int i=0;i<tests;i++){
             TV base_offset=random.template Direction<TV>();
             TV spin=random.template Direction<TV>();
-            Eigen::Matrix<T,3,3> derivative=RIGID_STRUCTURE_INDEX_MAP<TV>::dRotatedOffset_dSpin(spin,ROTATION<TV>::From_Rotation_Vector(spin)*base_offset);
+            Matrix<T,3,3> derivative=RIGID_STRUCTURE_INDEX_MAP<TV>::dRotatedOffset_dSpin(spin,ROTATION<TV>::From_Rotation_Vector(spin)*base_offset);
             TV delta=epsilon*random.template Direction<TV>();
             TV estimated_offset=ROTATION<TV>::From_Rotation_Vector(spin)*base_offset+derivative*delta;
             TV actual_offset=ROTATION<TV>::From_Rotation_Vector(spin+delta)*base_offset;
@@ -215,7 +235,7 @@ TEST_CASE("Derivatives","[derivatives]"){
                 int overall_sign=s1==0?-1:1;
                 for(int s2=0;s2<2;s2++){
                     int term_sign=s1==s2?1:-1;
-                    Eigen::Matrix<T,3,3> derivative=term_sign*RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dSpin(relative_position,spins[s2],rotations[s2]*base_offsets[s2]);
+                    Matrix<T,3,3> derivative=term_sign*RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dSpin(relative_position,spins[s2],rotations[s2]*base_offsets[s2]);
                     //Eigen::Matrix<T,1,3> derivative=relative_position.transpose()*RIGID_STRUCTURE_INDEX_MAP<TV>::dRotatedOffset_dSpin(spins[s2],rotations[s2]*base_offsets[s2]);
                     //T estimated_norm=norm+derivative*delta;
                     TV delta=epsilon*random.template Direction<TV>();
@@ -253,7 +273,7 @@ TEST_CASE("Derivatives","[derivatives]"){
             TV direction=relative_position.normalized();
             T epsilon=1e-8;
             TV force=sqr(relative_position.norm()-threshold)*relative_position.normalized();
-            Eigen::Matrix<T,3,3> derivative=RIGID_STRUCTURE_INDEX_MAP<TV>::dPenaltyForce_dVelocity(relative_position,threshold);
+            Matrix<T,3,3> derivative=RIGID_STRUCTURE_INDEX_MAP<TV>::dPenaltyForce_dVelocity(relative_position,threshold);
             TV delta=epsilon*random.template Direction<TV>();
             TV estimated_force=force+derivative*delta;
             TV new_relative=(positions[1]+delta-positions[0]);
@@ -283,7 +303,7 @@ TEST_CASE("Derivatives","[derivatives]"){
                 int overall_sign=s1==0?-1:1;
                 for(int s2=0;s2<2;s2++){
                     int term_sign=s1==s2?1:-1;
-                    Eigen::Matrix<T,3,3> derivative=term_sign*RIGID_STRUCTURE_INDEX_MAP<TV>::dPenaltyTorque_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets[s1],rotated_offsets[s2],threshold);
+                    Matrix<T,3,3> derivative=term_sign*RIGID_STRUCTURE_INDEX_MAP<TV>::dPenaltyTorque_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets[s1],rotated_offsets[s2],threshold);
                     TV delta=epsilon*random.template Direction<TV>();
 
                     TV torque=overall_sign*(ROTATION<TV>::From_Rotation_Vector(spins[s1])*base_offsets[s1]).cross(sqr(relative_position.norm()-threshold)*relative_position.normalized());

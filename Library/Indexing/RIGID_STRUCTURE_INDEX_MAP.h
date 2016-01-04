@@ -45,6 +45,13 @@ public:
         return 2*q.cross(offset)*dw_dspin-2*(Cross_Product_Matrix(offset)*w+Cross_Product_Matrix(q.cross(offset))+Cross_Product_Matrix(q)*Cross_Product_Matrix(offset))*dq_dspin;
     }
 
+    static Matrix<T,t,t> dOffsetCrossForce_dSpin(const T_SPIN& spin,const TV& spun_offset,const TV& force){
+        Matrix<T,3,3> dRdS=dRotatedOffset_dSpin(spin,spun_offset);
+        Matrix<T,d,d> dFdS;
+        for(int i=0;i<t;i++){dFdS.col(i)=dRdS.col(i).cross(force);}
+        return dFdS;
+    }
+
     static Matrix<T,1,t+d> dConstraint_dTwist(const TV& spin,const TV& offset,const TV& relative_position){
         static const T eps=1e-8;
         T relative_position_norm=relative_position.norm();

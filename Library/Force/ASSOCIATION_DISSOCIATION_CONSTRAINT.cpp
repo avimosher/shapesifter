@@ -134,6 +134,7 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
     SparseMatrix<T>& constraint_terms=system.Matrix_Block(data,force,*this,*rigid_data);
     Matrix<T,Dynamic,1>& right_hand_side=system.RHS(data,force,*rigid_data);
     Matrix<T,Dynamic,1>& constraint_right_hand_side=system.RHS(data,force,*this);
+    std::vector<Triplet<T>>& force_terms=system.Matrix_Block_Terms(data,force,*rigid_data);
     if(stochastic){
         for(auto memory : force_memory){memory.second.second.setZero();}
         constraints.clear();
@@ -155,6 +156,7 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
         std::array<int,2> indices={std::get<SITE_INDEX>(first_site),std::get<SITE_INDEX>(second_site)};
         std::array<TV,2> site_offsets={interaction_type.site_offsets[0],interaction_type.site_offsets.back()};
         auto structure1=rigid_data->structures[indices[0]],structure2=rigid_data->structures[indices[1]];
+        std::array<T_SPIN,2> spins={structure1->twist.angular,structure2->twist.angular};
         
         //TV direction=structure1->Displacement(data,*structure2,offset1,offset2).normalized(); // use core-core direction for stability reasons
         TV position_error=data.Minimum_Offset(structure1->frame*site_offsets[0],structure2->frame*site_offsets[1]); // can't easily use point-point distance then, though.
@@ -168,8 +170,8 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
         auto& remembered=force_memory[interaction_index];
         if(remembered.first!=call_count){remembered.second.setZero();}
         stored_forces.template block<d+t,1>((d+t)*i,0)=remembered.second;
-        TV right_hand_force=remembered.second.template block<d,1>(0,0);
-        T_SPIN right_hand_torque=remembered.second.template block<t,1>(d,0);
+        TV remembered_force=remembered.second.template block<d,1>(0,0);
+        T_SPIN remembered_torque=remembered.second.template block<t,1>(d,0);
         T_SPIN total_rotation_error;total_rotation_error.setZero();
         for(int s=0,sgn=-1;s<2;s++,sgn+=2){
             T_SPIN rotation_error;
@@ -178,12 +180,13 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
             total_rotation_error+=sgn*rotation_error;
             LINEAR_CONSTRAINT_MATRIX dC_dX=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(rotated_offsets[s]);
             linear_terms.push_back(Triplet<LINEAR_CONSTRAINT_MATRIX>(i,indices[s],sgn*dC_dX));
-            right_hand_side.template block<d+t,1>(indices[s]*(d+t),0)+=sgn*(dC_dA.transpose()*right_hand_torque+dC_dX.transpose()*right_hand_force);}
+            right_hand_side.template block<d+t,1>(indices[s]*(d+t),0)+=sgn*(dC_dA.transpose()*remembered_torque+dC_dX.transpose()*remembered_force);
+            Flatten_Matrix_Term<T,t+d,t+d,t,t>(indices[0],indices[0],1,1,sgn*RIGID_STRUCTURE_INDEX_MAP<TV>::dOffsetCrossForce_dSpin(spins[s],rotated_offsets[s],remembered_force),force_terms);
+        }
 
         constraint_right_hand_side.template block<d,1>(d*i,0)=position_error;
         constraint_right_hand_side.template block<t,1>(d*constraints.size()+i*t,0)=total_rotation_error;
-
-        //RIGID_STRUCTURE_INDEX_MAP<TV>::dRotatedOffset_dSpin(
+        
     }
     constraint_terms.resize(constraints.size()*(d+t),rigid_data->Velocity_DOF());
     Flatten_Matrices(linear_terms,d*constraints.size(),angular_terms,constraint_terms);
