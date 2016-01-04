@@ -71,6 +71,8 @@ public:
     typedef Matrix<T,d+t,1> FORCE_VECTOR;
     using FORCE_TYPE<TV>::stored_forces;
     typedef std::tuple<int,int,int> CONSTRAINT;
+    enum CONSTRAINT_FIELDS{CONSTRAINT_INTERACTION,CONSTRAINT_BODY1,CONSTRAINT_BODY2};
+    enum SITE_FIELDS{SITE_INDEX,SITE_ACTIVE};
 
     int call_count;
     std::unordered_map<CONSTRAINT,std::pair<int,FORCE_VECTOR>> force_memory;

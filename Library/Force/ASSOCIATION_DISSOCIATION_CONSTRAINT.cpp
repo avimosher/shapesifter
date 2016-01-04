@@ -80,7 +80,7 @@ Interaction_Candidates(DATA<TV>& data,const T dt,int type_index,int type1,int ty
 
     for(int candidate_first=0;candidate_first<first_sites.size();candidate_first++){
         auto& first_site=first_sites[candidate_first];
-        int s1=std::get<0>(first_site);
+        int s1=std::get<SITE_INDEX>(first_site);
         auto structure1_frame=rigid_data->structures[s1]->frame;
         auto first_site_position=structure1_frame*interaction_type.site_offsets[type1];
         PROXIMITY_SEARCH<TV> proximity_search(data,first_site_position,interaction_type.bond_distance_threshold);
@@ -99,11 +99,11 @@ Interaction_Candidates(DATA<TV>& data,const T dt,int type_index,int type1,int ty
                 T cumulative_distribution=1-exp(-dissociation_rate*dt);
                 constraint_active=data.random.Uniform((T)0,(T)1)>cumulative_distribution;
                 if(!constraint_active){
-                    std::get<1>(first_site)=false;
-                    std::get<1>(second_site)=false;
+                    std::get<SITE_ACTIVE>(first_site)=false;
+                    std::get<SITE_ACTIVE>(second_site)=false;
                     partners[partnership]=false;
                     std::cout<<"CONSTRAINT DEACTIVATED: "<<s1<<" "<<s2<<std::endl;}}
-            else if(!std::get<1>(first_site) && !std::get<1>(second_site) && !partners[partnership]){ // do not re-bind already bound
+            else if(!std::get<SITE_ACTIVE>(first_site) && !std::get<SITE_ACTIVE>(second_site) && !partners[partnership]){ // do not re-bind already bound
                 auto structure2_frame=rigid_data->structures[s2]->frame;
                 auto second_site_position=structure2_frame*interaction_type.site_offsets[type2];
                 T bond_distance=data.Minimum_Offset(first_site_position,second_site_position).norm();
@@ -120,8 +120,8 @@ Interaction_Candidates(DATA<TV>& data,const T dt,int type_index,int type1,int ty
                 if(constraint_active){
                     std::cout<<"CONSTRAINT ACTIVATED: "<<s1<<" "<<s2<<std::endl;
                     //std::cout<<"CONSTRAINT ACTIVATED: "<<s1<<" "<<s2<<" "<<candidate_first<<" "<<candidate_second<<" remembered: "<<remembered.first<<" call count: "<<call_count<<" interaction: "<<i<<" test: "<<std::get<1>(interaction_type.sites[candidate_first])<<" "<<std::get<1>(interaction_type.sites[candidate_second])<<" "<<partners[partnership]<<std::endl;
-                    std::get<1>(first_site)=true;
-                    std::get<1>(second_site)=true;
+                    std::get<SITE_ACTIVE>(first_site)=true;
+                    std::get<SITE_ACTIVE>(second_site)=true;
                     partners[partnership]=true;}}
             if(constraint_active){constraints.push_back(constraint);}}}
 }
@@ -150,44 +150,41 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
     stored_forces.resize(constraints.size()*(d+t));
     for(int i=0;i<constraints.size();i++){
         auto interaction_index=constraints[i];
-        auto interaction_type=interaction_types[std::get<0>(interaction_index)];
-        int first_site_index=std::get<1>(interaction_index),second_site_index=std::get<2>(interaction_index);
-        auto first_site=interaction_type.sites[0][first_site_index],second_site=interaction_type.sites.back()[second_site_index];
-        auto s1=std::get<0>(first_site),s2=std::get<0>(second_site);
-        auto v1=interaction_type.site_offsets[0],v2=interaction_type.site_offsets.back();
-        auto structure1=rigid_data->structures[s1],structure2=rigid_data->structures[s2];
+        auto interaction_type=interaction_types[std::get<CONSTRAINT_INTERACTION>(interaction_index)];
+        auto first_site=interaction_type.sites[0][std::get<CONSTRAINT_BODY1>(interaction_index)],second_site=interaction_type.sites.back()[std::get<CONSTRAINT_BODY2>(interaction_index)];
+        std::array<int,2> indices={std::get<SITE_INDEX>(first_site),std::get<SITE_INDEX>(second_site)};
+        std::array<TV,2> site_offsets={interaction_type.site_offsets[0],interaction_type.site_offsets.back()};
+        auto structure1=rigid_data->structures[indices[0]],structure2=rigid_data->structures[indices[1]];
         
         //TV direction=structure1->Displacement(data,*structure2,offset1,offset2).normalized(); // use core-core direction for stability reasons
-        TV direction=data.Minimum_Offset(structure1->frame*v1,structure2->frame*v2); // can't easily use point-point distance then, though.
+        TV position_error=data.Minimum_Offset(structure1->frame*site_offsets[0],structure2->frame*site_offsets[1]); // can't easily use point-point distance then, though.
         
-        LINEAR_CONSTRAINT_MATRIX dC_dX1=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(*structure1,v1);
-        LINEAR_CONSTRAINT_MATRIX dC_dX2=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(*structure2,v2);
-        linear_terms.push_back(Triplet<LINEAR_CONSTRAINT_MATRIX>(i,s2,dC_dX2));
-        linear_terms.push_back(Triplet<LINEAR_CONSTRAINT_MATRIX>(i,s1,-dC_dX1));
-
         ROTATION<TV> relative_orientation_inverse=interaction_type.relative_orientation.inverse();
-        ROTATION<TV> R1_current=ROTATION<TV>::From_Rotation_Vector(structure1->twist.angular);
-        ROTATION<TV> R2_current=ROTATION<TV>::From_Rotation_Vector(structure2->twist.angular);
-        ROTATION<TV> R1_base=(R1_current.inverse()*structure1->frame.orientation)*relative_orientation_inverse;
-        ROTATION<TV> R2_base=R2_current.inverse()*structure2->frame.orientation;
-        ROTATION<TV> RC=Find_Appropriate_Rotation(R1_current*R1_base,R2_current*R2_base);
-        T_SPIN first_rotation_error_vector,second_rotation_error_vector;
+        std::array<ROTATION<TV>,2> current_rotations={ROTATION<TV>::From_Rotation_Vector(structure1->twist.angular),ROTATION<TV>::From_Rotation_Vector(structure2->twist.angular)};
+        std::array<ROTATION<TV>,2> base_rotations={(current_rotations[0].inverse()*structure1->frame.orientation)*relative_orientation_inverse,current_rotations[1].inverse()*structure2->frame.orientation};
+        std::array<TV,2> rotated_offsets={structure1->frame.orientation*site_offsets[0],structure2->frame.orientation*site_offsets[1]};
+        ROTATION<TV> RC=Find_Appropriate_Rotation(current_rotations[0]*base_rotations[0],current_rotations[1]*base_rotations[1]);
         
-        ANGULAR_CONSTRAINT_MATRIX dC_dA1=RIGID_STRUCTURE_INDEX_MAP<TV>::Orientation_Constraint_Matrix(R1_current,R1_base*RC,first_rotation_error_vector)*angular_to_constraint;
-        ANGULAR_CONSTRAINT_MATRIX dC_dA2=RIGID_STRUCTURE_INDEX_MAP<TV>::Orientation_Constraint_Matrix(R2_current,R2_base*RC,second_rotation_error_vector)*angular_to_constraint;
-        angular_terms.push_back(Triplet<ANGULAR_CONSTRAINT_MATRIX>(i,s2,dC_dA2.eval()));
-        angular_terms.push_back(Triplet<ANGULAR_CONSTRAINT_MATRIX>(i,s1,-dC_dA1.eval()));
-        ROTATION<TV> composed_rotation(relative_orientation_inverse*(structure2->frame.orientation*RC).inverse()*(structure1->frame.orientation*RC));
-        T_SPIN total_rotation_error=second_rotation_error_vector-first_rotation_error_vector;
-        constraint_right_hand_side.template block<d,1>(d*i,0)=-direction;
-        constraint_right_hand_side.template block<t,1>(d*constraints.size()+i*t,0)=-total_rotation_error;
         auto& remembered=force_memory[interaction_index];
         if(remembered.first!=call_count){remembered.second.setZero();}
         stored_forces.template block<d+t,1>((d+t)*i,0)=remembered.second;
         TV right_hand_force=remembered.second.template block<d,1>(0,0);
         T_SPIN right_hand_torque=remembered.second.template block<t,1>(d,0);
-        right_hand_side.template block<d+t,1>(s1*(d+t),0)+=dC_dA1.transpose()*right_hand_torque+dC_dX1.transpose()*right_hand_force;
-        right_hand_side.template block<d+t,1>(s2*(d+t),0)-=dC_dA2.transpose()*right_hand_torque+dC_dX2.transpose()*right_hand_force;}
+        T_SPIN total_rotation_error;total_rotation_error.setZero();
+        for(int s=0,sgn=-1;s<2;s++,sgn+=2){
+            T_SPIN rotation_error;
+            ANGULAR_CONSTRAINT_MATRIX dC_dA=RIGID_STRUCTURE_INDEX_MAP<TV>::Orientation_Constraint_Matrix(current_rotations[s],base_rotations[s]*RC,rotation_error)*angular_to_constraint;
+            angular_terms.push_back(Triplet<ANGULAR_CONSTRAINT_MATRIX>(i,indices[s],dC_dA));
+            total_rotation_error+=sgn*rotation_error;
+            LINEAR_CONSTRAINT_MATRIX dC_dX=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(rotated_offsets[s]);
+            linear_terms.push_back(Triplet<LINEAR_CONSTRAINT_MATRIX>(i,indices[s],sgn*dC_dX));
+            right_hand_side.template block<d+t,1>(indices[s]*(d+t),0)+=sgn*(dC_dA.transpose()*right_hand_torque+dC_dX.transpose()*right_hand_force);}
+
+        constraint_right_hand_side.template block<d,1>(d*i,0)=position_error;
+        constraint_right_hand_side.template block<t,1>(d*constraints.size()+i*t,0)=total_rotation_error;
+
+        //RIGID_STRUCTURE_INDEX_MAP<TV>::dRotatedOffset_dSpin(
+    }
     constraint_terms.resize(constraints.size()*(d+t),rigid_data->Velocity_DOF());
     Flatten_Matrices(linear_terms,d*constraints.size(),angular_terms,constraint_terms);
 }

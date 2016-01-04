@@ -208,9 +208,10 @@ Update_One_Step(SIMULATION<TV>& simulation,const T dt,const T time)
             if(predicted_reduction<0){step_status=ENEGMOVE;}
             step_quality=actual_reduction/predicted_reduction;
             LOG::cout<<"Candidate error with value "<<try_f<<":"<<std::endl;
-            Matrix<T,Dynamic,1> error;
+            /*Matrix<T,Dynamic,1> error;
             equation->RHS(error);
-            Print_No_Angular(error.transpose());
+            LOG::cout<<"Current error: "<<std::endl;
+            Print_No_Angular(error.transpose());*/
             LOG::cout<<"AP: "<<step_quality<<" old f: "<<f<<" try f: "<<try_f<<" ared: "<<actual_reduction<<" pred: "<<predicted_reduction<<" radius: "<<radius<<" gs: "<<gs<<" sBs: "<<sBs<<" norm_sk_scaled: "<<norm_sk_scaled<<std::endl;}
         else{step_status=FAILEDCG;}}
     if(step_status!=FAILEDCG && step_status!=ENEGMOVE){

@@ -116,8 +116,7 @@ Identify_Interactions_And_Compute_Errors(DATA<TV>& data,FORCE<TV>& force,const T
                         std::get<1>(memory)=0;
                         if(std::get<0>(constant_memory)==call_count){ // if we're moving from a penalty force, use its magnitude
                             std::get<1>(memory)=std::get<1>(constant_memory)*sqr(constraint_violation);}}
-                    else{
-                        old_constraints++;}
+                    else{old_constraints++;}
                     right_hand_side_force=std::get<1>(memory);
                     rhs.push_back(constraint_violation-slack_distance-push_out_distance);
                     constraints.push_back(std::make_tuple(force_directions,spins,offsets,relative_position));
