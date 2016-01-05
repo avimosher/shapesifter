@@ -59,7 +59,7 @@ Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,int incre
 template<class TV> ROTATION<TV> ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::
 Find_Appropriate_Rotation(const ROTATION<TV>& rotation1,const ROTATION<TV>& rotation2)
 {
-    return ROTATION<TV>(rotation1.inverse()*(rotation2*rotation1.inverse()).inverse()).Scale_Angle((T).5);
+    return ROTATION<TV>(rotation1.inverse()*(rotation2*rotation1.inverse()).inverse().Scale_Angle((T).5));
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::
@@ -186,7 +186,6 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
 
         constraint_right_hand_side.template block<d,1>(d*i,0)=position_error;
         constraint_right_hand_side.template block<t,1>(d*constraints.size()+i*t,0)=total_rotation_error;
-        
     }
     constraint_terms.resize(constraints.size()*(d+t),rigid_data->Velocity_DOF());
     Flatten_Matrices(linear_terms,d*constraints.size(),angular_terms,constraint_terms);

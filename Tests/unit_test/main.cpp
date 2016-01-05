@@ -130,6 +130,16 @@ TEST_CASE("ASSOCIATION_DISSOCATION_CONSTRAINT"){
     T epsilon=1e-6;
     SECTION("dRdS x F"){
         for(int i=0;i<tests;i++){
+            /*T_SPIN s1=random.template Direction<T_SPIN>();
+            T_SPIN s2=random.template Direction<T_SPIN>();
+            ROTATION<TV> r1(ROTATION<TV>::From_Rotation_Vector(s1));
+            ROTATION<TV> r2(ROTATION<TV>::From_Rotation_Vector(s2));
+            TV x1=random.template Direction<TV>();
+
+            std::cout<<"R2: "<<(r2.inverse()*x1).transpose()<<std::endl;
+            std::cout<<"Complicated: "<<((r1.inverse().toRotationMatrix()*(r2.toRotationMatrix()*r1.toRotationMatrix().inverse()).inverse())*x1).transpose()<<std::endl;*/
+
+
             T_SPIN spin=random.template Direction<T_SPIN>();
             TV base_offset=random.template Direction<TV>();
             TV f=random.template Direction<TV>();
