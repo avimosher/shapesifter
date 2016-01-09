@@ -17,6 +17,8 @@ public:
     EQUATION(){};
     ~EQUATION(){};
 
+    virtual Matrix<T,Dynamic,1> Get_Unknowns(const DATA<TV>& data,const FORCE<TV>& force) const=0;
+    virtual void Increment_Unknowns(const Matrix<T,Dynamic,1>& unknowns,DATA<TV>& data,FORCE<TV>& force)=0;
     virtual void Unpack_Velocities(DATA<TV>& data,const Matrix<T,Dynamic,1>& velocities){};
     virtual void Store_Errors(DATA<TV>& data,const Matrix<T,Dynamic,1>& errors){};
     virtual void Initialize(DATA<TV>& data,FORCE<TV>& force){};

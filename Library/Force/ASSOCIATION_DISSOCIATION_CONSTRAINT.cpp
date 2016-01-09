@@ -59,7 +59,7 @@ Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,int incre
 template<class TV> ROTATION<TV> ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::
 Find_Appropriate_Rotation(const ROTATION<TV>& rotation1,const ROTATION<TV>& rotation2)
 {
-    return ROTATION<TV>(rotation1.inverse()*(rotation2*rotation1.inverse()).inverse().Scale_Angle((T).5));
+    return ROTATION<TV>(rotation1.inverse()*ROTATION<TV>((rotation2*rotation1.inverse()).inverse()).Scale_Angle((T).5));
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::
@@ -130,11 +130,13 @@ template<class TV> void ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::
 Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic)
 {
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
-    SparseMatrix<T>& constraint_forces=system.Matrix_Block(data,force,*rigid_data,*this);
-    SparseMatrix<T>& constraint_terms=system.Matrix_Block(data,force,*this,*rigid_data);
+    //SparseMatrix<T>& constraint_forces=system.Matrix_Block(data,force,*rigid_data,*this);
+    //SparseMatrix<T>& constraint_terms=system.Matrix_Block(data,force,*this,*rigid_data);
     Matrix<T,Dynamic,1>& right_hand_side=system.RHS(data,force,*rigid_data);
     Matrix<T,Dynamic,1>& constraint_right_hand_side=system.RHS(data,force,*this);
     std::vector<Triplet<T>>& force_terms=system.Matrix_Block_Terms(data,force,*rigid_data);
+    std::vector<Triplet<T>> constraint_terms;
+    std::vector<Triplet<T>> constraint_forces;
     if(stochastic){
         for(auto memory : force_memory){memory.second.second.setZero();}
         constraints.clear();
@@ -167,6 +169,10 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
         std::array<TV,2> rotated_offsets={structure1->frame.orientation*site_offsets[0],structure2->frame.orientation*site_offsets[1]};
         ROTATION<TV> RC=Find_Appropriate_Rotation(current_rotations[0]*base_rotations[0],current_rotations[1]*base_rotations[1]);
         
+        ROTATION<TV> full_rotation=structure1->frame.orientation*interaction_type.relative_orientation.inverse()*structure2->frame.orientation.inverse();
+        ROTATION<TV> center_rotation=current_rotations[0].inverse()*full_rotation*current_rotations[1];
+        
+
         auto& remembered=force_memory[interaction_index];
         if(remembered.first!=call_count){remembered.second.setZero();}
         stored_forces.template block<d+t,1>((d+t)*i,0)=remembered.second;
@@ -175,20 +181,25 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
         T_SPIN total_rotation_error;total_rotation_error.setZero();
         for(int s=0,sgn=-1;s<2;s++,sgn+=2){
             T_SPIN rotation_error;
-            ANGULAR_CONSTRAINT_MATRIX dC_dA=RIGID_STRUCTURE_INDEX_MAP<TV>::Orientation_Constraint_Matrix(current_rotations[s],base_rotations[s]*RC,rotation_error)*angular_to_constraint;
-            angular_terms.push_back(Triplet<ANGULAR_CONSTRAINT_MATRIX>(i,indices[s],dC_dA));
-            total_rotation_error+=sgn*rotation_error;
+            ANGULAR_CONSTRAINT_MATRIX dC_dA=RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Simple_Orientation_Constraint_Matrix(current_rotations[s],full_rotation,sgn)*angular_to_constraint;
+            Flatten_Matrix_Term<T,t+d,t+d,d,t+d>(i,indices[s],1,0,dC_dA,constraint_terms);
+            //angular_terms.push_back(Triplet<ANGULAR_CONSTRAINT_MATRIX>(i,indices[s],dC_dA));
             LINEAR_CONSTRAINT_MATRIX dC_dX=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(rotated_offsets[s]);
-            linear_terms.push_back(Triplet<LINEAR_CONSTRAINT_MATRIX>(i,indices[s],sgn*dC_dX));
-            right_hand_side.template block<d+t,1>(indices[s]*(d+t),0)+=sgn*(dC_dA.transpose()*remembered_torque+dC_dX.transpose()*remembered_force);
-            Flatten_Matrix_Term<T,t+d,t+d,t,t>(indices[0],indices[0],1,1,sgn*RIGID_STRUCTURE_INDEX_MAP<TV>::dOffsetCrossForce_dSpin(spins[s],rotated_offsets[s],remembered_force),force_terms);
+            Flatten_Matrix_Term<T,t+d,t+d,d,t+d>(i,indices[s],0,0,sgn*dC_dX,constraint_terms);
+            //linear_terms.push_back(Triplet<LINEAR_CONSTRAINT_MATRIX>(i,indices[s],sgn*dC_dX));
+            right_hand_side.template block<d+t,1>(indices[s]*(d+t),0)+=sgn*(angular_to_constraint.transpose()*remembered_torque+dC_dX.transpose()*remembered_force);
+            Flatten_Matrix_Term<T,t+d,t+d,t,t>(indices[s],indices[s],1,1,RIGID_STRUCTURE_INDEX_MAP<TV>::dOffsetCrossForce_dSpin(spins[s],rotated_offsets[s],remembered_force)*sgn,force_terms);
+            // TODO: velocity jacobian terms relating to rotation; probably identity.  There is then no velocity dependence.
+            Flatten_Matrix_Term<T,t+d,t+d,t+d,d>(indices[s],i,0,1,sgn*angular_to_constraint.transpose(),constraint_forces);
+            Flatten_Matrix_Term<T,t+d,t+d,t+d,d>(indices[s],i,0,0,sgn*dC_dX.transpose(),constraint_forces);
         }
 
         constraint_right_hand_side.template block<d,1>(d*i,0)=position_error;
-        constraint_right_hand_side.template block<t,1>(d*constraints.size()+i*t,0)=total_rotation_error;
+        //constraint_right_hand_side.template block<t,1>(d*constraints.size()+i*t,0)=total_rotation_error;
+        constraint_right_hand_side.template block<t,1>(d*constraints.size()+i*t,0)=full_rotation.vec();
     }
-    constraint_terms.resize(constraints.size()*(d+t),rigid_data->Velocity_DOF());
-    Flatten_Matrices(linear_terms,d*constraints.size(),angular_terms,constraint_terms);
+    system.Build_Jacobian_Block(data,force,*rigid_data,*this,constraint_forces);
+    system.Build_Jacobian_Block(data,force,*this,*rigid_data,constraint_terms);
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::

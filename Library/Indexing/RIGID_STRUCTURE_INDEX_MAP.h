@@ -211,7 +211,7 @@ public:
         return t1+t2+t3;
     }
     
-    static void Compute_Constraint_Second_Derivatives(const Matrix<T,Dynamic,1>& force_balance_error,const std::array<int,2>& indices,int constraint_index,const T constraint_error,const T actual_error,const T scalar_force,const TV& relative_position,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_constraint_terms,std::vector<Triplet<T>>& constraint_force_terms);
+    static void Compute_Constraint_Second_Derivatives(const Matrix<T,Dynamic,1>& force_balance_error,const std::array<int,2>& indices,int constraint_index,const T constraint_error,const T scalar_force,const TV& relative_position,const SparseMatrix<T>& f_scaling,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_constraint_terms,std::vector<Triplet<T>>& constraint_force_terms);
 
 
     static Matrix<T,3,3> Compute_Orientation_Constraint_Matrix(const ROTATION<TV>& rotation,const ROTATION<TV>& relative_rotation,const int composed_rotation_sign)
@@ -231,6 +231,24 @@ public:
         Matrix<T,3,3> dCdu=Matrix<T,3,3>::Identity()*relative_rotation.w()-relative_rotation_cross_product_matrix;
         TV dCda=relative_rotation.vec();
         return composed_rotation_sign*(dCda*dadw.transpose()+dCdu*dudw);
+    }
+
+    static Matrix<T,3,3> Compute_Simple_Orientation_Constraint_Matrix(const ROTATION<TV>& rotation,const ROTATION<TV>& full_rotation,int cross_sign)
+    {
+        TV orientation=rotation.Rotation_Vector();
+        ROTATION<TV> remaining_rotation;
+        if(cross_sign==1){remaining_rotation=rotation.inverse()*full_rotation;}
+        else{remaining_rotation=full_rotation*rotation;}
+        TV u=rotation.vec(),v=remaining_rotation.vec();
+        T a=rotation.w(),b=remaining_rotation.w();
+        T angle=orientation.norm();TV axis=(fabs(angle)>1e-8?orientation.normalized():TV::UnitX());
+        T s=sin(angle/2);T s_over_angle=sinc(angle/2)/2,c=cos(angle/2);
+    
+        Matrix<T,3,3> axis_projection=axis*axis.transpose();
+        Matrix<T,3,3> axis_orthogonal_projection=Matrix<T,3,3>::Identity()-axis_projection;
+        Matrix<T,3,3> dudw=(c/2)*axis_projection+s_over_angle*axis_orthogonal_projection;
+        TV dadw=-s/2*axis;
+        return v*dadw.transpose()+cross_sign*b*dudw-Cross_Product_Matrix(v)*dudw;
     }
 
     static Matrix<T,3,3> Relative_Orientation_Constraint_Matrix(const ROTATION<TV>& rotation,const ROTATION<TV>& relative_rotation,const ROTATION<TV>& target,TV& rotation_error_vector)

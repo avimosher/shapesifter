@@ -17,12 +17,10 @@ class NONLINEAR_EQUATION : public EQUATION<TV>
 public:
     MATRIX_BUNDLE<TV> system;
 
-    std::vector<SparseMatrix<T>> inverse_inertia_matrices;
     std::vector<SparseMatrix<T>> kinematic_projection_matrices;
     Matrix<T,Dynamic,1> error;
     SparseMatrix<T> hessian;
     SparseMatrix<T> jacobian;
-    SparseMatrix<T> inverse_inertia;
 
     NONLINEAR_EQUATION(){};
     ~NONLINEAR_EQUATION(){};

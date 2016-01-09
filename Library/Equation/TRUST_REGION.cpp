@@ -7,6 +7,7 @@
 #include <Utilities/EIGEN_HELPERS.h>
 #include <Utilities/LOG.h>
 #include <Utilities/MATH.h>
+#include <Utilities/RANDOM.h>
 #include <Eigen/Eigenvalues>
 #include <iomanip>
 using namespace Mechanics;
@@ -108,7 +109,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     equation->Gradient(gk);
     norm_gk=gk.norm();
     Update_Hessian();
-    Update_Preconditioner(false);
+    Update_Preconditioner(true);
 
     static int failed_radius=0;
     do{
@@ -119,12 +120,14 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
         if(iteration>=max_iterations){status=EMAXITER;}
         if(radius<=min_radius){ // trust region collapse
             status=ETOLG;
-            failed_radius++;}
+            failed_radius++;
+            Check_Derivative(simulation,dt,time);
+        }
 
         // update Hessian
         if(status==MOVED || status==EXPAND){
             Update_Hessian();
-            if(simulation.force.Equations_Changed() || iteration%preconditioner_refresh_frequency==0){Update_Preconditioner(false);}
+            if(simulation.force.Equations_Changed() || iteration%preconditioner_refresh_frequency==0){Update_Preconditioner(true);}
             status=CONTINUE;}
         if(simulation.substeps){
             //std::string frame_name="Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration)+" radius "+std::to_string(radius)+" real "+std::to_string(int(status==CONTINUE))+ " f "+std::to_string(f);
@@ -360,6 +363,33 @@ Find_Tau(const Vector& z,const Vector& d)
     T dCd=d.dot(wd);
     T pCp=z.dot(wz);
     return (-2*pCd+sqrt(4*pCd*pCd-4*dCd*(pCp-radius*radius)))/(2*dCd);
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void TRUST_REGION<TV>::
+Check_Derivative(SIMULATION<TV>& simulation,const T dt,const T time)
+{
+    DATA<TV>& data=simulation.data;
+    FORCE<TV>& force=simulation.force;
+
+    T epsilon=1e-5;
+    Matrix<T,Dynamic,1> variables=equation->Get_Unknowns(data,force);
+    variables.setZero();
+    sk=variables;
+    Linearize_Around(simulation,dt,time);
+
+    data.random.Direction(variables);
+    T f0=equation->Evaluate();
+    Matrix<T,Dynamic,1> gradient;equation->Gradient(gradient);
+    auto Evaluate_Step_Error = [&](T eps){
+        sk=eps*variables;
+        Linearize_Around(simulation,dt,time);
+
+        T f1=equation->Evaluate();
+        T predicted_delta_f=gradient.dot(eps*variables);
+        T error=f1-f0-predicted_delta_f;
+        return error;
+    };
+    LOG::cout<<"Ratio: "<<Evaluate_Step_Error(epsilon)/Evaluate_Step_Error(epsilon/2)<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(TRUST_REGION)

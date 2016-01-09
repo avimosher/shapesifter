@@ -57,6 +57,7 @@ public:
     void Multiply(const Preconditioner& X,const Vector& v,Vector& out);
     T Norm(const Preconditioner& X,const Vector& v,Vector& scratch);
     T Find_Tau(const Vector& z,const Vector& d);
+    void Check_Derivative(SIMULATION<TV>& simulation,const T dt,const T time);
     DEFINE_TYPE_NAME("TRUST_REGION")
 };
 }

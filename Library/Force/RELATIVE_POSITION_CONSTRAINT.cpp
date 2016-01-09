@@ -46,11 +46,12 @@ Compute_Derivatives(DATA<TV>& data,FORCE<TV>& force,MATRIX_BUNDLE<TV>& system)
 {
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
     std::vector<Triplet<T>>& force_terms=system.Matrix_Block_Terms(data,force,*rigid_data);
-    /*std::vector<Triplet<T>>& hessian_terms=system.Hessian_Block_Terms(data,force,*rigid_data,*rigid_data);
+    std::vector<Triplet<T>>& hessian_terms=system.Hessian_Block_Terms(data,force,*rigid_data,*rigid_data);
     std::vector<Triplet<T>>& constraint_force_terms=system.Hessian_Block_Terms(data,force,*this,*rigid_data);
     std::vector<Triplet<T>>& force_constraint_terms=system.Hessian_Block_Terms(data,force,*rigid_data,*this);
+    const SparseMatrix<T>& f_scaling=system.inverse_inertia_matrices[0];
     VECTOR& constraint_right_hand_side=system.RHS(data,force,*this);
-    const Matrix<T,Dynamic,1>& force_balance_error=system.RHS(data,force,*rigid_data);*/
+    const Matrix<T,Dynamic,1>& force_balance_error=system.RHS(data,force,*rigid_data);
 
     std::vector<Triplet<CONSTRAINT_VECTOR>> terms;
     std::vector<Triplet<FORCE_VECTOR>> forces;
@@ -71,12 +72,12 @@ Compute_Derivatives(DATA<TV>& data,FORCE<TV>& force,MATRIX_BUNDLE<TV>& system)
             forces.push_back(Triplet<FORCE_VECTOR>(indices[s],i,sgn*force_direction));
         }
         RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Force_Derivatives(indices,stored_forces[i],relative_position,rotated_offsets,spins,force_terms);
-        //RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Second_Derivatives(force_balance_error,indices,i,constraint_right_hand_side[i],(relative_position.norm()-constraint.target_distance),stored_forces[i],relative_position,hessian_terms,force_constraint_terms,constraint_force_terms);
+        RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Second_Derivatives(force_balance_error,indices,i,constraint_right_hand_side[i],stored_forces[i],relative_position,f_scaling,hessian_terms,force_constraint_terms,constraint_force_terms);
     }
     system.Flatten_Jacobian_Block(data,force,*this,*rigid_data,terms);
     system.Flatten_Jacobian_Block(data,force,*rigid_data,*this,forces);
-    /*system.Flatten_Hessian_Block(data,force,*this,*rigid_data);
-      system.Flatten_Hessian_Block(data,force,*rigid_data,*this);*/
+    system.Flatten_Hessian_Block(data,force,*this,*rigid_data,constraint_force_terms);
+    system.Flatten_Hessian_Block(data,force,*rigid_data,*this,force_constraint_terms);
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::
