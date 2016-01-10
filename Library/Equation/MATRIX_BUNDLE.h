@@ -32,10 +32,14 @@ public:
             int data_size=data[i]->Velocity_DOF();
             jacobian_block_terms[i].clear();
             jacobian_blocks(i,i).resize(data_size,data_size);
-            hessian_block_terms(i,i).clear();
             hessian_blocks(i,i).resize(data_size,data_size);
             error_blocks[i].resize(data_size);
             error_blocks[i].setZero();}
+        for(int i=0;i<full_size;i++){
+            for(int j=0;j<full_size;j++){
+                hessian_block_terms(i,j).clear();
+            }
+        }
     }
 
     template<class SUBTYPE> int Index(const DATA<TV>& data,const FORCE<TV>& force,const SUBTYPE& object){

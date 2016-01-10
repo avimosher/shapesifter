@@ -125,7 +125,6 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     // build the Hessian
     SparseMatrix<T> hessian_addition;
     Merge_Block_Matrices(system.hessian_blocks,hessian_addition);
-    //std::cout<<"Hessian addition: "<<std::endl<<hessian_addition<<std::endl;
     hessian=jacobian.adjoint()*jacobian+hessian_addition;
 }
 ///////////////////////////////////////////////////////////////////////

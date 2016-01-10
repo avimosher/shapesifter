@@ -48,11 +48,12 @@ public:
 
     void Step(SIMULATION<TV>& simulation,const T dt,const T time);
     void Linearize(SIMULATION<TV>& simulation,const T dt,const T time);
-    void Linearize_Around(SIMULATION<TV>& simulation,const T dt,const T time);
+    void Linearize_Around(SIMULATION<TV>& simulation,const T dt,const T time,const Vector& solve_vector);
     void Increment_X(SIMULATION<TV>& simulation);
     void Update_Preconditioner(bool identity);
     void Update_Hessian();
     STATUS Update_One_Step(SIMULATION<TV>& simulation,const T dt,const T time);
+    void Solve_Trust_MINRES(Vector& sol);
     void Solve_Trust_Conjugate_Gradient(Vector& pk);
     void Multiply(const Preconditioner& X,const Vector& v,Vector& out);
     T Norm(const Preconditioner& X,const Vector& v,Vector& scratch);

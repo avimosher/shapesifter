@@ -41,12 +41,12 @@ int main(int argc,char **argv)
     structure2->Initialize_Inertia(3.5);
     rigid_data->structures.push_back(structure2);
 
-    /*auto structure3=std::make_shared<RIGID_STRUCTURE<TV>>();
+    auto structure3=std::make_shared<RIGID_STRUCTURE<TV>>();
     structure3->frame.position=3*TV::UnitX();
     structure3->name="third";
     structure3->radius=1;
     structure3->Initialize_Inertia(3.5);
-    rigid_data->structures.push_back(structure3);*/
+    rigid_data->structures.push_back(structure3);
 
     Matrix<T,Dynamic,1> positions;
     data.Pack_Positions(positions);
@@ -61,13 +61,13 @@ int main(int argc,char **argv)
     constraint.target_distance=4;
     relative_position_constraint->constraints.push_back(constraint);
 
-    /*typename RELATIVE_POSITION_CONSTRAINT<TV>::CONSTRAINT constraint2;
+    typename RELATIVE_POSITION_CONSTRAINT<TV>::CONSTRAINT constraint2;
     constraint2.s1=rigid_data->Structure_Index("second");
     constraint2.v1.setZero();//TV::UnitY();
     constraint2.s2=rigid_data->Structure_Index("third");
     constraint2.v2.setZero();//TV::UnitY();
     constraint2.target_distance=4;
-    relative_position_constraint->constraints.push_back(constraint2);*/
+    relative_position_constraint->constraints.push_back(constraint2);
 
     relative_position_constraint->stored_forces.resize(relative_position_constraint->constraints.size());
     relative_position_constraint->stored_forces.setZero();
@@ -113,8 +113,5 @@ int main(int argc,char **argv)
     };
 
     std::cout<<"Ratio: "<<Evaluate_Step_Error(epsilon)/Evaluate_Step_Error(epsilon/2)<<std::endl;
-
-    std::cout<<"First: "<<Evaluate_Step_Error(epsilon)<<std::endl;
-    std::cout<<"Second: "<<Evaluate_Step_Error(epsilon)<<std::endl;
     return 0;
 }
