@@ -8,6 +8,10 @@
 #include <Utilities/EIGEN_HELPERS.h>
 
 namespace Mechanics{
+namespace Dimension{
+    enum LINEARITY{LINEAR,ANGULAR};
+}
+
 template<class TV>
 class RIGID_STRUCTURE_INDEX_MAP
 {
@@ -17,10 +21,39 @@ class RIGID_STRUCTURE_INDEX_MAP
     typedef Matrix<T,1,d> TV_T;
     typedef Matrix<T,d,d> M_VxV;
     typedef Matrix<T,d,t> M_VxT;
+    typedef TensorFixedSize<T,Sizes<3,3,3>> T_TENSOR;
+    typedef Dimension::LINEARITY LINEARITY;
+    static constexpr T epsilon=1e-8;
 public:
 
     RIGID_STRUCTURE_INDEX_MAP(){}
     ~RIGID_STRUCTURE_INDEX_MAP(){}
+
+    // Standard derivatives
+
+    // d(a/|a|)/da
+    static M_VxV da_na_dA(const TV& a,const T na){
+        if(na<epsilon){return M_VxV::Zero();}
+        T one_na=1/na;
+        TV a_na=a*one_na;
+        return one_na*(M_VxV::Identity()-a_na*a_na.transpose());
+    }
+
+    // d(1/|a|)/da
+    static TV dnainv_dA(const TV& a,const T& na){
+        return -a/cube(na);
+    }
+
+    // d2(a/|a|)/da2
+    static T_TENSOR d2a_na_dA2(const TV& a,const T na){
+        M_VxV da_na_da=da_na_dA(a,na);
+        T one_na=1/na;
+        TV a_na=a*one_na;
+        TV dnainv_da=dnainv_dA(a,na);
+        
+        return Outer_Product(M_VxV::Identity()-a_na*a_na.transpose(),dnainv_da,{2,0,1})-
+            Outer_Product(da_na_da,a_na,{2,0,1})*(1/na)-Outer_Product(da_na_da,a_na,{1,0,2})*(1/na);
+    }
 
     static Matrix<T,TV::RowsAtCompileTime,STATIC_SIZE> Map_Twist_To_Velocity(const RIGID_STRUCTURE<TV>& structure,const TV& offset){
         return Map_Twist_To_Velocity(structure.frame.orientation*offset);
@@ -33,29 +66,74 @@ public:
         return unknown_map;
     }
 
+    static T_SPIN dw_dSpin(const T_SPIN& spin,const T norm_spin){
+        return -sinc(norm_spin/2)/4*spin.transpose();
+    }
+
+    static M_VxV d2w_dSpin2(const T_SPIN& spin,const T norm_spin){
+        TV dna_da=spin/norm_spin;
+        return -(T).25*cos(norm_spin/2)*dna_da*dna_da.transpose()-(T).5*sin(norm_spin/2)*d2n_dVelocity2(spin,1,1);
+    }
+
+    static M_VxV dq_dSpin(const T_SPIN& spin_normspin,const T norm_spin){
+        return cos(norm_spin/2)/2*spin_normspin*spin_normspin.transpose()+sinc(norm_spin/2)/2*(Matrix<T,t,t>::Identity()-spin_normspin*spin_normspin.transpose());
+    }
+
+    static T_TENSOR d2q_dSpin2(const T_SPIN& spin,const T ns){
+        T_SPIN s_ns=spin/ns;
+        T_SPIN dns_ds=s_ns;
+        M_VxV ds_ns_ds=da_na_dA(spin,ns);
+        M_VxV d2ns_ds2=ds_ns_ds;
+        T_TENSOR d2s_ns_ds2=d2a_na_dA2(spin,ns);
+        
+        T s=sinc(ns/2);
+        T c=cos(ns/2);
+        return Outer_Product(dns_ds*dns_ds.transpose(),spin,{0,1,2})*(-(T).125*s)+
+            (Outer_Product(ds_ns_ds,dns_ds,{2,0,1})+Outer_Product(ds_ns_ds,dns_ds,{2,1,0})+Outer_Product(d2ns_ds2,s_ns,{0,1,2}))*(T).5*c+
+            d2s_ns_ds2*(s*ns/2);
+    }
+
+    static T_TENSOR d2so_dSpin2(const T_SPIN& spin,const TV& rotated_offset){
+        ROTATION<TV> rotation(ROTATION<TV>::From_Rotation_Vector(spin));
+        TV q=rotation.vec();
+        T w=rotation.w();
+        TV o=rotation.inverse()*rotated_offset;
+        M_VxV ostar=Cross_Product_Matrix(o);
+        T ns=spin.norm();
+        //TV q=sinc(ns/2)*spin/2;
+        //T w=cos(ns/2);
+        M_VxV d2w_ds2=d2w_dSpin2(spin,ns);
+        T_TENSOR d2q_ds2=d2q_dSpin2(spin,ns);
+        TV s_ns=spin/ns;
+        M_VxV dq_ds=dq_dSpin(s_ns,ns);
+        TV dw_ds=dw_dSpin(spin,ns);
+        return Outer_Product(-2*ostar*dq_ds,dw_ds,{2,1,0})+
+            Outer_Product(d2w_ds2,2*q.cross(o),{0,1,2})+
+            Outer_Product(ostar*dq_ds,dw_ds*(-2),{2,0,1})+Cross_Product(-2*dq_ds,ostar*dq_ds)+Cross_Product(2*ostar*dq_ds,dq_ds)+
+            Cross_Product(-2*(w*ostar+Cross_Product_Matrix(q.cross(o))+Cross_Product_Matrix(q)*ostar),d2q_ds2);
+    }
+
     static Matrix<T,d,t> dRotatedOffset_dSpin(const T_SPIN& spin,const TV& spun_offset){
-        static const T eps=1e-8;
         TV offset=ROTATION<TV>::From_Rotation_Vector(spin).inverse()*spun_offset;
         T norm_spin=spin.norm();
-        TV_T dw_dspin=-sinc(norm_spin/2)/4*spin.transpose();        
-        TV spin_normspin=(norm_spin>eps)?(TV)(spin/norm_spin):TV::UnitX();
-        Matrix<T,3,3> dq_dspin=cos(norm_spin/2)/2*spin_normspin*spin_normspin.transpose()+sinc(norm_spin/2)/2*(Matrix<T,t,t>::Identity()-spin_normspin*spin_normspin.transpose());
+        TV_T dw_dspin=dw_dSpin(spin,norm_spin);
+        TV spin_normspin=(norm_spin>epsilon)?(TV)(spin/norm_spin):TV::UnitX();
+        M_VxV dq_dspin=dq_dSpin(spin_normspin,norm_spin);
         T w=cos(norm_spin/2);
         TV q=sinc(norm_spin/2)*spin/2;
         return 2*q.cross(offset)*dw_dspin-2*(Cross_Product_Matrix(offset)*w+Cross_Product_Matrix(q.cross(offset))+Cross_Product_Matrix(q)*Cross_Product_Matrix(offset))*dq_dspin;
     }
 
     static Matrix<T,t,t> dOffsetCrossForce_dSpin(const T_SPIN& spin,const TV& spun_offset,const TV& force){
-        Matrix<T,3,3> dRdS=dRotatedOffset_dSpin(spin,spun_offset);
+        M_VxV dRdS=dRotatedOffset_dSpin(spin,spun_offset);
         Matrix<T,d,d> dFdS;
         for(int i=0;i<t;i++){dFdS.col(i)=dRdS.col(i).cross(force);}
         return dFdS;
     }
 
     static Matrix<T,1,t+d> dConstraint_dTwist(const TV& spin,const TV& offset,const TV& relative_position){
-        static const T eps=1e-8;
         T relative_position_norm=relative_position.norm();
-        TV normalized_relative_position=(relative_position_norm>eps?(TV)(relative_position/relative_position_norm):TV::UnitX());
+        TV normalized_relative_position=(relative_position_norm>epsilon?(TV)(relative_position/relative_position_norm):TV::UnitX());
         Matrix<T,1,t+d> final;
         final.template block<1,d>(0,0)=normalized_relative_position.transpose();
         final.template block<1,t>(0,d)=normalized_relative_position.transpose()*dRotatedOffset_dSpin(spin,offset);
@@ -134,61 +212,71 @@ public:
     }
 
 
-    /*static void Second_Derivative_Angular(){
-        (-2*ostar*dq_db).contractColumns().outer(dw_da);
-        +2q.cross(o).contractColumns()*d2w_dadb;
-        2(ostar*
-        
-        }*/
+    // d(f2-f1)/dv
+    //template<int DTYPE>
+    //static M_VxV df2mf1_dVelocity(int term_sign){}
 
-    /*static void d2ao_da2(){
-        (q.cross(o).cross(a)).sum()*d2q_da2(a);
-    }
-
-    static Matrix<TV,3,3> d2q_da2(const TV& a){
-        T na=a.norm();
-        TV dna_da=a/na;
-        a_terms-=(T).25*sin(na/2)*dna_da.outer(dna_da)/na;
-        a_terms+=(T)1.5*cos(na/2)/na^2*(eye-dna_da^2);
-        a_terms-=sin(na/2)*((3/na^3)*(eye-dna_da^2));
-        }*/
-
-    static Matrix<T,3,3> df2mf1_dVelocity(int term_sign){
-        return term_sign*Matrix<T,3,3>::Identity();
+    template<int DTYPE>
+    static typename std::enable_if<DTYPE==Dimension::LINEAR,M_VxV>::type df2mf1_dVelocity(int term_sign){
+        return M_VxV::Identity()*term_sign;
     }
 
     // d(|f2-f1})/dv
-    static Matrix<T,3,1> dnf_dVelocity(const TV& f,const T& nf,int term_sign){
+    static TV dnf_dVelocity(const TV& f,const T& nf,int term_sign){
         return term_sign*f/nf;
     }
 
     // d(1/|f2-f1|)/dv
-    static Matrix<T,3,1> dnfinv_dVelocity(const TV& f,const T& nf,int term_sign){
-        return -1/(nf*nf)*dnf_dVelocity(f,nf,term_sign);
+    static TV dnfinv_dVelocity(const TV& f,const T& nf,int term_sign){
+        return term_sign*dnainv_dA(f,nf);
     }
 
     // d2(1/|f2-f1|)/dv1/dv2
-    static Matrix<T,3,3> d2nfinv_dVelocity2(const TV& f,const T& nf,int ts1,int ts2){
+    static M_VxV d2nfinv_dVelocity2(const TV& f,const T& nf,int ts1,int ts2){
         TV dnf_dv1=dnf_dVelocity(f,nf,ts1);
         TV dnf_dv2=dnf_dVelocity(f,nf,ts2);
         TV dnfinv_dv2=dnfinv_dVelocity(f,nf,ts2);
-        const M_VxV& df_dv2=df2mf1_dVelocity(ts2);
+        const M_VxV& df_dv2=df2mf1_dVelocity<LINEARITY::LINEAR>(ts2);
         return 2/cube(nf)*dnf_dv1*dnf_dv2.transpose()-1/sqr(nf)*ts1*(df_dv2/nf+f*dnfinv_dv2.transpose());
     }
 
     // d2(|f2-f1|)/dv1/dv2
-    static Matrix<T,3,3> d2n_dVelocity2(const TV& f,int ts1,int ts2){
+    static M_VxV d2n_dVelocity2(const TV& f,int ts1,int ts2){
         T nf=f.norm();
-        return (df2mf1_dVelocity(ts2)/nf+f*dnfinv_dVelocity(f,nf,ts2).transpose())*df2mf1_dVelocity(ts1);//+f.sum()/nf*
+        return (df2mf1_dVelocity<LINEARITY::LINEAR>(ts2)/nf+f*dnfinv_dVelocity(f,nf,ts2).transpose())*df2mf1_dVelocity<LINEARITY::LINEAR>(ts1);//+f.sum()/nf*
     }
 
-    static Matrix<T,3,3> df_dVelocity(const TV& f,int ts){
+    static M_VxV df_dVelocity(const TV& f,int ts){
         T nf=f.norm();
-        return df2mf1_dVelocity(ts)/nf+f*dnfinv_dVelocity(f,nf,ts).transpose();
+        return df2mf1_dVelocity<LINEARITY::LINEAR>(ts)/nf+f*dnfinv_dVelocity(f,nf,ts).transpose();
     }
 
-    static TensorFixedSize<T,Sizes<3,3,3>> Outer_Product(const Matrix<T,3,3>& m,const Matrix<T,3,1>& v,const std::vector<int>& indices){
-        TensorFixedSize<T,Sizes<3,3,3>> tensor;
+    // assumption: the columns of m1 should go in index 0, columns of m2 in index 1, and cross product results in index 2
+    static T_TENSOR Cross_Product(const M_VxV& m1,const M_VxV& m2){
+        T_TENSOR tensor;
+        for(int i=0;i<3;i++){
+            for(int j=0;j<3;j++){
+                TV cross=m1.col(i).cross(m2.col(j));
+                for(int k=0;k<3;k++){
+                    tensor(i,j,k)=cross(k);}}}
+        return tensor;
+    }
+
+    // cross product between cross product matrix and dimension 2 of a tensor
+    static T_TENSOR Cross_Product(const M_VxV& m,const T_TENSOR& t){
+        T_TENSOR tensor;
+        for(int i=0;i<3;i++){
+            for(int j=0;j<3;j++){
+                TV tvec;
+                for(int k=0;k<3;k++){tvec[k]=t(i,j,k);}
+                TV cross=m*tvec;
+                for(int k=0;k<3;k++){
+                    tensor(i,j,k)=cross(k);}}}
+        return tensor;
+    }
+
+    static T_TENSOR Outer_Product(const M_VxV& m,const TV& v,const std::vector<int>& indices){
+        T_TENSOR tensor;
         Matrix<int,3,1> index;index<<0,0,0;
         for(index[0]=0;index[0]<3;index[0]++){
             for(index[1]=0;index[1]<3;index[1]++){
@@ -197,43 +285,55 @@ public:
         return tensor;
     }
 
-    static TensorFixedSize<T,Sizes<3,3,3>> d2f_dVelocity2(const TV& f,int ts1,int ts2){
+    template<int DTYPE1,int DTYPE2>
+    static T_TENSOR d2f_dVelocity2(const TV& f,int ts1,int ts2){
         T nf=f.norm();
-        Matrix<T,3,3> df_dv1=df2mf1_dVelocity(ts1);
-        Matrix<T,3,3> df_dv2=df2mf1_dVelocity(ts2);
+        M_VxV df_dv1=df2mf1_dVelocity<DTYPE1>(ts1);
+        M_VxV df_dv2=df2mf1_dVelocity<DTYPE2>(ts2);
         TV dnfinv_dv1=dnfinv_dVelocity(f,nf,ts1);
         TV dnfinv_dv2=dnfinv_dVelocity(f,nf,ts2);
-        Matrix<T,3,3> d2nfinv_dv2=d2nfinv_dVelocity2(f,nf,ts1,ts2);
-        TensorFixedSize<T,Sizes<3,3,3>> t1,t2,t3;
-        t1=Outer_Product(df_dv1,dnfinv_dv2,{2,0,1});
-        t2=Outer_Product(df_dv2,dnfinv_dv1,{2,1,0});
-        t3=Outer_Product(d2nfinv_dv2,f,{0,1,2});
-        return t1+t2+t3;
+        M_VxV d2nfinv_dv2=d2nfinv_dVelocity2(f,nf,ts1,ts2);
+        return Outer_Product(df_dv1,dnfinv_dv2,{2,0,1})+
+            Outer_Product(df_dv2,dnfinv_dv1,{2,1,0})+
+            Outer_Product(d2nfinv_dv2,f,{0,1,2});
     }
+
+    /*static T_TENSOR d2f_dSpin2(const TV& f,int ts1,int ts2){
+        T nf=f.norm();
+        M_VxV df_dv1=df2mf1_dVelocity(ts1);
+        M_VxV df_dv2=df2mf1_dVelocity(ts2);
+        TV dnfinv_dv1=dnfinv_dVelocity(f,nf,ts1);
+        TV dnfinv_dv2=dnfinv_dVelocity(f,nf,ts2);
+        M_VxV d2nfinv_dv2=d2nfinv_dVelocity2(f,nf,ts1,ts2);
+        return Outer_Product(df_dv1,dnfinv_dv2,{2,0,1})+
+            Outer_Product(df_dv2,dnfinv_dv1,{2,1,0})+
+            Outer_Product(d2nfinv_dv2,f,{0,1,2});
+            }*/
+
     
     static void Compute_Constraint_Second_Derivatives(const Matrix<T,Dynamic,1>& force_balance_error,const std::array<int,2>& indices,int constraint_index,const T constraint_error,const T scalar_force,const TV& relative_position,const SparseMatrix<T>& f_scaling,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_constraint_terms,std::vector<Triplet<T>>& constraint_force_terms);
 
 
-    static Matrix<T,3,3> Compute_Orientation_Constraint_Matrix(const ROTATION<TV>& rotation,const ROTATION<TV>& relative_rotation,const int composed_rotation_sign)
+    static M_VxV Compute_Orientation_Constraint_Matrix(const ROTATION<TV>& rotation,const ROTATION<TV>& relative_rotation,const int composed_rotation_sign)
     {
         TV orientation=rotation.Rotation_Vector();
         T angle=orientation.norm();TV axis=(fabs(angle)>1e-8?orientation.normalized():TV::UnitX());
         T s=sin(angle/2);T s_over_angle=sinc(angle/2)/2,c=cos(angle/2);
         ROTATION<TV> composed_rotation=rotation*relative_rotation;
     
-        Matrix<T,3,3> axis_projection=axis*axis.transpose();
-        Matrix<T,3,3> axis_orthogonal_projection=Matrix<T,3,3>::Identity()-axis_projection;
+        M_VxV axis_projection=axis*axis.transpose();
+        M_VxV axis_orthogonal_projection=M_VxV::Identity()-axis_projection;
         TV relative_rotation_vec=relative_rotation.vec();
-        Matrix<T,3,3> relative_rotation_cross_product_matrix=Cross_Product_Matrix(relative_rotation_vec);
+        M_VxV relative_rotation_cross_product_matrix=Cross_Product_Matrix(relative_rotation_vec);
 
-        Matrix<T,3,3> dudw=(c/2)*axis_projection+s_over_angle*axis_orthogonal_projection;
+        M_VxV dudw=(c/2)*axis_projection+s_over_angle*axis_orthogonal_projection;
         TV dadw=-s/2*axis;
-        Matrix<T,3,3> dCdu=Matrix<T,3,3>::Identity()*relative_rotation.w()-relative_rotation_cross_product_matrix;
+        M_VxV dCdu=M_VxV::Identity()*relative_rotation.w()-relative_rotation_cross_product_matrix;
         TV dCda=relative_rotation.vec();
         return composed_rotation_sign*(dCda*dadw.transpose()+dCdu*dudw);
     }
 
-    static Matrix<T,3,3> Compute_Simple_Orientation_Constraint_Matrix(const ROTATION<TV>& rotation,const ROTATION<TV>& full_rotation,int cross_sign)
+    static M_VxV Compute_Simple_Orientation_Constraint_Matrix(const ROTATION<TV>& rotation,const ROTATION<TV>& full_rotation,int cross_sign)
     {
         TV orientation=rotation.Rotation_Vector();
         ROTATION<TV> remaining_rotation;
@@ -244,21 +344,21 @@ public:
         T angle=orientation.norm();TV axis=(fabs(angle)>1e-8?orientation.normalized():TV::UnitX());
         T s=sin(angle/2);T s_over_angle=sinc(angle/2)/2,c=cos(angle/2);
     
-        Matrix<T,3,3> axis_projection=axis*axis.transpose();
-        Matrix<T,3,3> axis_orthogonal_projection=Matrix<T,3,3>::Identity()-axis_projection;
-        Matrix<T,3,3> dudw=(c/2)*axis_projection+s_over_angle*axis_orthogonal_projection;
+        M_VxV axis_projection=axis*axis.transpose();
+        M_VxV axis_orthogonal_projection=M_VxV::Identity()-axis_projection;
+        M_VxV dudw=(c/2)*axis_projection+s_over_angle*axis_orthogonal_projection;
         TV dadw=-s/2*axis;
         return v*dadw.transpose()+cross_sign*b*dudw-Cross_Product_Matrix(v)*dudw;
     }
 
-    static Matrix<T,3,3> Relative_Orientation_Constraint_Matrix(const ROTATION<TV>& rotation,const ROTATION<TV>& relative_rotation,const ROTATION<TV>& target,TV& rotation_error_vector)
+    static M_VxV Relative_Orientation_Constraint_Matrix(const ROTATION<TV>& rotation,const ROTATION<TV>& relative_rotation,const ROTATION<TV>& target,TV& rotation_error_vector)
     {
         ROTATION<TV> composed_rotation=rotation*relative_rotation;
         rotation_error_vector=composed_rotation.vec()*composed_rotation.Sign()-target.Sign()*target.vec();
         return Compute_Orientation_Constraint_Matrix(rotation,relative_rotation,composed_rotation.Sign());
     }
 
-    static Matrix<T,3,3> Orientation_Constraint_Matrix(const ROTATION<TV>& rotation,const ROTATION<TV>& relative_rotation,TV& rotation_error_vector)
+    static M_VxV Orientation_Constraint_Matrix(const ROTATION<TV>& rotation,const ROTATION<TV>& relative_rotation,TV& rotation_error_vector)
     {
         ROTATION<TV> composed_rotation=rotation*relative_rotation;
         rotation_error_vector=composed_rotation.vec()*composed_rotation.Sign();
