@@ -100,8 +100,6 @@ public:
         TV o=rotation.inverse()*rotated_offset;
         M_VxV ostar=Cross_Product_Matrix(o);
         T ns=spin.norm();
-        //TV q=sinc(ns/2)*spin/2;
-        //T w=cos(ns/2);
         M_VxV d2w_ds2=d2w_dSpin2(spin,ns);
         T_TENSOR d2q_ds2=d2q_dSpin2(spin,ns);
         TV s_ns=spin/ns;
@@ -141,7 +139,7 @@ public:
     }
 
     static Matrix<T,d,d> dForce_dVelocity(const TV& relative_position){
-        T distance=std::max((T)1e-8,relative_position.norm());
+        T distance=std::max(epsilon,relative_position.norm());
         return Matrix<T,d,d>::Identity()/distance-relative_position/cube(distance)*relative_position.transpose();
     }
 
@@ -154,7 +152,7 @@ public:
     }
 
     static Matrix<T,t,t> dTorque_dSpin(const TV& relative_position,int s1,int s2,const T_SPIN& spin,const TV& rotated_offset1,const TV& rotated_offset2){
-        T distance=std::max((T)1e-8,relative_position.norm());
+        T distance=std::max(epsilon,relative_position.norm());
         Matrix<T,t,t> first_term=Cross_Product_Matrix(rotated_offset1)*dForce_dSpin(relative_position,spin,rotated_offset2);
         if(s1==s2){
             return (s1==0?1:-1)*Cross_Product_Matrix(relative_position)*dRotatedOffset_dSpin(spin,rotated_offset2)/distance+first_term;}
@@ -162,14 +160,14 @@ public:
     }
 
     static Matrix<T,d,d> dPenaltyForce_dVelocity(const TV& relative_position,const T threshold){
-        T distance=std::max((T)1e-8,relative_position.norm());
+        T distance=std::max(epsilon,relative_position.norm());
         T one_over_distance=1/distance;
         T threshold_distance=distance-threshold;
         return (Matrix<T,d,d>::Identity()*one_over_distance-relative_position*relative_position.transpose()*cube(one_over_distance))*sqr(threshold_distance)+2*threshold_distance*relative_position*relative_position.transpose()*sqr(one_over_distance);
     }
 
     static Matrix<T,t,t> dPenaltyTorque_dSpin(const TV& relative_position,int s1,int s2,const T_SPIN& spin,const TV& rotated_offset1,const TV& rotated_offset2,const T threshold){
-        T distance=std::max((T)1e-8,relative_position.norm());
+        T distance=std::max(epsilon,relative_position.norm());
         Matrix<T,t,t> first_term=Cross_Product_Matrix(rotated_offset1)*dPenaltyForce_dVelocity(relative_position,threshold)*dRotatedOffset_dSpin(spin,rotated_offset2);
         if(s1==s2){
             return (s1==0?1:-1)*Cross_Product_Matrix(relative_position)*dRotatedOffset_dSpin(spin,rotated_offset2)/distance*sqr(distance-threshold)+first_term;}
@@ -213,9 +211,6 @@ public:
 
 
     // d(f2-f1)/dv
-    //template<int DTYPE>
-    //static M_VxV df2mf1_dVelocity(int term_sign){}
-
     template<int DTYPE>
     static typename std::enable_if<DTYPE==Dimension::LINEAR,M_VxV>::type df2mf1_dVelocity(int term_sign){
         return M_VxV::Identity()*term_sign;
