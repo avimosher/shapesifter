@@ -55,6 +55,11 @@ public:
             Outer_Product(da_na_da,a_na,{2,0,1})*(1/na)-Outer_Product(da_na_da,a_na,{1,0,2})*(1/na);
     }
 
+    static M_VxV d2na_dA2(const TV& a,const T na){        
+        return M_VxV::Identity()/na+a*dnainv_dA(a,na).transpose();
+    }
+
+
     static Matrix<T,TV::RowsAtCompileTime,STATIC_SIZE> Map_Twist_To_Velocity(const RIGID_STRUCTURE<TV>& structure,const TV& offset){
         return Map_Twist_To_Velocity(structure.frame.orientation*offset);
     }
@@ -72,7 +77,7 @@ public:
 
     static M_VxV d2w_dSpin2(const T_SPIN& spin,const T norm_spin){
         TV dna_da=spin/norm_spin;
-        return -(T).25*cos(norm_spin/2)*dna_da*dna_da.transpose()-(T).5*sin(norm_spin/2)*d2n_dVelocity2(spin,1,1);
+        return -(T).25*cos(norm_spin/2)*dna_da*dna_da.transpose()-(T).5*sin(norm_spin/2)*d2na_dA2(spin,norm_spin);
     }
 
     static M_VxV dq_dSpin(const T_SPIN& spin_normspin,const T norm_spin){
@@ -93,6 +98,7 @@ public:
             d2s_ns_ds2*(s*ns/2);
     }
 
+    // d2(s*o)/ds2
     static T_TENSOR d2so_dSpin2(const T_SPIN& spin,const TV& rotated_offset){
         ROTATION<TV> rotation(ROTATION<TV>::From_Rotation_Vector(spin));
         TV q=rotation.vec();
@@ -110,7 +116,21 @@ public:
             Outer_Product(ostar*dq_ds,dw_ds*(-2),{2,0,1})+Cross_Product(-2*dq_ds,ostar*dq_ds)+Cross_Product(2*ostar*dq_ds,dq_ds)+
             Cross_Product(-2*(w*ostar+Cross_Product_Matrix(q.cross(o))+Cross_Product_Matrix(q)*ostar),d2q_ds2);
     }
+    
+    template<int DTYPE1,int DTYPE2>
+    static typename std::enable_if<DTYPE1==Dimension::ANGULAR && DTYPE2==Dimension::ANGULAR,T_TENSOR>::type d2f_dV2(const T_SPIN& spin,const TV& offset)
+    {
+        return d2so_dSpin2(spin,offset);
+    }
 
+    template<int DTYPE1,int DTYPE2>
+    static typename std::enable_if<DTYPE1==Dimension::LINEAR && DTYPE2==Dimension::LINEAR,T_TENSOR>::type d2f_dV2(const T_SPIN& spin,const TV& offset)
+    {
+        T_TENSOR t;t.setZero();
+        return t;
+    }
+
+    // d(s*o)/ds
     static Matrix<T,d,t> dRotatedOffset_dSpin(const T_SPIN& spin,const TV& spun_offset){
         TV offset=ROTATION<TV>::From_Rotation_Vector(spin).inverse()*spun_offset;
         T norm_spin=spin.norm();
@@ -212,38 +232,65 @@ public:
 
     // d(f2-f1)/dv
     template<int DTYPE>
-    static typename std::enable_if<DTYPE==Dimension::LINEAR,M_VxV>::type df2mf1_dVelocity(int term_sign){
+    static typename std::enable_if<DTYPE==Dimension::LINEAR,M_VxV>::type df_dVelocity(int term_sign,const T_SPIN& spin,const TV& spun_offset){
         return M_VxV::Identity()*term_sign;
     }
 
+    template<int DTYPE>
+    static typename std::enable_if<DTYPE==Dimension::ANGULAR,M_VxV>::type df_dVelocity(int term_sign,const T_SPIN& spin,const TV& spun_offset){
+        return M_VxV::Identity()*term_sign*dRotatedOffset_dSpin(spin,spun_offset);
+    }
+
     // d(|f2-f1})/dv
-    static TV dnf_dVelocity(const TV& f,const T& nf,int term_sign){
-        return term_sign*f/nf;
+    template<int DTYPE>
+    static TV dnf_dVelocity(const TV& f,const T& nf,int term_sign,const T_SPIN& spin,const TV& spun_offset){
+        return df_dVelocity<DTYPE>(term_sign,spin,spun_offset).transpose()*f/nf;
     }
 
     // d(1/|f2-f1|)/dv
-    static TV dnfinv_dVelocity(const TV& f,const T& nf,int term_sign){
+    template<int DTYPE>
+    static TV dnfinv_dVelocity(const TV& f,const T& nf,int term_sign,const T_SPIN& spin,const TV& spun_offset){
         return term_sign*dnainv_dA(f,nf);
     }
 
     // d2(1/|f2-f1|)/dv1/dv2
-    static M_VxV d2nfinv_dVelocity2(const TV& f,const T& nf,int ts1,int ts2){
-        TV dnf_dv1=dnf_dVelocity(f,nf,ts1);
-        TV dnf_dv2=dnf_dVelocity(f,nf,ts2);
-        TV dnfinv_dv2=dnfinv_dVelocity(f,nf,ts2);
-        const M_VxV& df_dv2=df2mf1_dVelocity<LINEARITY::LINEAR>(ts2);
-        return 2/cube(nf)*dnf_dv1*dnf_dv2.transpose()-1/sqr(nf)*ts1*(df_dv2/nf+f*dnfinv_dv2.transpose());
+    template<int DTYPE1,int DTYPE2>
+    static M_VxV d2nfinv_dVelocity2(const TV& f,const T& nf,const std::array<int,2>& term_signs,const std::array<T_SPIN,2>& spins,const std::array<TV,2>& spun_offsets){
+        TV dnf_dv1=dnf_dVelocity<DTYPE1>(f,nf,term_signs[0],spins[0],spun_offsets[0]);
+        TV dnf_dv2=dnf_dVelocity<DTYPE2>(f,nf,term_signs[1],spins[1],spun_offsets[1]);
+        TV dnfinv_dv2=dnfinv_dVelocity<DTYPE2>(f,nf,term_signs[1],spins[1],spun_offsets[1]);
+        const M_VxV& df_dv2=df_dVelocity<DTYPE2>(term_signs[1],spins[1],spun_offsets[1]);
+        return 2/cube(nf)*dnf_dv1*dnf_dv2.transpose()-1/sqr(nf)*term_signs[0]*(df_dv2/nf+f*dnfinv_dv2.transpose());
+    }
+
+    static M_VxV Contract(const T_TENSOR& t,const TV& v,const std::array<int,3>& indices){
+        M_VxV result;result.setZero();
+        std::array<int,3> index{};
+        for(index[0]=0;index[0]<3;index[0]++){
+            for(index[1]=0;index[1]<3;index[1]++){
+                for(index[2]=0;index[2]<3;index[2]++){
+                    result(index[1],index[2])+=t(index[indices[0]],index[indices[1]],index[indices[2]])*v(index[0]);
+                }}}
+        return result;
     }
 
     // d2(|f2-f1|)/dv1/dv2
-    static M_VxV d2n_dVelocity2(const TV& f,int ts1,int ts2){
+    template<int DTYPE1,int DTYPE2>    
+    static M_VxV d2n_dVelocity2(const TV& f,const std::array<int,2>& signs,const std::array<T_SPIN,2>& spins,const std::array<TV,2>& offsets){
         T nf=f.norm();
-        return (df2mf1_dVelocity<LINEARITY::LINEAR>(ts2)/nf+f*dnfinv_dVelocity(f,nf,ts2).transpose())*df2mf1_dVelocity<LINEARITY::LINEAR>(ts1);//+f.sum()/nf*
+        TV f_nf=f/nf;
+        M_VxV df_dv1=df_dVelocity<DTYPE1>(signs[0],spins[0],offsets[0]);
+        M_VxV df_dv2=df_dVelocity<DTYPE2>(signs[1],spins[1],offsets[1]);
+        T_TENSOR d2f_dv2=d2f_dV2<DTYPE1,DTYPE2>(spins[0],offsets[0]); // TODO: these have to be the same!
+        return 1/nf*df_dv1.transpose()*(M_VxV::Identity()-f_nf*f_nf.transpose())*df_dv2+
+            Contract(d2f_dv2,f_nf,{1,2,0});
     }
 
-    static M_VxV df_dVelocity(const TV& f,int ts){
+    // d((f2-f1)/|f2-f1|)/dv
+    template<int DTYPE>
+    static M_VxV df_dVelocity(const TV& f,int ts,const T_SPIN& spin,const TV& spun_offset){
         T nf=f.norm();
-        return df2mf1_dVelocity<LINEARITY::LINEAR>(ts)/nf+f*dnfinv_dVelocity(f,nf,ts).transpose();
+        return df_dVelocity<DTYPE>(ts,spin,spun_offset)/nf+f*dnfinv_dVelocity<DTYPE>(f,nf,ts,spin,spun_offset).transpose();
     }
 
     // assumption: the columns of m1 should go in index 0, columns of m2 in index 1, and cross product results in index 2
@@ -281,13 +328,13 @@ public:
     }
 
     template<int DTYPE1,int DTYPE2>
-    static T_TENSOR d2f_dVelocity2(const TV& f,int ts1,int ts2){
+    static T_TENSOR d2f_dVelocity2(const TV& f,const std::array<int,2>& term_signs,const std::array<T_SPIN,2>& spins,const std::array<TV,2>& spun_offsets){
         T nf=f.norm();
-        M_VxV df_dv1=df2mf1_dVelocity<DTYPE1>(ts1);
-        M_VxV df_dv2=df2mf1_dVelocity<DTYPE2>(ts2);
-        TV dnfinv_dv1=dnfinv_dVelocity(f,nf,ts1);
-        TV dnfinv_dv2=dnfinv_dVelocity(f,nf,ts2);
-        M_VxV d2nfinv_dv2=d2nfinv_dVelocity2(f,nf,ts1,ts2);
+        M_VxV df_dv1=df_dVelocity<DTYPE1>(term_signs[0],spins[0],spun_offsets[0]);
+        M_VxV df_dv2=df_dVelocity<DTYPE2>(term_signs[1],spins[1],spun_offsets[1]);
+        TV dnfinv_dv1=dnfinv_dVelocity<DTYPE1>(f,nf,term_signs[0],spins[0],spun_offsets[0]);
+        TV dnfinv_dv2=dnfinv_dVelocity<DTYPE2>(f,nf,term_signs[1],spins[1],spun_offsets[1]);
+        M_VxV d2nfinv_dv2=d2nfinv_dVelocity2<DTYPE1,DTYPE2>(f,nf,term_signs,spins,spun_offsets);
         return Outer_Product(df_dv1,dnfinv_dv2,{2,0,1})+
             Outer_Product(df_dv2,dnfinv_dv1,{2,1,0})+
             Outer_Product(d2nfinv_dv2,f,{0,1,2});
@@ -295,8 +342,8 @@ public:
 
     /*static T_TENSOR d2f_dSpin2(const TV& f,int ts1,int ts2){
         T nf=f.norm();
-        M_VxV df_dv1=df2mf1_dVelocity(ts1);
-        M_VxV df_dv2=df2mf1_dVelocity(ts2);
+        M_VxV df_dv1=df_dVelocity(ts1);
+        M_VxV df_dv2=df_dVelocity(ts2);
         TV dnfinv_dv1=dnfinv_dVelocity(f,nf,ts1);
         TV dnfinv_dv2=dnfinv_dVelocity(f,nf,ts2);
         M_VxV d2nfinv_dv2=d2nfinv_dVelocity2(f,nf,ts1,ts2);
