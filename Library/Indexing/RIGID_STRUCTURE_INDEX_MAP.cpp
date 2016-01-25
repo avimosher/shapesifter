@@ -20,7 +20,7 @@ Compute_Constraint_Second_Derivatives(const Matrix<T,Dynamic,1>& force_balance_e
                 Flatten_Matrix_Term<T,t+d,t+d,d,d>(indices[s1],indices[s2],0,0,f_times_d2f_dv2,hessian_terms);}
             
             // second derivatives that have one force term and one velocity
-            M_VxV df_dv=f_sign*df_dVelocity<LINEARITY::LINEAR>(relative_position,s1_sign,spins[s1],spun_offsets[s1]);
+            M_VxV df_dv=f_sign*df_nf_dVelocity<LINEARITY::LINEAR>(relative_position,s1_sign,spins[s1],spun_offsets[s1]);
             TV f_times_df_dv;f_times_df_dv.setZero();
             for(int i=0;i<3;i++){
                 for(int j=0;j<3;j++){

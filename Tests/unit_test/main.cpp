@@ -150,9 +150,7 @@ TEST_CASE("Hessian"){
     }
 
     SECTION("df_dVelocity"){
-        M_VxV df_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::df_dVelocity<LINEARITY::LINEAR>(f0,1,spins[0],offsets[0]);
-        TV actual=Evaluate_Vector(x2+dx2-x1)-Evaluate_Vector(x2-x1);
-        TV estimated=(df_dv.transpose()*dx2);
+        M_VxV df_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::df_nf_dVelocity<LINEARITY::LINEAR>(f0,1,spins[0],offsets[0]);
         auto testlambda=[&](T eps){
             TV predicted=df_dv.transpose()*(eps*dx2);
             TV actual=Evaluate_Vector(x2+eps*dx2-x1)-Evaluate_Vector(x2-x1);
@@ -161,9 +159,22 @@ TEST_CASE("Hessian"){
         REQUIRE(fabs(ratio-sqr(divisor))<0.1);
     }
 
+    SECTION("df_dSpin"){
+        T_SPIN spin=random.template Direction<T_SPIN>();
+        TV offset=random.template Direction<TV>();
+        TV r=ROTATION<TV>::From_Rotation_Vector(spin)*offset;
+        M_VxV df_ds=RIGID_STRUCTURE_INDEX_MAP<TV>::df_dVelocity<LINEARITY::ANGULAR>(1,spin,r);
+        auto testlambda=[&](T eps){
+            TV predicted=df_ds*(eps*dx2);
+            TV actual=(x2+ROTATION<TV>::From_Rotation_Vector(spin+eps*dx2)*offset-x1)-(x2+r-x1);
+            return (actual-predicted).norm();};
+        T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
+        REQUIRE(fabs(ratio-sqr(divisor))<0.1);
+    }
+
     SECTION("d2f_dVelocity2"){
         T_TENSOR d2f_dv2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2f_dVelocity2<LINEARITY::LINEAR,LINEARITY::LINEAR>(f0,{1,1},spins,offsets);
-        M_VxV df_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::df_dVelocity<LINEARITY::LINEAR>(f0,1,spins[0],offsets[0]);
+        M_VxV df_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::df_nf_dVelocity<LINEARITY::LINEAR>(f0,1,spins[0],offsets[0]);
         M_VxV delta;delta.setZero();
         auto testlambda=[&](T eps){
             TV predicted=df_dv.transpose()*(eps*dx2);
@@ -192,7 +203,7 @@ TEST_CASE("Hessian"){
         for(int s1=0,s1_sgn=-1;s1<2;s1++,s1_sgn+=2){
             for(int s2=0,s2_sgn=-1;s2<2;s2++,s2_sgn+=2){
                 d2f_dv2s(s1,s2)=RIGID_STRUCTURE_INDEX_MAP<TV>::d2f_dVelocity2<LINEARITY::LINEAR,LINEARITY::LINEAR>(f0,{s1_sgn,s2_sgn},{spins[s1],spins[s1]},{offsets[s1],offsets[s2]});}
-            df_dvs[s1]=RIGID_STRUCTURE_INDEX_MAP<TV>::df_dVelocity<LINEARITY::LINEAR>(f0,s1_sgn,spins[s1],offsets[s1]);
+            df_dvs[s1]=RIGID_STRUCTURE_INDEX_MAP<TV>::df_nf_dVelocity<LINEARITY::LINEAR>(f0,s1_sgn,spins[s1],offsets[s1]);
         }
         std::array<TV,2> dxs={dx1,dx2};
 
@@ -305,20 +316,24 @@ TEST_CASE("Hessian"){
             TV r=ROTATION<TV>::From_Rotation_Vector(spin)*base_offset;
             TV x1=random.template Direction<TV>();
             TV x2=random.template Direction<TV>();
-            TV f=(x2+r-x1).normalized();
-            TV tau_initial=r.cross(f);
-            /*M_VxV derivative=RIGID_STRUCTURE_INDEX_MAP<TV>::dRotatedOffset_dSpin(spin,r);
+            TV f=(x2+r-x1);
+            TV tau_initial=r.cross(f.normalized());
+            M_VxV dr_da=RIGID_STRUCTURE_INDEX_MAP<TV>::dRotatedOffset_dSpin(spin,r);
+            M_VxV df_da=RIGID_STRUCTURE_INDEX_MAP<TV>::df_nf_dVelocity<LINEARITY::ANGULAR>(f,1,spin,r);
             TV delta=random.template Direction<TV>();
 
             auto testlambda=[&](T eps){
                 T_SPIN dspin=eps*delta;
-                TV predicted=derivative*dspin;
-                TV final=ROTATION<TV>::From_Rotation_Vector(spin+dspin)*base_offset;
-                T error=(final-rotated_offset-predicted).norm();
+                TV predicted=(-Cross_Product_Matrix(f.normalized())*dr_da+Cross_Product_Matrix(r)*df_da)*dspin;
+                //TV predicted=df_da*dspin;
+                TV r_final=ROTATION<TV>::From_Rotation_Vector(spin+dspin)*base_offset;
+                TV tau_final=r_final.cross((x2+r_final-x1).normalized());
+                T error=(tau_final-tau_initial-predicted).norm();
+                //T error=((x2+r_final-x1).normalized()-f.normalized()-predicted).norm();
                 return error;
             };
             T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
-            REQUIRE(fabs(ratio-sqr(divisor))<0.1);*/
+            REQUIRE(fabs(ratio-sqr(divisor))<0.1);
         }
     }
 }
