@@ -258,12 +258,11 @@ public:
 
     // d2(1/|f2-f1|)/dv1/dv2
     template<int DTYPE1,int DTYPE2>
-    static M_VxV d2nfinv_dVelocity2(const TV& f,const T& nf,const std::array<int,2>& term_signs,const std::array<T_SPIN,2>& spins,const std::array<TV,2>& spun_offsets){
-        TV dnf_dv1=dnf_dVelocity<DTYPE1>(f,nf,term_signs[0],spins[0],spun_offsets[0]);
-        TV dnf_dv2=dnf_dVelocity<DTYPE2>(f,nf,term_signs[1],spins[1],spun_offsets[1]);
-        TV dnfinv_dv2=dnfinv_dVelocity<DTYPE2>(f,nf,term_signs[1],spins[1],spun_offsets[1]);
-        const M_VxV& df_dv2=df_dVelocity<DTYPE2>(term_signs[1],spins[1],spun_offsets[1]);
-        return 2/cube(nf)*dnf_dv1*dnf_dv2.transpose()-1/sqr(nf)*term_signs[0]*(df_dv2/nf+f*dnfinv_dv2.transpose());
+    static M_VxV d2nfinv_dVelocity2(const TV& f,const T& nf,const std::array<int,2>& signs,const std::array<T_SPIN,2>& spins,const std::array<TV,2>& spun_offsets){
+        TV dnf_dv1=dnf_dVelocity<DTYPE1>(f,nf,signs[0],spins[0],spun_offsets[0]);
+        TV dnf_dv2=dnf_dVelocity<DTYPE2>(f,nf,signs[1],spins[1],spun_offsets[1]);
+        M_VxV d2nf_dv2=d2n_dVelocity2<DTYPE1,DTYPE2>(f,signs,spins,spun_offsets);
+        return 2/cube(nf)*dnf_dv1*dnf_dv2.transpose()-1/sqr(nf)*d2nf_dv2;
     }
 
     static M_VxV Contract(const T_TENSOR& t,const TV& v,const std::array<int,3>& indices){
@@ -284,7 +283,7 @@ public:
         TV f_nf=f/nf;
         M_VxV df_dv1=df_dVelocity<DTYPE1>(signs[0],spins[0],offsets[0]);
         M_VxV df_dv2=df_dVelocity<DTYPE2>(signs[1],spins[1],offsets[1]);
-        T_TENSOR d2f_dv2=d2f_dV2<DTYPE1,DTYPE2>(signs,spins[0],offsets[0]); // TODO: these have to be the same!
+        T_TENSOR d2f_dv2=d2f_dV2<DTYPE1,DTYPE2>(signs,spins[0],offsets[0]);
         return 1/nf*df_dv1.transpose()*(M_VxV::Identity()-f_nf*f_nf.transpose())*df_dv2+
             Contract(d2f_dv2,f_nf,{1,2,0});
     }
@@ -330,17 +329,20 @@ public:
         return tensor;
     }
 
+    // d2((f2-f1)/|f2-f1|)/dv2
     template<int DTYPE1,int DTYPE2>
-    static T_TENSOR d2f_dVelocity2(const TV& f,const std::array<int,2>& term_signs,const std::array<T_SPIN,2>& spins,const std::array<TV,2>& spun_offsets){
+    static T_TENSOR d2f_nf_dVelocity2(const TV& f,const std::array<int,2>& signs,const std::array<T_SPIN,2>& spins,const std::array<TV,2>& spun_offsets){
         T nf=f.norm();
-        M_VxV df_dv1=df_dVelocity<DTYPE1>(term_signs[0],spins[0],spun_offsets[0]);
-        M_VxV df_dv2=df_dVelocity<DTYPE2>(term_signs[1],spins[1],spun_offsets[1]);
-        TV dnfinv_dv1=dnfinv_dVelocity<DTYPE1>(f,nf,term_signs[0],spins[0],spun_offsets[0]);
-        TV dnfinv_dv2=dnfinv_dVelocity<DTYPE2>(f,nf,term_signs[1],spins[1],spun_offsets[1]);
-        M_VxV d2nfinv_dv2=d2nfinv_dVelocity2<DTYPE1,DTYPE2>(f,nf,term_signs,spins,spun_offsets);
+        M_VxV df_dv1=df_dVelocity<DTYPE1>(signs[0],spins[0],spun_offsets[0]);//checked
+        M_VxV df_dv2=df_dVelocity<DTYPE2>(signs[1],spins[1],spun_offsets[1]);//checked
+        TV dnfinv_dv1=dnfinv_dVelocity<DTYPE1>(f,nf,signs[0],spins[0],spun_offsets[0]);//checked
+        TV dnfinv_dv2=dnfinv_dVelocity<DTYPE2>(f,nf,signs[1],spins[1],spun_offsets[1]);//checked
+        M_VxV d2nfinv_dv2=d2nfinv_dVelocity2<DTYPE1,DTYPE2>(f,nf,signs,spins,spun_offsets);//checked
+        T_TENSOR d2f_dv2=d2f_dV2<DTYPE1,DTYPE2>(signs,spins[0],spun_offsets[0]);//basically checked
         return Outer_Product(df_dv1,dnfinv_dv2,{2,0,1})+
             Outer_Product(df_dv2,dnfinv_dv1,{2,1,0})+
-            Outer_Product(d2nfinv_dv2,f,{0,1,2});
+            Outer_Product(d2nfinv_dv2,f,{0,1,2})+
+            d2f_dv2*(1/nf);
     }
     
     static void Compute_Constraint_Second_Derivatives(const Matrix<T,Dynamic,1>& force_balance_error,const std::array<int,2>& indices,int constraint_index,const T constraint_error,const T scalar_force,const TV& relative_position,const SparseMatrix<T>& f_scaling,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_constraint_terms,std::vector<Triplet<T>>& constraint_force_terms);

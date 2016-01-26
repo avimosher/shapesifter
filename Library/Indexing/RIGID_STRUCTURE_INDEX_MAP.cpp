@@ -10,7 +10,7 @@ Compute_Constraint_Second_Derivatives(const Matrix<T,Dynamic,1>& force_balance_e
         for(int s1=0,s1_sign=-1;s1<2;s1++,s1_sign+=2){
             for(int s2=0,s2_sign=-1;s2<2;s2++,s2_sign+=2){
                 // linear part WRT linear
-                const T_TENSOR d2f_dv2=d2f_dVelocity2<LINEARITY::LINEAR,LINEARITY::LINEAR>(relative_position,{s1_sign,s2_sign},spins,spun_offsets)*(T)f_sign*scalar_force;
+                const T_TENSOR d2f_dv2=d2f_nf_dVelocity2<LINEARITY::LINEAR,LINEARITY::LINEAR>(relative_position,{s1_sign,s2_sign},spins,spun_offsets)*(T)f_sign*scalar_force;
                 M_VxV f_times_d2f_dv2;f_times_d2f_dv2.setZero();
                 for(int i=0;i<3;i++){
                     for(int j=0;j<3;j++){
