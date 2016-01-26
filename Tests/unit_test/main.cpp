@@ -20,10 +20,6 @@ typedef Matrix<T,3,3> M_VxV;
 typedef TensorFixedSize<T,Sizes<3,3,3>> T_TENSOR;
 typedef Dimension::LINEARITY LINEARITY;
 
-unsigned int Factorial(int number){
-    return number<=1?number:Factorial(number-1)*number;
-}
-
 M_VxV Contract(const T_TENSOR& t,const TV& v,const std::array<int,3>& indices){
     M_VxV result;result.setZero();
     std::array<int,3> index{};
@@ -62,11 +58,6 @@ TV Evaluate(const std::array<TV,2>& positions,const std::array<T_SPIN,2>& spins,
 TEST_CASE("Hessian"){
     RANDOM<T> random;
     T epsilon=1e-3;
-    TV x1=random.template Direction<TV>();
-    TV x2=random.template Direction<TV>();
-    TV f0=x2-x1;
-    TV dx1=random.template Direction<TV>();
-    TV dx2=random.template Direction<TV>();
     T divisor=2;
     std::array<TV,2> positions;
     std::array<T_SPIN,2> spins;
@@ -75,190 +66,170 @@ TEST_CASE("Hessian"){
         positions[i]=random.template Direction<TV>();
         spins[i]=random.template Direction<T_SPIN>();
         offsets[i]=random.template Direction<TV>();
-        spun_offsets[i]=ROTATION<TV>::From_Rotation_Vector(spins[i])*offsets[i];
-    }
+        spun_offsets[i]=ROTATION<TV>::From_Rotation_Vector(spins[i])*offsets[i];}
     TV f=Evaluate(positions,spins,offsets);
+    TV dx=random.template Direction<TV>();
 
     SECTION("dnf_dVelocity"){
-        TV dnf_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::dnf_dVelocity<LINEARITY::LINEAR>(f0,f0.norm(),1,spins[0],offsets[0]);
+        TV dnf_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::dnf_dVelocity<LINEARITY::LINEAR>(f,f.norm(),1,spins[0],offsets[0]);
         auto testlambda=[&](T eps){
-            T predicted=dnf_dv.dot(eps*dx2);
-            T actual=(x2+eps*dx2-x1).norm()-f0.norm();
+            T predicted=dnf_dv.dot(eps*dx);
+            T actual=Evaluate({positions[0],positions[1]+eps*dx},spins,offsets).norm()-f.norm();
             return actual-predicted;};
         T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
-        REQUIRE(fabs(ratio-sqr(divisor))<0.1);
-    }
+        REQUIRE(fabs(ratio-sqr(divisor))<0.1);}
 
     SECTION("dnf_dSpin"){
         T_SPIN spin=random.template Direction<T_SPIN>();
-        TV offset=random.template Direction<TV>();
-        TV spun_offset=ROTATION<TV>::From_Rotation_Vector(spin)*offset;
-        TV f=x2+spun_offset-x1;
-        TV dnf_ds=RIGID_STRUCTURE_INDEX_MAP<TV>::dnf_dVelocity<LINEARITY::ANGULAR>(f,f.norm(),1,spin,spun_offset);
+        TV dnf_ds=RIGID_STRUCTURE_INDEX_MAP<TV>::dnf_dVelocity<LINEARITY::ANGULAR>(f,f.norm(),1,spins[1],spun_offsets[1]);
         auto testlambda=[&](T eps){
-            T predicted=dnf_ds.dot(eps*dx2);
-            T actual=(x2+ROTATION<TV>::From_Rotation_Vector(spin+eps*dx2)*offset-x1).norm()-f.norm();
+            T predicted=dnf_ds.dot(eps*dx);
+            T actual=Evaluate(positions,{spins[0],spins[1]+eps*dx},offsets).norm()-f.norm();
             return actual-predicted;};
         T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
         REQUIRE(fabs(ratio-sqr(divisor))<0.1);
 
-        M_VxV d2nf_ds2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2n_dVelocity2<LINEARITY::ANGULAR,LINEARITY::ANGULAR>(f,{1,1},{spin,spin},{spun_offset,spun_offset});
+        M_VxV d2nf_ds2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2n_dVelocity2<LINEARITY::ANGULAR,LINEARITY::ANGULAR>(f,{1,1},{spins[1],spins[1]},{spun_offsets[1],spun_offsets[1]});
         auto test_second=[&](T eps){
-            T predicted=dnf_ds.dot(eps*dx2)+(T).5*eps*eps*dx2.transpose()*d2nf_ds2*dx2;
-            T actual=(x2+ROTATION<TV>::From_Rotation_Vector(spin+eps*dx2)*offset-x1).norm()-f.norm();
+            T predicted=dnf_ds.dot(eps*dx)+(T).5*eps*eps*dx.transpose()*d2nf_ds2*dx;
+            T actual=Evaluate(positions,{spins[0],spins[1]+eps*dx},offsets).norm()-f.norm();
             return actual-predicted;};
         ratio=test_second(epsilon)/test_second(epsilon/divisor);
-        REQUIRE(fabs(ratio-cube(divisor))<0.1);
-    }
+        REQUIRE(fabs(ratio-cube(divisor))<0.1);}
 
-    SECTION("dnfinv_dVelocity"){
-        TV dnfinv_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::dnfinv_dVelocity<LINEARITY::LINEAR>(f0,f0.norm(),1,spins[0],spun_offsets[0]);
+    SECTION("dnfinv_dVelocity","d2nfinv_dVelocity2"){
+        TV dnfinv_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::dnfinv_dVelocity<LINEARITY::LINEAR>(f,f.norm(),1,spins[1],spun_offsets[1]);
+        M_VxV d2nfinv_dv;d2nfinv_dv.setZero();
         auto testlambda=[&](T eps){
-            T predicted=dnfinv_dv.dot(eps*dx2);
-            T actual=1/(x2+eps*dx2-x1).norm()-1/f0.norm();
+            //T predicted=dnfinv_dv.dot(eps*dx);
+            T predicted=dnfinv_dv.dot(eps*dx)+((T).5*eps*eps*dx.transpose()*d2nfinv_dv*dx);
+            T actual=1/Evaluate({positions[0],positions[1]+eps*dx},spins,offsets).norm()-1/f.norm();
             return actual-predicted;};
         T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
         REQUIRE(fabs(ratio-sqr(divisor))<0.1);
+        d2nfinv_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::d2nfinv_dVelocity2<LINEARITY::LINEAR,LINEARITY::LINEAR>(f,f.norm(),{1,1},spins,spun_offsets);
+        ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
+        REQUIRE(fabs(ratio-cube(divisor))<0.1);
     }
 
     SECTION("dnfinv_dSpin"){
         TV dnfinv_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::dnfinv_dVelocity<LINEARITY::ANGULAR>(f,f.norm(),1,spins[1],spun_offsets[1]);
         auto testlambda=[&](T eps){
-            T predicted=dnfinv_dv.dot(eps*dx2);
-            T actual=1/Evaluate(positions,{spins[0],spins[1]+eps*dx2},offsets).norm()-1/f.norm();
+            T predicted=dnfinv_dv.dot(eps*dx);
+            T actual=1/Evaluate(positions,{spins[0],spins[1]+eps*dx},offsets).norm()-1/f.norm();
             return actual-predicted;};
         T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
-        REQUIRE(fabs(ratio-sqr(divisor))<0.1);
-    }
-
-    SECTION("d2nfinv_dVelocity2"){
-        M_VxV d2nfinv_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::d2nfinv_dVelocity2<LINEARITY::LINEAR,LINEARITY::LINEAR>(f0,f0.norm(),{1,1},spins,spun_offsets);
-        TV d0=RIGID_STRUCTURE_INDEX_MAP<TV>::dnfinv_dVelocity<LINEARITY::LINEAR>(f0,f0.norm(),1,spins[0],offsets[0]);
-        auto testlambda=[&](T eps){
-            T predicted=d0.dot(eps*dx2)+((T).5*eps*eps*dx2.transpose()*d2nfinv_dv*dx2);
-            T actual=1/(x2+eps*dx2-x1).norm()-1/f0.norm();
-            return actual-predicted;};
-        T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
-        REQUIRE(fabs(ratio-cube(divisor))<0.1);
-    }
+        REQUIRE(fabs(ratio-sqr(divisor))<0.1);}
 
     SECTION("d2nfinv_dSpin2"){
         M_VxV d2nfinv_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::d2nfinv_dVelocity2<LINEARITY::ANGULAR,LINEARITY::ANGULAR>(f,f.norm(),{1,1},{spins[1],spins[1]},{spun_offsets[1],spun_offsets[1]});
         TV d0=RIGID_STRUCTURE_INDEX_MAP<TV>::dnfinv_dVelocity<LINEARITY::ANGULAR>(f,f.norm(),1,spins[1],spun_offsets[1]);
         auto testlambda=[&](T eps){
-            T predicted=d0.dot(eps*dx2)+((T).5*eps*eps*dx2.transpose()*d2nfinv_dv*dx2);
-            T actual=1/Evaluate(positions,{spins[0],spins[1]+eps*dx2},offsets).norm()-1/f.norm();
+            T predicted=d0.dot(eps*dx)+((T).5*eps*eps*dx.transpose()*d2nfinv_dv*dx);
+            T actual=1/Evaluate(positions,{spins[0],spins[1]+eps*dx},offsets).norm()-1/f.norm();
             return actual-predicted;};
         T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
-        REQUIRE(fabs(ratio-cube(divisor))<0.1);
-    }
+        REQUIRE(fabs(ratio-cube(divisor))<0.1);}
 
     SECTION("dnainv_dA"){
-        TV dnainv_da=RIGID_STRUCTURE_INDEX_MAP<TV>::dnainv_dA(f0,f0.norm());
+        TV dnainv_da=RIGID_STRUCTURE_INDEX_MAP<TV>::dnainv_dA(f,f.norm());
         auto testlambda=[&](T eps){
-            T predicted=dnainv_da.dot(dx1)*eps;
-            T actual=1/(f0+eps*dx1).norm()-1/f0.norm();
+            T predicted=dnainv_da.dot(dx)*eps;
+            T actual=1/(f+eps*dx).norm()-1/f.norm();
             return actual-predicted;};
         T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
-        REQUIRE(fabs(ratio-sqr(divisor))<0.1);
-    }
+        REQUIRE(fabs(ratio-sqr(divisor))<0.1);}
 
     SECTION("da_na_dA"){
-        M_VxV da_na_da=RIGID_STRUCTURE_INDEX_MAP<TV>::da_na_dA(f0,f0.norm());
-        T_TENSOR d2a_na_da2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2a_na_dA2(f0,f0.norm());
+        M_VxV da_na_da=RIGID_STRUCTURE_INDEX_MAP<TV>::da_na_dA(f,f.norm());
+        T_TENSOR d2a_na_da2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2a_na_dA2(f,f.norm());
         auto testlambda=[&](T eps){
-            TV predicted=da_na_da*dx1*eps;
-            TV actual=(f0+eps*dx1).normalized()-f0.normalized();
+            TV predicted=da_na_da*dx*eps;
+            TV actual=(f+eps*dx).normalized()-f.normalized();
             return (actual-predicted).norm();};
         T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
         REQUIRE(fabs(ratio-sqr(divisor))<0.1);
 
         auto test_second=[&](T eps){
-            TV contracted=Contract(d2a_na_da2,dx1,dx1,{0,1,2});
-            TV predicted=da_na_da*dx1*eps+((T).5*eps*eps*contracted);
-            TV actual=(f0+eps*dx1).normalized()-f0.normalized();
+            TV contracted=Contract(d2a_na_da2,dx,dx,{0,1,2});
+            TV predicted=da_na_da*dx*eps+((T).5*eps*eps*contracted);
+            TV actual=(f+eps*dx).normalized()-f.normalized();
             return (actual-predicted).norm();};
         ratio=test_second(epsilon)/test_second(epsilon/divisor);
-        REQUIRE(fabs(ratio-cube(divisor))<0.1);
-    }
+        REQUIRE(fabs(ratio-cube(divisor))<0.1);}
 
     SECTION("df_nf_dVelocity"){
-        M_VxV df_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::df_nf_dVelocity<LINEARITY::LINEAR>(f0,1,spins[0],offsets[0]);
+        M_VxV df_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::df_nf_dVelocity<LINEARITY::LINEAR>(f,1,spins[1],offsets[1]);
         auto testlambda=[&](T eps){
-            TV predicted=df_dv*(eps*dx2);
-            TV actual=Evaluate_Vector(x2+eps*dx2-x1)-Evaluate_Vector(x2-x1);
+            TV predicted=df_dv*(eps*dx);
+            TV actual=Evaluate({positions[0],positions[1]+eps*dx},spins,offsets).normalized()-f.normalized();
             return (actual-predicted).norm();};
         T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
-        REQUIRE(fabs(ratio-sqr(divisor))<0.1);
-    }
+        REQUIRE(fabs(ratio-sqr(divisor))<0.1);}
 
     SECTION("df_dSpin"){
         M_VxV df_ds=RIGID_STRUCTURE_INDEX_MAP<TV>::df_dVelocity<LINEARITY::ANGULAR>(1,spins[1],spun_offsets[1]);
         auto testlambda=[&](T eps){
-            TV predicted=df_ds*(eps*dx2);
-            TV actual=Evaluate(positions,{spins[0],spins[1]+eps*dx2},offsets)-Evaluate(positions,spins,offsets);
+            TV predicted=df_ds*(eps*dx);
+            TV actual=Evaluate(positions,{spins[0],spins[1]+eps*dx},offsets)-Evaluate(positions,spins,offsets);
             return (actual-predicted).norm();};
         T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
-        REQUIRE(fabs(ratio-sqr(divisor))<0.1);
-    }
+        REQUIRE(fabs(ratio-sqr(divisor))<0.1);}
 
     SECTION("d2f_nf_dVelocity2"){
-        T_TENSOR d2f_dv2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2f_nf_dVelocity2<LINEARITY::LINEAR,LINEARITY::LINEAR>(f0,{1,1},spins,offsets);
-        M_VxV df_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::df_nf_dVelocity<LINEARITY::LINEAR>(f0,1,spins[0],offsets[0]);
+        T_TENSOR d2f_dv2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2f_nf_dVelocity2<LINEARITY::LINEAR,LINEARITY::LINEAR>(f,{1,1},spins,offsets);
+        M_VxV df_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::df_nf_dVelocity<LINEARITY::LINEAR>(f,1,spins[1],offsets[1]);
         auto testlambda=[&](T eps){
-            TV predicted=df_dv*(eps*dx2);
-            predicted+=.5*eps*eps*Contract(d2f_dv2,dx2,dx2,{0,1,2});
-            TV actual=Evaluate_Vector(x2+eps*dx2-x1)-Evaluate_Vector(x2-x1);
+            TV predicted=df_dv*(eps*dx)+(T).5*eps*eps*Contract(d2f_dv2,dx,dx,{0,1,2});
+            TV actual=Evaluate({positions[0],positions[1]+eps*dx},spins,offsets).normalized()-f.normalized();
             return (actual-predicted).norm();};
         T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
-        REQUIRE(fabs(ratio-cube(divisor))<0.1);
-    }
+        REQUIRE(fabs(ratio-cube(divisor))<0.1);}
 
     SECTION("d2f_nf_dSpin2"){
         T_TENSOR d2f_ds2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2f_nf_dVelocity2<LINEARITY::ANGULAR,LINEARITY::ANGULAR>(f,{1,1},{spins[1],spins[1]},{spun_offsets[1],spun_offsets[1]});
         M_VxV df_ds=RIGID_STRUCTURE_INDEX_MAP<TV>::df_nf_dVelocity<LINEARITY::ANGULAR>(f,1,spins[1],spun_offsets[1]);
         auto testlambda=[&](T eps){
-            TV predicted=df_ds*(eps*dx2);
-            predicted+=.5*eps*eps*Contract(d2f_ds2,dx2,dx2,{0,1,2});
-            TV actual=Evaluate(positions,{spins[0],spins[1]+eps*dx2},offsets).normalized()-f.normalized();
+            TV predicted=df_ds*(eps*dx)+(T).5*eps*eps*Contract(d2f_ds2,dx,dx,{0,1,2});
+            TV actual=Evaluate(positions,{spins[0],spins[1]+eps*dx},offsets).normalized()-f.normalized();
             return (actual-predicted).norm();};
         T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
-        REQUIRE(fabs(ratio-cube(divisor))<0.1);
-    }
+        REQUIRE(fabs(ratio-cube(divisor))<0.1);}
 
     SECTION("d2n_dVelocity2"){
-        M_VxV d2n_dv2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2n_dVelocity2<LINEARITY::LINEAR,LINEARITY::LINEAR>(f0,{1,1},spins,offsets);
-        TV d0=RIGID_STRUCTURE_INDEX_MAP<TV>::dnf_dVelocity<LINEARITY::LINEAR>(f0,f0.norm(),1,spins[0],offsets[0]);
+        M_VxV d2n_dv2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2n_dVelocity2<LINEARITY::LINEAR,LINEARITY::LINEAR>(f,{1,1},spins,offsets);
+        TV d0=RIGID_STRUCTURE_INDEX_MAP<TV>::dnf_dVelocity<LINEARITY::LINEAR>(f,f.norm(),1,spins[1],offsets[1]);
 
         auto testlambda=[&](T eps){
-            T predicted=d0.dot(eps*dx2)+(T)0.5*eps*eps*dx2.transpose()*d2n_dv2*dx2;
-            T actual=(x2+eps*dx2-x1).norm()-(x2-x1).norm();
+            T predicted=d0.dot(eps*dx)+(T)0.5*eps*eps*dx.transpose()*d2n_dv2*dx;
+            T actual=Evaluate({positions[0],positions[1]+eps*dx},spins,offsets).norm()-f.norm();
             return actual-predicted;};
         T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
-        REQUIRE(fabs(ratio-cube(divisor))<0.1);
-    }
+        REQUIRE(fabs(ratio-cube(divisor))<0.1);}
 
     SECTION("d2n_dSpin2"){
         M_VxV d2n_dv2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2n_dVelocity2<LINEARITY::ANGULAR,LINEARITY::ANGULAR>(f,{1,1},{spins[1],spins[1]},{spun_offsets[1],spun_offsets[1]});
         TV d0=RIGID_STRUCTURE_INDEX_MAP<TV>::dnf_dVelocity<LINEARITY::ANGULAR>(f,f.norm(),1,spins[1],spun_offsets[1]);
 
         auto testlambda=[&](T eps){
-            T predicted=d0.dot(eps*dx2)+(T)0.5*eps*eps*dx2.transpose()*d2n_dv2*dx2;
-            T actual=Evaluate(positions,{spins[0],spins[1]+eps*dx2},offsets).norm()-f.norm();
+            T predicted=d0.dot(eps*dx)+(T)0.5*eps*eps*dx.transpose()*d2n_dv2*dx;
+            T actual=Evaluate(positions,{spins[0],spins[1]+eps*dx},offsets).norm()-f.norm();
             return actual-predicted;};
         T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
-        REQUIRE(fabs(ratio-cube(divisor))<0.1);
-    }
+        REQUIRE(fabs(ratio-cube(divisor))<0.1);}
 
-    SECTION("d2n_dVelocity2 full"){
+    SECTION("d2f_nf_dVelocity2 full"){
         std::array<M_VxV,2> df_dvs;
+        std::array<TV,2> dxs;
         Matrix<T_TENSOR,2,2> d2f_dv2s;
+        TV zero;zero.setZero();
+        TV f=Evaluate(positions,spins,{zero,zero});
         for(int s1=0,s1_sgn=-1;s1<2;s1++,s1_sgn+=2){
             for(int s2=0,s2_sgn=-1;s2<2;s2++,s2_sgn+=2){
-                d2f_dv2s(s1,s2)=RIGID_STRUCTURE_INDEX_MAP<TV>::d2f_nf_dVelocity2<LINEARITY::LINEAR,LINEARITY::LINEAR>(f0,{s1_sgn,s2_sgn},{spins[s1],spins[s1]},{offsets[s1],offsets[s2]});}
-            df_dvs[s1]=RIGID_STRUCTURE_INDEX_MAP<TV>::df_nf_dVelocity<LINEARITY::LINEAR>(f0,s1_sgn,spins[s1],offsets[s1]);
+                d2f_dv2s(s1,s2)=RIGID_STRUCTURE_INDEX_MAP<TV>::d2f_nf_dVelocity2<LINEARITY::LINEAR,LINEARITY::LINEAR>(f,{s1_sgn,s2_sgn},{spins[s1],spins[s1]},{offsets[s1],offsets[s2]});}
+            df_dvs[s1]=RIGID_STRUCTURE_INDEX_MAP<TV>::df_nf_dVelocity<LINEARITY::LINEAR>(f,s1_sgn,spins[s1],offsets[s1]);
+            dxs[s1]=random.template Direction<TV>();
         }
-        std::array<TV,2> dxs={dx1,dx2};
 
         auto testlambda=[&](T eps){
             TV predicted;predicted.setZero();
@@ -266,11 +237,10 @@ TEST_CASE("Hessian"){
                 predicted+=df_dvs[s1].transpose()*(eps*dxs[s1]);
                 for(int s2=0,s2_sgn=-1;s2<2;s2++,s2_sgn+=2){
                     predicted+=.5*eps*eps*dxs[s1].transpose()*Contract(d2f_dv2s(s1,s2),dxs[s2],{2,0,1});}}
-            TV actual=Evaluate_Vector(x2+eps*dxs[1]-x1-eps*dxs[0])-Evaluate_Vector(x2-x1);
+            TV actual=Evaluate({positions[0]+eps*dxs[0],positions[1]+eps*dxs[1]},spins,{zero,zero}).normalized()-f.normalized();
             return (actual-predicted).norm();};
         T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
-        REQUIRE(fabs(ratio-cube(divisor))<0.1);
-    }
+        REQUIRE(fabs(ratio-cube(divisor))<0.1);}
 
     // ROTATIONAL PARTS
     SECTION("dw_dSpin","d2w_dSpin2"){
@@ -296,8 +266,7 @@ TEST_CASE("Hessian"){
             return actual-predicted;};
 
         T ratio_hessian=testlambda_hessian(epsilon)/testlambda_hessian(epsilon/divisor);
-        REQUIRE(fabs(ratio_hessian-cube(divisor))<0.1);
-    }
+        REQUIRE(fabs(ratio_hessian-cube(divisor))<0.1);}
 
     SECTION("dq_dSpin","d2q_dSpin2"){
         T_SPIN spin=random.template Direction<T_SPIN>();
@@ -324,75 +293,56 @@ TEST_CASE("Hessian"){
             return (actual-predicted).norm();};
 
         T ratio_hessian=testlambda_hessian(epsilon)/testlambda_hessian(epsilon/divisor);
-        REQUIRE(fabs(ratio_hessian-cube(divisor))<0.1);
-    }
-
+        REQUIRE(fabs(ratio_hessian-cube(divisor))<0.1);}
 
     SECTION("d2sxo_dSpin2"){
-        int tests=10;
-        for(int i=0;i<tests;i++){
-            TV base_offset=random.template Direction<TV>();
-            TV spin=random.template Direction<TV>();
-            TV rotated_offset=ROTATION<TV>::From_Rotation_Vector(spin)*base_offset;
-            M_VxV derivative=RIGID_STRUCTURE_INDEX_MAP<TV>::dRotatedOffset_dSpin(spin,rotated_offset);
-            TV delta=random.template Direction<TV>();
+        M_VxV derivative=RIGID_STRUCTURE_INDEX_MAP<TV>::dRotatedOffset_dSpin(spins[1],spun_offsets[1]);
+        TV delta=random.template Direction<TV>();
 
-            auto testlambda=[&](T eps){
-                T_SPIN dspin=eps*delta;
-                TV predicted=derivative*dspin;
-                TV final=ROTATION<TV>::From_Rotation_Vector(spin+dspin)*base_offset;
-                T error=(final-rotated_offset-predicted).norm();
-                return error;
-            };
-            T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
-            REQUIRE(fabs(ratio-sqr(divisor))<0.1);
+        auto testlambda=[&](T eps){
+            T_SPIN dspin=eps*dx;
+            TV predicted=derivative*dspin;
+            TV final=ROTATION<TV>::From_Rotation_Vector(spins[1]+dspin)*offsets[1];
+            T error=(final-spun_offsets[1]-predicted).norm();
+            return error;};
+        T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
+        REQUIRE(fabs(ratio-sqr(divisor))<0.1);
 
-            T_TENSOR d2so_ds2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2so_dSpin2(spin,rotated_offset);
+        T_TENSOR d2so_ds2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2so_dSpin2(spins[1],spun_offsets[1]);
+        auto test_second=[&](T eps){
+            T_SPIN dspin=eps*dx;
+            TV predicted=derivative*dspin+(T).5*Contract(d2so_ds2,dspin,dspin,{0,1,2});
+            TV final=ROTATION<TV>::From_Rotation_Vector(spins[1]+dspin)*offsets[1];
+            return (final-spun_offsets[1]-predicted).norm();};
+        ratio=test_second(epsilon)/test_second(epsilon/divisor);
+        REQUIRE(fabs(ratio-cube(divisor))<0.1);}
 
-            auto test_second=[&](T eps){
-                T_SPIN dspin=eps*delta;
-                TV predicted=derivative*dspin+(T).5*Contract(d2so_ds2,dspin,dspin,{0,1,2});
-                TV final=ROTATION<TV>::From_Rotation_Vector(spin+dspin)*base_offset;
-                return (final-rotated_offset-predicted).norm();
-            };
-            ratio=test_second(epsilon)/test_second(epsilon/divisor);
-            REQUIRE(fabs(ratio-cube(divisor))<0.1);
-        }
-    }
+    // r x f, where f=(f_2-f_1)/|f_2-f_1|
+    SECTION("dtau_dSpin","d2tau_dSpin2"){
+        TV tau_initial=spun_offsets[1].cross(f.normalized());
+        M_VxV dtau_da=RIGID_STRUCTURE_INDEX_MAP<TV>::dtau_dA<LINEARITY::ANGULAR>(f,1,spins[1],spun_offsets[1]);
 
-    // r x f, where f=(f_2-f_1)/|f_2-f_1|, f_2=x_2+r
-    SECTION("dtau_dSpin"){
-        int tests=10;
-        for(int i=0;i<tests;i++){
-            TV tau_initial=spun_offsets[1].cross(f.normalized());
-            M_VxV dtau_da=RIGID_STRUCTURE_INDEX_MAP<TV>::dtau_dA<LINEARITY::ANGULAR>(f,1,spins[1],spun_offsets[1]);
-            TV delta=random.template Direction<TV>();
+        auto testlambda=[&](T eps){
+            T_SPIN dspin=eps*dx;
+            TV predicted=dtau_da*dspin;
+            TV r_final=ROTATION<TV>::From_Rotation_Vector(spins[1]+dspin)*offsets[1];
+            TV tau_final=r_final.cross(Evaluate(positions,{spins[0],spins[1]+dspin},offsets).normalized());
+            T error=(tau_final-tau_initial-predicted).norm();
+            return error;};
+        T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
+        REQUIRE(fabs(ratio-sqr(divisor))<0.1);
 
-            auto testlambda=[&](T eps){
-                T_SPIN dspin=eps*delta;
-                TV predicted=dtau_da*dspin;
-                TV r_final=ROTATION<TV>::From_Rotation_Vector(spins[1]+dspin)*offsets[1];
-                TV tau_final=r_final.cross(Evaluate(positions,{spins[0],spins[1]+dspin},offsets).normalized());
-                T error=(tau_final-tau_initial-predicted).norm();
-                return error;
-            };
-            T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
-            REQUIRE(fabs(ratio-sqr(divisor))<0.1);
+        T_TENSOR d2tau_da2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2tau_dV2<LINEARITY::ANGULAR,LINEARITY::ANGULAR>(f,spun_offsets[1],{1,1},{spins[1],spins[1]},{spun_offsets[1],spun_offsets[1]});
 
-            T_TENSOR d2tau_da2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2tau_dV2<LINEARITY::ANGULAR,LINEARITY::ANGULAR>(f,spun_offsets[1],{1,1},{spins[1],spins[1]},{spun_offsets[1],spun_offsets[1]});
-
-            auto test_second=[&](T eps){
-                T_SPIN dspin=eps*delta;
-                TV predicted=dtau_da*dspin+(T).5*Contract(d2tau_da2,dspin,dspin,{0,1,2});
-                TV r_final=ROTATION<TV>::From_Rotation_Vector(spins[1]+dspin)*offsets[1];
-                TV tau_final=r_final.cross(Evaluate(positions,{spins[0],spins[1]+dspin},offsets).normalized());
-                T error=(tau_final-tau_initial-predicted).norm();
-                return error;
-            };
-            ratio=test_second(epsilon)/test_second(epsilon/divisor);
-            REQUIRE(fabs(ratio-cube(divisor))<0.1);
-        }
-    }
+        auto test_second=[&](T eps){
+            T_SPIN dspin=eps*dx;
+            TV predicted=dtau_da*dspin+(T).5*Contract(d2tau_da2,dspin,dspin,{0,1,2});
+            TV r_final=ROTATION<TV>::From_Rotation_Vector(spins[1]+dspin)*offsets[1];
+            TV tau_final=r_final.cross(Evaluate(positions,{spins[0],spins[1]+dspin},offsets).normalized());
+            T error=(tau_final-tau_initial-predicted).norm();
+            return error;};
+        ratio=test_second(epsilon)/test_second(epsilon/divisor);
+        REQUIRE(fabs(ratio-cube(divisor))<0.1);}
 }
 
 
