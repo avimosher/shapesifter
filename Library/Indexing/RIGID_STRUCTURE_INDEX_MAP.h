@@ -344,6 +344,30 @@ public:
             Outer_Product(d2nfinv_dv2,f,{0,1,2})+
             d2f_dv2*(1/nf);
     }
+
+    // d(r x (f2-f1)/|f2-f1|)/da
+    template<int DTYPE>
+    static M_VxV dtau_dA(const TV& f,int sgn,const T_SPIN& spin,const TV& spun_offset){
+        M_VxV dr_da=dRotatedOffset_dSpin(spin,spun_offset);
+        M_VxV df_da=df_nf_dVelocity<DTYPE>(f,sgn,spin,spun_offset);
+        return -Cross_Product_Matrix(f.normalized())*dr_da+Cross_Product_Matrix(spun_offset)*df_da;
+    }
+
+    // d2(r x (f2-f1)/|f2-f1|)/dv2
+    template<int DTYPE1,int DTYPE2>
+    static T_TENSOR d2tau_dV2(const TV& f,const TV& r,const std::array<int,2>& signs,const std::array<T_SPIN,2>& spins,const std::array<TV,2>& spun_offsets){
+        M_VxV dr_da=dRotatedOffset_dSpin(spins[0],spun_offsets[0]); // checked
+        M_VxV dr_db=dRotatedOffset_dSpin(spins[1],spun_offsets[1]); // checked
+        M_VxV df_da=df_nf_dVelocity<DTYPE1>(f,signs[0],spins[0],spun_offsets[0]); // checked
+        M_VxV df_db=df_nf_dVelocity<DTYPE2>(f,signs[1],spins[1],spun_offsets[1]); // checked
+        TV f_nf=f.normalized();
+        T_TENSOR d2r_da2=d2f_dV2<DTYPE1,DTYPE2>(signs,spins[0],spun_offsets[0]); //checked
+        T_TENSOR d2f_nf_da2=d2f_nf_dVelocity2<DTYPE1,DTYPE2>(f,signs,spins,spun_offsets); //checked
+        return Cross_Product(-Cross_Product_Matrix(f_nf),d2r_da2)+
+            Cross_Product(dr_da,df_db)+
+            Cross_Product(-df_da,dr_db)+ // TODO: correct?
+            Cross_Product(Cross_Product_Matrix(r),d2f_nf_da2);
+    }
     
     static void Compute_Constraint_Second_Derivatives(const Matrix<T,Dynamic,1>& force_balance_error,const std::array<int,2>& indices,int constraint_index,const T constraint_error,const T scalar_force,const TV& relative_position,const SparseMatrix<T>& f_scaling,std::vector<Triplet<T>>& hessian_terms,std::vector<Triplet<T>>& force_constraint_terms,std::vector<Triplet<T>>& constraint_force_terms);
 

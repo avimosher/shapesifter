@@ -364,32 +364,33 @@ TEST_CASE("Hessian"){
     SECTION("dtau_dSpin"){
         int tests=10;
         for(int i=0;i<tests;i++){
-            TV base_offset=random.template Direction<TV>();
-            TV spin=random.template Direction<TV>();
-            TV r=ROTATION<TV>::From_Rotation_Vector(spin)*base_offset;
-            TV x1=random.template Direction<TV>();
-            TV x2=random.template Direction<TV>();
-            TV f=(x2+r-x1);
-            TV tau_initial=r.cross(f.normalized());
-            M_VxV dr_da=RIGID_STRUCTURE_INDEX_MAP<TV>::dRotatedOffset_dSpin(spin,r);
-            M_VxV df_da=RIGID_STRUCTURE_INDEX_MAP<TV>::df_nf_dVelocity<LINEARITY::ANGULAR>(f,1,spin,r);
+            TV tau_initial=spun_offsets[1].cross(f.normalized());
+            M_VxV dtau_da=RIGID_STRUCTURE_INDEX_MAP<TV>::dtau_dA<LINEARITY::ANGULAR>(f,1,spins[1],spun_offsets[1]);
             TV delta=random.template Direction<TV>();
 
             auto testlambda=[&](T eps){
                 T_SPIN dspin=eps*delta;
-                TV predicted=(-Cross_Product_Matrix(f.normalized())*dr_da+Cross_Product_Matrix(r)*df_da)*dspin;
-                //TV predicted=df_da*dspin;
-                TV r_final=ROTATION<TV>::From_Rotation_Vector(spin+dspin)*base_offset;
-                TV tau_final=r_final.cross((x2+r_final-x1).normalized());
+                TV predicted=dtau_da*dspin;
+                TV r_final=ROTATION<TV>::From_Rotation_Vector(spins[1]+dspin)*offsets[1];
+                TV tau_final=r_final.cross(Evaluate(positions,{spins[0],spins[1]+dspin},offsets).normalized());
                 T error=(tau_final-tau_initial-predicted).norm();
-                //T error=((x2+r_final-x1).normalized()-f.normalized()-predicted).norm();
                 return error;
             };
             T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
             REQUIRE(fabs(ratio-sqr(divisor))<0.1);
 
-            //T_TENSOR d2so_ds2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2so_dSpin2(spin,r);
-            
+            T_TENSOR d2tau_da2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2tau_dV2<LINEARITY::ANGULAR,LINEARITY::ANGULAR>(f,spun_offsets[1],{1,1},{spins[1],spins[1]},{spun_offsets[1],spun_offsets[1]});
+
+            auto test_second=[&](T eps){
+                T_SPIN dspin=eps*delta;
+                TV predicted=dtau_da*dspin+(T).5*Contract(d2tau_da2,dspin,dspin,{0,1,2});
+                TV r_final=ROTATION<TV>::From_Rotation_Vector(spins[1]+dspin)*offsets[1];
+                TV tau_final=r_final.cross(Evaluate(positions,{spins[0],spins[1]+dspin},offsets).normalized());
+                T error=(tau_final-tau_initial-predicted).norm();
+                return error;
+            };
+            ratio=test_second(epsilon)/test_second(epsilon/divisor);
+            REQUIRE(fabs(ratio-cube(divisor))<0.1);
         }
     }
 }
