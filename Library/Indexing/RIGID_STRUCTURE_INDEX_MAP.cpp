@@ -31,7 +31,7 @@ Compute_Constraint_Second_Derivatives(const Matrix<T,Dynamic,1>& force_balance_e
     // include second derivatives of the constraint equation itself (only double velocity)
     for(int s1=0,s1_sign=-1;s1<2;s1++,s1_sign+=2){
         for(int s2=0,s2_sign=-1;s2<2;s2++,s2_sign+=2){
-            M_VxV full=df_dVelocity<LINEARITY::LINEAR>(s1_sign,spins[s1],spun_offsets[s1])*1/relative_position.norm()*df_dVelocity<LINEARITY::LINEAR>(s2_sign,spins[s2],spun_offsets[s2])+df_dVelocity<LINEARITY::LINEAR>(s1_sign,spins[s1],spun_offsets[s1])*relative_position*dnfinv_dVelocity<LINEARITY::LINEAR>(relative_position,relative_position.norm(),s2_sign,spins[s2],spun_offsets[s2]).transpose();
+            M_VxV full=d2n_dVelocity2<LINEARITY::LINEAR,LINEARITY::LINEAR>(relative_position,{s1_sign,s2_sign},{spins[s1],spins[s2]},{spun_offsets[s1],spun_offsets[s2]});
             Flatten_Matrix_Term<T,t+d,t+d,d,d>(indices[s1],indices[s2],0,0,constraint_error*full,hessian_terms);}}
 }
 ///////////////////////////////////////////////////////////////////////
