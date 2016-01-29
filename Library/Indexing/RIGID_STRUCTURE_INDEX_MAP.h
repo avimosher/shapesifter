@@ -99,11 +99,10 @@ public:
     }
 
     // d2(s*o)/ds2
-    static T_TENSOR d2so_dSpin2(const T_SPIN& spin,const TV& rotated_offset){
+    static T_TENSOR d2so_dSpin2(const T_SPIN& spin,const TV& o){
         ROTATION<TV> rotation(ROTATION<TV>::From_Rotation_Vector(spin));
         TV q=rotation.vec();
         T w=rotation.w();
-        TV o=rotation.inverse()*rotated_offset;
         M_VxV ostar=Cross_Product_Matrix(o);
         T ns=spin.norm();
         M_VxV d2w_ds2=d2w_dSpin2(spin,ns);
@@ -134,8 +133,7 @@ public:
     }
 
     // d(s*o)/ds
-    static Matrix<T,d,t> dRotatedOffset_dSpin(const T_SPIN& spin,const TV& spun_offset){
-        TV offset=ROTATION<TV>::From_Rotation_Vector(spin).inverse()*spun_offset;
+    static Matrix<T,d,t> dRotatedOffset_dSpin(const T_SPIN& spin,const TV& offset){
         T norm_spin=spin.norm();
         TV_T dw_dspin=dw_dSpin(spin,norm_spin);
         TV spin_normspin=(norm_spin>epsilon)?(TV)(spin/norm_spin):TV::UnitX();
@@ -145,8 +143,8 @@ public:
         return 2*q.cross(offset)*dw_dspin-2*(Cross_Product_Matrix(offset)*w+Cross_Product_Matrix(q.cross(offset))+Cross_Product_Matrix(q)*Cross_Product_Matrix(offset))*dq_dspin;
     }
 
-    static Matrix<T,t,t> dOffsetCrossForce_dSpin(const T_SPIN& spin,const TV& spun_offset,const TV& force){
-        M_VxV dRdS=dRotatedOffset_dSpin(spin,spun_offset);
+    static Matrix<T,t,t> dOffsetCrossForce_dSpin(const T_SPIN& spin,const TV& offset,const TV& force){
+        M_VxV dRdS=dRotatedOffset_dSpin(spin,offset);
         Matrix<T,d,d> dFdS;
         for(int i=0;i<t;i++){dFdS.col(i)=dRdS.col(i).cross(force);}
         return dFdS;
@@ -166,19 +164,19 @@ public:
         return Matrix<T,d,d>::Identity()/distance-relative_position/cube(distance)*relative_position.transpose();
     }
 
-    static Matrix<T,d,d> dForce_dSpin(const TV& relative_position,const T_SPIN& spin,const TV& rotated_offset){
-        return dForce_dVelocity(relative_position)*dRotatedOffset_dSpin(spin,rotated_offset);
+    static Matrix<T,d,d> dForce_dSpin(const TV& relative_position,const T_SPIN& spin,const TV& offset){
+        return dForce_dVelocity(relative_position)*dRotatedOffset_dSpin(spin,offset);
     }
 
-    static Matrix<T,t,d> dTorque_dVelocity(const TV& relative_position,const TV& rotated_offset){
-        return Cross_Product_Matrix(rotated_offset)*dForce_dVelocity(relative_position);
+    static Matrix<T,t,d> dTorque_dVelocity(const TV& relative_position,const TV& offset){
+        return Cross_Product_Matrix(offset)*dForce_dVelocity(relative_position);
     }
 
-    static Matrix<T,t,t> dTorque_dSpin(const TV& relative_position,int s1,int s2,const T_SPIN& spin,const TV& rotated_offset1,const TV& rotated_offset2){
+    static Matrix<T,t,t> dTorque_dSpin(const TV& relative_position,int s1,int s2,const T_SPIN& spin,const TV& offset1,const TV& offset2){
         T distance=std::max(epsilon,relative_position.norm());
-        Matrix<T,t,t> first_term=Cross_Product_Matrix(rotated_offset1)*dForce_dSpin(relative_position,spin,rotated_offset2);
+        Matrix<T,t,t> first_term=Cross_Product_Matrix(offset1)*dForce_dSpin(relative_position,spin,offset2);
         if(s1==s2){
-            return (s1==0?1:-1)*Cross_Product_Matrix(relative_position)*dRotatedOffset_dSpin(spin,rotated_offset2)/distance+first_term;}
+            return (s1==0?1:-1)*Cross_Product_Matrix(relative_position)*dRotatedOffset_dSpin(spin,offset2)/distance+first_term;}
         return first_term;
     }
 
@@ -189,79 +187,79 @@ public:
         return (Matrix<T,d,d>::Identity()*one_over_distance-relative_position*relative_position.transpose()*cube(one_over_distance))*sqr(threshold_distance)+2*threshold_distance*relative_position*relative_position.transpose()*sqr(one_over_distance);
     }
 
-    static Matrix<T,t,t> dPenaltyTorque_dSpin(const TV& relative_position,int s1,int s2,const T_SPIN& spin,const TV& rotated_offset1,const TV& rotated_offset2,const T threshold){
+    static Matrix<T,t,t> dPenaltyTorque_dSpin(const TV& relative_position,int s1,int s2,const T_SPIN& spin,const TV& offset1,const TV& offset2,const T threshold){
         T distance=std::max(epsilon,relative_position.norm());
-        Matrix<T,t,t> first_term=Cross_Product_Matrix(rotated_offset1)*dPenaltyForce_dVelocity(relative_position,threshold)*dRotatedOffset_dSpin(spin,rotated_offset2);
+        Matrix<T,t,t> first_term=Cross_Product_Matrix(offset1)*dPenaltyForce_dVelocity(relative_position,threshold)*dRotatedOffset_dSpin(spin,offset2);
         if(s1==s2){
-            return (s1==0?1:-1)*Cross_Product_Matrix(relative_position)*dRotatedOffset_dSpin(spin,rotated_offset2)/distance*sqr(distance-threshold)+first_term;}
+            return (s1==0?1:-1)*Cross_Product_Matrix(relative_position)*dRotatedOffset_dSpin(spin,offset2)/distance*sqr(distance-threshold)+first_term;}
         return first_term;
     }
 
-    static void Compute_Constraint_Force_Derivative(const int index1,const int index2,const int s1,const int s2,const T term_force,const TV& relative_position,const TV& rotated_offset1,const TV& rotated_offset2,const T_SPIN& spin,std::vector<Triplet<T>>& force_terms){
+    static void Compute_Constraint_Force_Derivative(const int index1,const int index2,const int s1,const int s2,const T term_force,const TV& relative_position,const TV& offset1,const TV& offset2,const T_SPIN& spin,std::vector<Triplet<T>>& force_terms){
         Flatten_Matrix_Term<T,t+d,t+d,d,d>(index1,index2,0,0,dForce_dVelocity(relative_position)*term_force,force_terms);
-        Flatten_Matrix_Term<T,t+d,t+d,d,t>(index1,index2,0,1,dForce_dSpin(relative_position,spin,rotated_offset2)*term_force,force_terms);
-        Flatten_Matrix_Term<T,t+d,t+d,t,d>(index1,index2,1,0,dTorque_dVelocity(relative_position,rotated_offset1)*term_force,force_terms);
-        Flatten_Matrix_Term<T,t+d,t+d,t,t>(index1,index2,1,1,dTorque_dSpin(relative_position,s1,s2,spin,rotated_offset1,rotated_offset2)*term_force,force_terms);
+        Flatten_Matrix_Term<T,t+d,t+d,d,t>(index1,index2,0,1,dForce_dSpin(relative_position,spin,offset2)*term_force,force_terms);
+        Flatten_Matrix_Term<T,t+d,t+d,t,d>(index1,index2,1,0,dTorque_dVelocity(relative_position,offset1)*term_force,force_terms);
+        Flatten_Matrix_Term<T,t+d,t+d,t,t>(index1,index2,1,1,dTorque_dSpin(relative_position,s1,s2,spin,offset1,offset2)*term_force,force_terms);
     }
 
-    static void Compute_Constraint_Force_Derivative(const int index,const T scalar_force,const TV& relative_position,const TV& rotated_offset,const T_SPIN& spin,std::vector<Triplet<T>>& force_terms){
-        Compute_Constraint_Force_Derivative(index,index,0,0,scalar_force,relative_position,rotated_offset,rotated_offset,spin,force_terms);
+    static void Compute_Constraint_Force_Derivative(const int index,const T scalar_force,const TV& relative_position,const TV& offset,const T_SPIN& spin,std::vector<Triplet<T>>& force_terms){
+        Compute_Constraint_Force_Derivative(index,index,0,0,scalar_force,relative_position,offset,offset,spin,force_terms);
     }
 
-    static void Compute_Constraint_Force_Derivatives(const std::array<int,2>& indices,const T scalar_force,const TV& relative_position,const std::array<TV,2>& rotated_offsets,const std::array<T_SPIN,2>& spins,std::vector<Triplet<T>>& force_terms){
+    static void Compute_Constraint_Force_Derivatives(const std::array<int,2>& indices,const T scalar_force,const TV& relative_position,const std::array<TV,2>& offsets,const std::array<T_SPIN,2>& spins,std::vector<Triplet<T>>& force_terms){
         for(int s1=0;s1<2;s1++){ // structure of the force term
             for(int s2=0;s2<2;s2++){ // structure we're taking derivative with respect to
-                Compute_Constraint_Force_Derivative(indices[s1],indices[s2],s1,s2,(s1==s2?1:-1)*scalar_force,relative_position,rotated_offsets[s1],rotated_offsets[s2],spins[s2],force_terms);}}
+                Compute_Constraint_Force_Derivative(indices[s1],indices[s2],s1,s2,(s1==s2?1:-1)*scalar_force,relative_position,offsets[s1],offsets[s2],spins[s2],force_terms);}}
     }
 
-    static void Compute_Penalty_Force_Derivative(const int index1,const int index2,const int s1,const int s2,const T threshold,const T term_force,const TV& relative_position,const TV& rotated_offset1,const TV& rotated_offset2,const T_SPIN& spin,std::vector<Triplet<T>>& force_terms){
+    static void Compute_Penalty_Force_Derivative(const int index1,const int index2,const int s1,const int s2,const T threshold,const T term_force,const TV& relative_position,const TV& offset1,const TV& offset2,const T_SPIN& spin,std::vector<Triplet<T>>& force_terms){
         Matrix<T,d,d> dF_dV=dPenaltyForce_dVelocity(relative_position,threshold)*term_force;
         Flatten_Matrix_Term<T,t+d,t+d,d,d>(index1,index2,0,0,dF_dV,force_terms);
-        Flatten_Matrix_Term<T,t+d,t+d,d,t>(index1,index2,0,1,dF_dV*dRotatedOffset_dSpin(spin,rotated_offset2),force_terms);
-        Flatten_Matrix_Term<T,t+d,t+d,t,d>(index1,index2,1,0,Cross_Product_Matrix(rotated_offset1)*dF_dV,force_terms);
-        Flatten_Matrix_Term<T,t+d,t+d,t,t>(index1,index2,1,1,dPenaltyTorque_dSpin(relative_position,s1,s2,spin,rotated_offset1,rotated_offset2,threshold)*term_force,force_terms);
+        Flatten_Matrix_Term<T,t+d,t+d,d,t>(index1,index2,0,1,dF_dV*dRotatedOffset_dSpin(spin,offset2),force_terms);
+        Flatten_Matrix_Term<T,t+d,t+d,t,d>(index1,index2,1,0,Cross_Product_Matrix(offset1)*dF_dV,force_terms);
+        Flatten_Matrix_Term<T,t+d,t+d,t,t>(index1,index2,1,1,dPenaltyTorque_dSpin(relative_position,s1,s2,spin,offset1,offset2,threshold)*term_force,force_terms);
     }
 
-    static void Compute_Penalty_Force_Derivative(const int index,const T threshold,const T force_constant,const TV& relative_position,const TV& rotated_offset,const T_SPIN& spin,std::vector<Triplet<T>>& force_terms){
-        Compute_Penalty_Force_Derivative(index,index,0,0,threshold,force_constant,relative_position,rotated_offset,rotated_offset,spin,force_terms);
+    static void Compute_Penalty_Force_Derivative(const int index,const T threshold,const T force_constant,const TV& relative_position,const TV& offset,const T_SPIN& spin,std::vector<Triplet<T>>& force_terms){
+        Compute_Penalty_Force_Derivative(index,index,0,0,threshold,force_constant,relative_position,offset,offset,spin,force_terms);
     }
 
-    static void Compute_Penalty_Force_Derivatives(const std::array<int,2>& indices,const T threshold,const T force_constant,const TV& relative_position,const std::array<TV,2>& rotated_offsets,const std::array<T_SPIN,2>& spins,std::vector<Triplet<T>>& force_terms){
+    static void Compute_Penalty_Force_Derivatives(const std::array<int,2>& indices,const T threshold,const T force_constant,const TV& relative_position,const std::array<TV,2>& offsets,const std::array<T_SPIN,2>& spins,std::vector<Triplet<T>>& force_terms){
         for(int s1=0;s1<2;s1++){ // structure of the force term
             for(int s2=0;s2<2;s2++){ // structure we're taking derivative with respect to
-                Compute_Penalty_Force_Derivative(indices[s1],indices[s2],s1,s2,threshold,(s1==s2?1:-1)*force_constant,relative_position,rotated_offsets[s1],rotated_offsets[s2],spins[s2],force_terms);}}
+                Compute_Penalty_Force_Derivative(indices[s1],indices[s2],s1,s2,threshold,(s1==s2?1:-1)*force_constant,relative_position,offsets[s1],offsets[s2],spins[s2],force_terms);}}
     }
 
 
     // d(f2-f1)/dv
     template<int DTYPE>
-    static typename std::enable_if<DTYPE==Dimension::LINEAR,M_VxV>::type df_dVelocity(int term_sign,const T_SPIN& spin,const TV& spun_offset){
+    static typename std::enable_if<DTYPE==Dimension::LINEAR,M_VxV>::type df_dVelocity(int term_sign,const T_SPIN& spin,const TV& offset){
         return M_VxV::Identity()*term_sign;
     }
 
     template<int DTYPE>
-    static typename std::enable_if<DTYPE==Dimension::ANGULAR,M_VxV>::type df_dVelocity(int term_sign,const T_SPIN& spin,const TV& spun_offset){
-        return M_VxV::Identity()*term_sign*dRotatedOffset_dSpin(spin,spun_offset);
+    static typename std::enable_if<DTYPE==Dimension::ANGULAR,M_VxV>::type df_dVelocity(int term_sign,const T_SPIN& spin,const TV& offset){
+        return M_VxV::Identity()*term_sign*dRotatedOffset_dSpin(spin,offset);
     }
 
     // d(|f2-f1})/dv
     template<int DTYPE>
-    static TV dnf_dVelocity(const TV& f,const T& nf,int term_sign,const T_SPIN& spin,const TV& spun_offset){
-        return df_dVelocity<DTYPE>(term_sign,spin,spun_offset).transpose()*f/nf;
+    static TV dnf_dVelocity(const TV& f,const T& nf,int term_sign,const T_SPIN& spin,const TV& offset){
+        return df_dVelocity<DTYPE>(term_sign,spin,offset).transpose()*f/nf;
     }
 
     // d(1/|f2-f1|)/dv
     template<int DTYPE>
-    static TV dnfinv_dVelocity(const TV& f,const T& nf,int term_sign,const T_SPIN& spin,const TV& spun_offset){
-        return df_dVelocity<DTYPE>(term_sign,spin,spun_offset).transpose()*dnainv_dA(f,nf);
+    static TV dnfinv_dVelocity(const TV& f,const T& nf,int term_sign,const T_SPIN& spin,const TV& offset){
+        return df_dVelocity<DTYPE>(term_sign,spin,offset).transpose()*dnainv_dA(f,nf);
     }
 
     // d2(1/|f2-f1|)/dv1/dv2
     template<int DTYPE1,int DTYPE2>
-    static M_VxV d2nfinv_dVelocity2(const TV& f,const T& nf,const std::array<int,2>& signs,const std::array<T_SPIN,2>& spins,const std::array<TV,2>& spun_offsets){
-        TV dnf_dv1=dnf_dVelocity<DTYPE1>(f,nf,signs[0],spins[0],spun_offsets[0]);
-        TV dnf_dv2=dnf_dVelocity<DTYPE2>(f,nf,signs[1],spins[1],spun_offsets[1]);
-        M_VxV d2nf_dv2=d2n_dVelocity2<DTYPE1,DTYPE2>(f,signs,spins,spun_offsets);
+    static M_VxV d2nfinv_dVelocity2(const TV& f,const T& nf,const std::array<int,2>& signs,const std::array<T_SPIN,2>& spins,const std::array<TV,2>& offsets){
+        TV dnf_dv1=dnf_dVelocity<DTYPE1>(f,nf,signs[0],spins[0],offsets[0]);
+        TV dnf_dv2=dnf_dVelocity<DTYPE2>(f,nf,signs[1],spins[1],offsets[1]);
+        M_VxV d2nf_dv2=d2n_dVelocity2<DTYPE1,DTYPE2>(f,signs,spins,offsets);
         return 2/cube(nf)*dnf_dv1*dnf_dv2.transpose()-1/sqr(nf)*d2nf_dv2;
     }
 
@@ -290,9 +288,9 @@ public:
 
     // d((f2-f1)/|f2-f1|)/dv
     template<int DTYPE>
-    static M_VxV df_nf_dVelocity(const TV& f,int ts,const T_SPIN& spin,const TV& spun_offset){
+    static M_VxV df_nf_dVelocity(const TV& f,int ts,const T_SPIN& spin,const TV& offset){
         T nf=f.norm();
-        return df_dVelocity<DTYPE>(ts,spin,spun_offset)/nf+f*dnfinv_dVelocity<DTYPE>(f,nf,ts,spin,spun_offset).transpose();
+        return df_dVelocity<DTYPE>(ts,spin,offset)/nf+f*dnfinv_dVelocity<DTYPE>(f,nf,ts,spin,offset).transpose();
     }
 
     // assumption: the columns of m1 should go in index 0, columns of m2 in index 1, and cross product results in index 2
@@ -331,14 +329,14 @@ public:
 
     // d2((f2-f1)/|f2-f1|)/dv2
     template<int DTYPE1,int DTYPE2>
-    static T_TENSOR d2f_nf_dVelocity2(const TV& f,const std::array<int,2>& signs,const std::array<T_SPIN,2>& spins,const std::array<TV,2>& spun_offsets){
+    static T_TENSOR d2f_nf_dVelocity2(const TV& f,const std::array<int,2>& signs,const std::array<T_SPIN,2>& spins,const std::array<TV,2>& offsets){
         T nf=f.norm();
-        M_VxV df_dv1=df_dVelocity<DTYPE1>(signs[0],spins[0],spun_offsets[0]);//checked
-        M_VxV df_dv2=df_dVelocity<DTYPE2>(signs[1],spins[1],spun_offsets[1]);//checked
-        TV dnfinv_dv1=dnfinv_dVelocity<DTYPE1>(f,nf,signs[0],spins[0],spun_offsets[0]);//checked
-        TV dnfinv_dv2=dnfinv_dVelocity<DTYPE2>(f,nf,signs[1],spins[1],spun_offsets[1]);//checked
-        M_VxV d2nfinv_dv2=d2nfinv_dVelocity2<DTYPE1,DTYPE2>(f,nf,signs,spins,spun_offsets);//checked
-        T_TENSOR d2f_dv2=d2f_dV2<DTYPE1,DTYPE2>(signs,spins[0],spun_offsets[0]);//basically checked
+        M_VxV df_dv1=df_dVelocity<DTYPE1>(signs[0],spins[0],offsets[0]);//checked
+        M_VxV df_dv2=df_dVelocity<DTYPE2>(signs[1],spins[1],offsets[1]);//checked
+        TV dnfinv_dv1=dnfinv_dVelocity<DTYPE1>(f,nf,signs[0],spins[0],offsets[0]);//checked
+        TV dnfinv_dv2=dnfinv_dVelocity<DTYPE2>(f,nf,signs[1],spins[1],offsets[1]);//checked
+        M_VxV d2nfinv_dv2=d2nfinv_dVelocity2<DTYPE1,DTYPE2>(f,nf,signs,spins,offsets);//checked
+        T_TENSOR d2f_dv2=d2f_dV2<DTYPE1,DTYPE2>(signs,spins[0],offsets[0]);//basically checked
         return Outer_Product(df_dv1,dnfinv_dv2,{2,0,1})+
             Outer_Product(df_dv2,dnfinv_dv1,{2,1,0})+
             Outer_Product(d2nfinv_dv2,f,{0,1,2})+
@@ -347,22 +345,23 @@ public:
 
     // d(r x (f2-f1)/|f2-f1|)/da
     template<int DTYPE>
-    static M_VxV dtau_dA(const TV& f,int sgn,const T_SPIN& spin,const TV& spun_offset){
-        M_VxV dr_da=dRotatedOffset_dSpin(spin,spun_offset);
-        M_VxV df_da=df_nf_dVelocity<DTYPE>(f,sgn,spin,spun_offset);
+    static M_VxV dtau_dA(const TV& f,int sgn,const T_SPIN& spin,const TV& offset){
+        M_VxV dr_da=dRotatedOffset_dSpin(spin,offset);
+        M_VxV df_da=df_nf_dVelocity<DTYPE>(f,sgn,spin,offset);
+        TV spun_offset=ROTATION<TV>::From_Rotation_Vector(spin)*offset;
         return -Cross_Product_Matrix(f.normalized())*dr_da+Cross_Product_Matrix(spun_offset)*df_da;
     }
 
     // d2(r x (f2-f1)/|f2-f1|)/dv2
     template<int DTYPE1,int DTYPE2>
-    static T_TENSOR d2tau_dV2(const TV& f,const TV& r,const std::array<int,2>& signs,const std::array<T_SPIN,2>& spins,const std::array<TV,2>& spun_offsets){
-        M_VxV dr_da=dRotatedOffset_dSpin(spins[0],spun_offsets[0]); // checked
-        M_VxV dr_db=dRotatedOffset_dSpin(spins[1],spun_offsets[1]); // checked
-        M_VxV df_da=df_nf_dVelocity<DTYPE1>(f,signs[0],spins[0],spun_offsets[0]); // checked
-        M_VxV df_db=df_nf_dVelocity<DTYPE2>(f,signs[1],spins[1],spun_offsets[1]); // checked
+    static T_TENSOR d2tau_dV2(const TV& f,const TV& r,const std::array<int,2>& signs,const std::array<T_SPIN,2>& spins,const std::array<TV,2>& offsets){
+        M_VxV dr_da=dRotatedOffset_dSpin(spins[0],offsets[0]); // checked
+        M_VxV dr_db=dRotatedOffset_dSpin(spins[1],offsets[1]); // checked
+        M_VxV df_da=df_nf_dVelocity<DTYPE1>(f,signs[0],spins[0],offsets[0]); // checked
+        M_VxV df_db=df_nf_dVelocity<DTYPE2>(f,signs[1],spins[1],offsets[1]); // checked
         TV f_nf=f.normalized();
-        T_TENSOR d2r_da2=d2f_dV2<DTYPE1,DTYPE2>(signs,spins[0],spun_offsets[0]); //checked
-        T_TENSOR d2f_nf_da2=d2f_nf_dVelocity2<DTYPE1,DTYPE2>(f,signs,spins,spun_offsets); //checked
+        T_TENSOR d2r_da2=d2f_dV2<DTYPE1,DTYPE2>(signs,spins[0],offsets[0]); //checked
+        T_TENSOR d2f_nf_da2=d2f_nf_dVelocity2<DTYPE1,DTYPE2>(f,signs,spins,offsets); //checked
         return Cross_Product(-Cross_Product_Matrix(f_nf),d2r_da2)+
             Cross_Product(dr_da,df_db)+
             Cross_Product(-df_da,dr_db)+ // TODO: correct?

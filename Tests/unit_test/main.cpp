@@ -6,6 +6,7 @@
 #include <Force/FORCE.h>
 #include <Force/VOLUME_EXCLUSION_CONSTRAINT.h>
 #include <Indexing/RIGID_STRUCTURE_INDEX_MAP.h>
+#include <Utilities/DERIVATIVES.h>
 #include <Utilities/RANDOM.h>
 #include <Eigen/CXX11/Tensor>
 #include <Eigen/KroneckerProduct>
@@ -72,7 +73,7 @@ TEST_CASE("Hessian"){
 
     SECTION("dnf_dSpin"){
         T_SPIN spin=random.template Direction<T_SPIN>();
-        TV dnf_ds=RIGID_STRUCTURE_INDEX_MAP<TV>::dnf_dVelocity<LINEARITY::ANGULAR>(f,f.norm(),1,spins[1],spun_offsets[1]);
+        TV dnf_ds=RIGID_STRUCTURE_INDEX_MAP<TV>::dnf_dVelocity<LINEARITY::ANGULAR>(f,f.norm(),1,spins[1],offsets[1]);
         auto testlambda=[&](T eps){
             T predicted=dnf_ds.dot(eps*dx);
             T actual=Evaluate(positions,{spins[0],spins[1]+eps*dx},offsets).norm()-f.norm();
@@ -80,7 +81,7 @@ TEST_CASE("Hessian"){
         T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
         REQUIRE(fabs(ratio-sqr(divisor))<0.1);
 
-        M_VxV d2nf_ds2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2n_dVelocity2<LINEARITY::ANGULAR,LINEARITY::ANGULAR>(f,{1,1},{spins[1],spins[1]},{spun_offsets[1],spun_offsets[1]});
+        M_VxV d2nf_ds2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2n_dVelocity2<LINEARITY::ANGULAR,LINEARITY::ANGULAR>(f,{1,1},{spins[1],spins[1]},{offsets[1],offsets[1]});
         auto test_second=[&](T eps){
             T predicted=dnf_ds.dot(eps*dx)+(T).5*eps*eps*dx.transpose()*d2nf_ds2*dx;
             T actual=Evaluate(positions,{spins[0],spins[1]+eps*dx},offsets).norm()-f.norm();
@@ -89,8 +90,8 @@ TEST_CASE("Hessian"){
         REQUIRE(fabs(ratio-cube(divisor))<0.1);}
 
     SECTION("dnfinv_dVelocity","d2nfinv_dVelocity2"){
-        TV dnfinv_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::dnfinv_dVelocity<LINEARITY::LINEAR>(f,f.norm(),1,spins[1],spun_offsets[1]);
-        M_VxV d2nfinv_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::d2nfinv_dVelocity2<LINEARITY::LINEAR,LINEARITY::LINEAR>(f,f.norm(),{1,1},spins,spun_offsets);
+        TV dnfinv_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::dnfinv_dVelocity<LINEARITY::LINEAR>(f,f.norm(),1,spins[1],offsets[1]);
+        M_VxV d2nfinv_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::d2nfinv_dVelocity2<LINEARITY::LINEAR,LINEARITY::LINEAR>(f,f.norm(),{1,1},spins,offsets);
         auto testlambda=[&](T eps){
             T predicted=dnfinv_dv.dot(eps*dx)+((T).5*eps*eps*dx.transpose()*d2nfinv_dv*dx);
             T actual=1/Evaluate({positions[0],positions[1]+eps*dx},spins,offsets).norm()-1/f.norm();
@@ -99,7 +100,7 @@ TEST_CASE("Hessian"){
         REQUIRE(fabs(ratio-cube(divisor))<0.1);}
 
     SECTION("dnfinv_dSpin"){
-        TV dnfinv_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::dnfinv_dVelocity<LINEARITY::ANGULAR>(f,f.norm(),1,spins[1],spun_offsets[1]);
+        TV dnfinv_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::dnfinv_dVelocity<LINEARITY::ANGULAR>(f,f.norm(),1,spins[1],offsets[1]);
         auto testlambda=[&](T eps){
             T predicted=dnfinv_dv.dot(eps*dx);
             T actual=1/Evaluate(positions,{spins[0],spins[1]+eps*dx},offsets).norm()-1/f.norm();
@@ -108,8 +109,8 @@ TEST_CASE("Hessian"){
         REQUIRE(fabs(ratio-sqr(divisor))<0.1);}
 
     SECTION("d2nfinv_dSpin2"){
-        M_VxV d2nfinv_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::d2nfinv_dVelocity2<LINEARITY::ANGULAR,LINEARITY::ANGULAR>(f,f.norm(),{1,1},{spins[1],spins[1]},{spun_offsets[1],spun_offsets[1]});
-        TV d0=RIGID_STRUCTURE_INDEX_MAP<TV>::dnfinv_dVelocity<LINEARITY::ANGULAR>(f,f.norm(),1,spins[1],spun_offsets[1]);
+        M_VxV d2nfinv_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::d2nfinv_dVelocity2<LINEARITY::ANGULAR,LINEARITY::ANGULAR>(f,f.norm(),{1,1},{spins[1],spins[1]},{offsets[1],offsets[1]});
+        TV d0=RIGID_STRUCTURE_INDEX_MAP<TV>::dnfinv_dVelocity<LINEARITY::ANGULAR>(f,f.norm(),1,spins[1],offsets[1]);
         auto testlambda=[&](T eps){
             T predicted=d0.dot(eps*dx)+((T).5*eps*eps*dx.transpose()*d2nfinv_dv*dx);
             T actual=1/Evaluate(positions,{spins[0],spins[1]+eps*dx},offsets).norm()-1/f.norm();
@@ -147,7 +148,7 @@ TEST_CASE("Hessian"){
         REQUIRE(fabs(ratio-sqr(divisor))<0.1);}
 
     SECTION("df_dSpin"){
-        M_VxV df_ds=RIGID_STRUCTURE_INDEX_MAP<TV>::df_dVelocity<LINEARITY::ANGULAR>(1,spins[1],spun_offsets[1]);
+        M_VxV df_ds=RIGID_STRUCTURE_INDEX_MAP<TV>::df_dVelocity<LINEARITY::ANGULAR>(1,spins[1],offsets[1]);
         auto testlambda=[&](T eps){
             TV predicted=df_ds*(eps*dx);
             TV actual=Evaluate(positions,{spins[0],spins[1]+eps*dx},offsets)-Evaluate(positions,spins,offsets);
@@ -166,8 +167,8 @@ TEST_CASE("Hessian"){
         REQUIRE(fabs(ratio-cube(divisor))<0.1);}
 
     SECTION("d2f_nf_dSpin2"){
-        T_TENSOR d2f_ds2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2f_nf_dVelocity2<LINEARITY::ANGULAR,LINEARITY::ANGULAR>(f,{1,1},{spins[1],spins[1]},{spun_offsets[1],spun_offsets[1]});
-        M_VxV df_ds=RIGID_STRUCTURE_INDEX_MAP<TV>::df_nf_dVelocity<LINEARITY::ANGULAR>(f,1,spins[1],spun_offsets[1]);
+        T_TENSOR d2f_ds2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2f_nf_dVelocity2<LINEARITY::ANGULAR,LINEARITY::ANGULAR>(f,{1,1},{spins[1],spins[1]},{offsets[1],offsets[1]});
+        M_VxV df_ds=RIGID_STRUCTURE_INDEX_MAP<TV>::df_nf_dVelocity<LINEARITY::ANGULAR>(f,1,spins[1],offsets[1]);
         auto testlambda=[&](T eps){
             TV predicted=df_ds*(eps*dx)+(T).5*eps*eps*Contract(d2f_ds2,dx,dx,{0,1,2});
             TV actual=Evaluate(positions,{spins[0],spins[1]+eps*dx},offsets).normalized()-f.normalized();
@@ -187,8 +188,8 @@ TEST_CASE("Hessian"){
         REQUIRE(fabs(ratio-cube(divisor))<0.1);}
 
     SECTION("d2n_dSpin2"){
-        M_VxV d2n_dv2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2n_dVelocity2<LINEARITY::ANGULAR,LINEARITY::ANGULAR>(f,{1,1},{spins[1],spins[1]},{spun_offsets[1],spun_offsets[1]});
-        TV dnf_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::dnf_dVelocity<LINEARITY::ANGULAR>(f,f.norm(),1,spins[1],spun_offsets[1]);
+        M_VxV d2n_dv2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2n_dVelocity2<LINEARITY::ANGULAR,LINEARITY::ANGULAR>(f,{1,1},{spins[1],spins[1]},{offsets[1],offsets[1]});
+        TV dnf_dv=RIGID_STRUCTURE_INDEX_MAP<TV>::dnf_dVelocity<LINEARITY::ANGULAR>(f,f.norm(),1,spins[1],offsets[1]);
 
         auto testlambda=[&](T eps){
             T predicted=dnf_dv.dot(eps*dx)+(T)0.5*eps*eps*dx.transpose()*d2n_dv2*dx;
@@ -196,6 +197,42 @@ TEST_CASE("Hessian"){
             return actual-predicted;};
         T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
         REQUIRE(fabs(ratio-cube(divisor))<0.1);}
+
+    /*
+      for a proper evaluation, in theory, have to vary all of the things: which derivatives wrt, 
+
+      for a scalar function:
+      assume we have 1st and second derivatives for it, wrt angular and linear
+      build all of the necessary first derivatives (four) and second derivatives (16)
+      
+
+
+     */
+
+    // for vector functions
+
+    // VTYPE: LINEAR or ANGULAR
+    // VSIGN:: -1 or 1
+    // V: 0 or 1 (storage index)
+    //
+    // need second derivatives for all combinations (4 x 4)
+
+    SECTION("special test"){
+        std::array<std::array<TV,2>,2> dxs;
+        for(int i=0;i<2;i++){
+            for(int j=0;j<2;j++){
+                dxs[i][j]=random.template Direction<TV>();}}
+        T e1=F<TV>::Test_Error(positions,spins,offsets,dxs,epsilon);
+        T e2=F<TV>::Test_Error(positions,spins,offsets,dxs,epsilon/divisor);
+        std::cout<<"E1: "<<e1<<" E2: "<<e2<<std::endl;
+        T ratio=e1/e2;
+        REQUIRE(fabs(ratio-cube(divisor))<0.1);
+
+        e1=NF<TV>::Test_Error(positions,spins,offsets,dxs,epsilon);
+        e2=NF<TV>::Test_Error(positions,spins,offsets,dxs,epsilon/divisor);
+        ratio=e1/e2;
+        REQUIRE(fabs(ratio-cube(divisor))<0.1);
+    }
 
     SECTION("d2f_nf_dVelocity2 full"){
         std::array<M_VxV,2> df_dvs;
@@ -211,9 +248,9 @@ TEST_CASE("Hessian"){
 
         auto testlambda=[&](T eps){
             TV predicted;predicted.setZero();
-            for(int s1=0,s1_sgn=-1;s1<2;s1++,s1_sgn+=2){
+            for(int s1=0;s1<2;s1++){
                 predicted+=df_dvs[s1].transpose()*(eps*dxs[s1]);
-                for(int s2=0,s2_sgn=-1;s2<2;s2++,s2_sgn+=2){
+                for(int s2=0;s2<2;s2++){
                     predicted+=.5*eps*eps*dxs[s1].transpose()*Contract(d2f_dv2s(s1,s2),dxs[s2],{2,0,1});}}
             TV actual=Evaluate({positions[0]+eps*dxs[0],positions[1]+eps*dxs[1]},spins,{zero,zero}).normalized()-f.normalized();
             return (actual-predicted).norm();};
@@ -255,9 +292,9 @@ TEST_CASE("Hessian"){
         REQUIRE(fabs(ratio_hessian-cube(divisor))<0.1);}
 
     SECTION("d2sxo_dSpin2"){
-        M_VxV derivative=RIGID_STRUCTURE_INDEX_MAP<TV>::dRotatedOffset_dSpin(spins[1],spun_offsets[1]);
+        M_VxV derivative=RIGID_STRUCTURE_INDEX_MAP<TV>::dRotatedOffset_dSpin(spins[1],offsets[1]);
         TV delta=random.template Direction<TV>();
-        T_TENSOR d2so_ds2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2so_dSpin2(spins[1],spun_offsets[1]);
+        T_TENSOR d2so_ds2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2so_dSpin2(spins[1],offsets[1]);
         auto test_second=[&](T eps){
             T_SPIN dspin=eps*dx;
             TV predicted=derivative*dspin+(T).5*Contract(d2so_ds2,dspin,dspin,{0,1,2});
@@ -269,8 +306,8 @@ TEST_CASE("Hessian"){
     // r x f, where f=(f_2-f_1)/|f_2-f_1|
     SECTION("dtau_dSpin","d2tau_dSpin2"){
         TV tau_initial=spun_offsets[1].cross(f.normalized());
-        M_VxV dtau_da=RIGID_STRUCTURE_INDEX_MAP<TV>::dtau_dA<LINEARITY::ANGULAR>(f,1,spins[1],spun_offsets[1]);
-        T_TENSOR d2tau_da2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2tau_dV2<LINEARITY::ANGULAR,LINEARITY::ANGULAR>(f,spun_offsets[1],{1,1},{spins[1],spins[1]},{spun_offsets[1],spun_offsets[1]});
+        M_VxV dtau_da=RIGID_STRUCTURE_INDEX_MAP<TV>::dtau_dA<LINEARITY::ANGULAR>(f,1,spins[1],offsets[1]);
+        T_TENSOR d2tau_da2=RIGID_STRUCTURE_INDEX_MAP<TV>::d2tau_dV2<LINEARITY::ANGULAR,LINEARITY::ANGULAR>(f,spun_offsets[1],{1,1},{spins[1],spins[1]},{offsets[1],offsets[1]});
         auto test_second=[&](T eps){
             T_SPIN dspin=eps*dx;
             TV predicted=dtau_da*dspin+(T).5*Contract(d2tau_da2,dspin,dspin,{0,1,2});
@@ -310,7 +347,7 @@ TEST_CASE("ASSOCIATION_DISSOCATION_CONSTRAINT"){
             
             M_VxV dFdS;
             
-            M_VxV derivative=RIGID_STRUCTURE_INDEX_MAP<TV>::dRotatedOffset_dSpin(spin,ROTATION<TV>::From_Rotation_Vector(spin)*base_offset);
+            M_VxV derivative=RIGID_STRUCTURE_INDEX_MAP<TV>::dRotatedOffset_dSpin(spin,base_offset);
             for(int j=0;j<3;j++){
                 dFdS.block<3,1>(0,j)=derivative.block<3,1>(0,j).cross(f);
             }
@@ -382,7 +419,7 @@ TEST_CASE("Derivatives","[derivatives]"){
 
             TV rotated_offset=ROTATION<TV>::From_Rotation_Vector(spin)*base_offset;
             TV relative_position=x2+rotated_offset-x1;
-            Matrix<T,1,6> derivative=RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(spin,rotated_offset,relative_position);
+            Matrix<T,1,6> derivative=RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(spin,base_offset,relative_position);
 
             T epsilon=1e-5;
             Matrix<T,6,1> dx_direction;random.Direction(dx_direction);
@@ -422,7 +459,7 @@ TEST_CASE("Derivatives","[derivatives]"){
             TV base_offset=random.template Direction<TV>();
             TV spin=random.template Direction<TV>();
             TV rotated_offset=ROTATION<TV>::From_Rotation_Vector(spin)*base_offset;
-            M_VxV derivative=RIGID_STRUCTURE_INDEX_MAP<TV>::dRotatedOffset_dSpin(spin,rotated_offset);
+            M_VxV derivative=RIGID_STRUCTURE_INDEX_MAP<TV>::dRotatedOffset_dSpin(spin,base_offset);
             TV delta=random.template Direction<TV>();
 
             auto testlambda=[&](T eps){
@@ -449,9 +486,6 @@ TEST_CASE("Derivatives","[derivatives]"){
                 base_offsets[j]=random.template Direction<TV>();
                 spins[j]=random.template Direction<TV>();
                 rotations[j]=ROTATION<TV>::From_Rotation_Vector(spins[j]);
-                //std::cout<<"Position: "<<positions[j].transpose()<<std::endl;
-                //std::cout<<"Base offset: "<<base_offsets[j].transpose()<<std::endl;
-                //std::cout<<"Spins: "<<spins[j].transpose()<<std::endl;
             }
             TV relative_position=positions[1]+rotations[1]*base_offsets[1]-(positions[0]+rotations[0]*base_offsets[0]);
             TV direction=relative_position.normalized();
@@ -460,22 +494,14 @@ TEST_CASE("Derivatives","[derivatives]"){
                 int overall_sign=s1==0?-1:1;
                 for(int s2=0;s2<2;s2++){
                     int term_sign=s1==s2?1:-1;
-                    M_VxV derivative=term_sign*RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dSpin(relative_position,spins[s2],rotations[s2]*base_offsets[s2]);
-                    //Eigen::Matrix<T,1,3> derivative=relative_position.transpose()*RIGID_STRUCTURE_INDEX_MAP<TV>::dRotatedOffset_dSpin(spins[s2],rotations[s2]*base_offsets[s2]);
-                    //T estimated_norm=norm+derivative*delta;
+                    M_VxV derivative=term_sign*RIGID_STRUCTURE_INDEX_MAP<TV>::dForce_dSpin(relative_position,spins[s2],base_offsets[s2]);
                     TV delta=epsilon*random.template Direction<TV>();
                     TV estimated_direction=overall_sign*(direction)+derivative*delta;
                     std::vector<TV> mod_spins(2);
                     for(int j=0;j<2;j++){mod_spins[j]=spins[j];}
                     mod_spins[s2]+=delta;
                     TV actual_direction=overall_sign*(positions[1]+ROTATION<TV>::From_Rotation_Vector(mod_spins[1])*base_offsets[1]-(positions[0]+ROTATION<TV>::From_Rotation_Vector(mod_spins[0])*base_offsets[0])).normalized();
-                    //std::cout<<"Direction: "<<direction.transpose()<<" estimated: "<<estimated_direction.transpose()<<" actual: "<<actual_direction.transpose()<<" relative: "<<relative_position.transpose()<<std::endl;
-                    //std::cout<<"Quality: "<<(actual_direction-estimated_direction).norm()/delta.norm()<<std::endl;
-                    REQUIRE((actual_direction-estimated_direction).norm()<2*delta.norm());
-                }
-            }
-        }
-    }
+                    REQUIRE((actual_direction-estimated_direction).norm()<2*delta.norm());}}}}
 
     SECTION("Penalty force","dPenaltyForce_dVelocity"){
         for(int i=0;i<tests;i++){
@@ -487,11 +513,7 @@ TEST_CASE("Derivatives","[derivatives]"){
                 positions[j]=random.template Direction<TV>();
                 base_offsets[j]=random.template Direction<TV>();
                 spins[j]=random.template Direction<TV>();
-                rotations[j]=ROTATION<TV>::From_Rotation_Vector(spins[j]);
-                //std::cout<<"Position: "<<positions[j].transpose()<<std::endl;
-                //std::cout<<"Base offset: "<<base_offsets[j].transpose()<<std::endl;
-                //std::cout<<"Spins: "<<spins[j].transpose()<<std::endl;
-            }
+                rotations[j]=ROTATION<TV>::From_Rotation_Vector(spins[j]);}
             T threshold=(positions[1]-positions[0]).norm()+random.Uniform((T)0,(T).1);
             //TV relative_position=positions[1]+rotations[1]*base_offsets[1]-(positions[0]+rotations[0]*base_offsets[0]);
             TV relative_position=positions[1]-positions[0];
@@ -528,7 +550,7 @@ TEST_CASE("Derivatives","[derivatives]"){
                 int overall_sign=s1==0?-1:1;
                 for(int s2=0;s2<2;s2++){
                     int term_sign=s1==s2?1:-1;
-                    M_VxV derivative=term_sign*RIGID_STRUCTURE_INDEX_MAP<TV>::dPenaltyTorque_dSpin(relative_position,s1,s2,spins[s2],rotated_offsets[s1],rotated_offsets[s2],threshold);
+                    M_VxV derivative=term_sign*RIGID_STRUCTURE_INDEX_MAP<TV>::dPenaltyTorque_dSpin(relative_position,s1,s2,spins[s2],base_offsets[s1],base_offsets[s2],threshold);
                     TV delta=epsilon*random.template Direction<TV>();
 
                     TV torque=overall_sign*(ROTATION<TV>::From_Rotation_Vector(spins[s1])*base_offsets[s1]).cross(sqr(relative_position.norm()-threshold)*relative_position.normalized());
