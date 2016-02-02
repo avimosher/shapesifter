@@ -217,21 +217,46 @@ TEST_CASE("Hessian"){
     //
     // need second derivatives for all combinations (4 x 4)
 
-    SECTION("special test"){
-        std::array<std::array<TV,2>,2> dxs;
-        for(int i=0;i<2;i++){
-            for(int j=0;j<2;j++){
-                dxs[i][j]=random.template Direction<TV>();}}
-        T e1=F<TV>::Test_Error(positions,spins,offsets,dxs,epsilon);
-        T e2=F<TV>::Test_Error(positions,spins,offsets,dxs,epsilon/divisor);
-        std::cout<<"E1: "<<e1<<" E2: "<<e2<<std::endl;
-        T ratio=e1/e2;
-        REQUIRE(fabs(ratio-cube(divisor))<0.1);
+    std::array<std::array<TV,2>,2> dxs;
+    for(int i=0;i<2;i++){
+        for(int j=0;j<2;j++){
+            dxs[i][j]=random.template Direction<TV>();
+        }}
 
-        e1=NF<TV>::Test_Error(positions,spins,offsets,dxs,epsilon);
-        e2=NF<TV>::Test_Error(positions,spins,offsets,dxs,epsilon/divisor);
-        ratio=e1/e2;
-        REQUIRE(fabs(ratio-cube(divisor))<0.1);
+    SECTION("F"){
+        T ratio=F<TV>::Test_Error(positions,spins,offsets,dxs,epsilon)/F<TV>::Test_Error(positions,spins,offsets,dxs,epsilon/divisor);
+        REQUIRE(fabs(ratio-cube(divisor))<0.1);}
+
+    SECTION("NF"){
+        T ratio=NF<TV>::Test_Error(positions,spins,offsets,dxs,epsilon)/NF<TV>::Test_Error(positions,spins,offsets,dxs,epsilon/divisor);
+        REQUIRE(fabs(ratio-cube(divisor))<0.1);}
+
+    SECTION("NFINV"){
+        T ratio=NFINV<TV>::Test_Error(positions,spins,offsets,dxs,epsilon)/NFINV<TV>::Test_Error(positions,spins,offsets,dxs,epsilon/divisor);
+        REQUIRE(fabs(ratio-cube(divisor))<0.1);}
+
+    SECTION("F_NF"){
+        T ratio=F_NF<TV>::Test_Error(positions,spins,offsets,dxs,epsilon)/F_NF<TV>::Test_Error(positions,spins,offsets,dxs,epsilon/divisor);
+        REQUIRE(fabs(ratio-cube(divisor))<0.1);}
+
+    SECTION("RXO"){
+        T ratio=RXO<TV,0>::Test_Error(positions,spins,offsets,dxs,epsilon)/RXO<TV,0>::Test_Error(positions,spins,offsets,dxs,epsilon/divisor);
+        REQUIRE(fabs(ratio-cube(divisor))<0.1);}
+
+    SECTION("RXF_NF"){
+        T ratio0=RCF_NF<TV,0>::Test_Error(positions,spins,offsets,dxs,epsilon)/RCF_NF<TV,0>::Test_Error(positions,spins,offsets,dxs,epsilon/divisor);
+        REQUIRE(fabs(ratio0-cube(divisor))<0.1);
+    }
+
+    SECTION("RXF_NF"){
+        T ratio1=RCF_NF<TV,1>::Test_Error(positions,spins,offsets,dxs,epsilon)/RCF_NF<TV,1>::Test_Error(positions,spins,offsets,dxs,epsilon/divisor);
+        REQUIRE(fabs(ratio1-cube(divisor))<0.1);
+    }
+
+    SECTION("practical"){
+        std::vector<Triplet<T>> hessian_terms;
+        TV f=F<TV>::Evaluate(positions,spins,offsets);
+        Relative_Position_Force<TV>::Build(f,spins,offsets,{0,1},dxs,hessian_terms);
     }
 
     SECTION("d2f_nf_dVelocity2 full"){

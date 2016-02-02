@@ -55,7 +55,7 @@ int main(int argc,char **argv)
     auto relative_position_constraint=simulation->force.template Find_Or_Create<RELATIVE_POSITION_CONSTRAINT<TV>>();
     typename RELATIVE_POSITION_CONSTRAINT<TV>::CONSTRAINT constraint;
     constraint.s1=rigid_data->Structure_Index("first");
-    constraint.v1.setZero();//=TV::UnitY();
+    constraint.v1=TV::UnitY();
     constraint.s2=rigid_data->Structure_Index("second");
     constraint.v2.setZero();//=TV::UnitY();
     constraint.target_distance=4;
