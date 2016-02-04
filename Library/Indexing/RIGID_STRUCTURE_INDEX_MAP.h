@@ -11,6 +11,7 @@ namespace Mechanics{
 namespace Dimension{
     enum LINEARITY{LINEAR,ANGULAR};
 }
+#define epsilon (T)1e-8
 
 template<class TV>
 class RIGID_STRUCTURE_INDEX_MAP
@@ -23,7 +24,7 @@ class RIGID_STRUCTURE_INDEX_MAP
     typedef Matrix<T,d,t> M_VxT;
     typedef TensorFixedSize<T,Sizes<3,3,3>> T_TENSOR;
     typedef Dimension::LINEARITY LINEARITY;
-    static constexpr T epsilon=1e-8;
+    //static constexpr T epsilon=1e-8;
 public:
 
     RIGID_STRUCTURE_INDEX_MAP(){}
@@ -422,5 +423,7 @@ public:
         return Compute_Orientation_Constraint_Matrix(rotation,relative_rotation,composed_rotation.Sign());
     }
 };
+
+#undef epsilon
 }
 #endif

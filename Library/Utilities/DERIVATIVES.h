@@ -118,7 +118,7 @@ struct Function
 
     static T Test_Error(const std::array<TV,2>& x,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset,const std::array<std::array<TV,2>,2>& dx,T eps){
         TV f=F<TV>::Evaluate(x,spin,offset);
-        FTYPE initial=Derived::Evaluate(x,spin,offset);
+        FTYPE initial=Derived::Evaluate(f,spin,offset);
         std::array<std::array<TV,2>,2> epsdx;
         std::array<TV,2> epsx;
         std::array<T_SPIN,2> epsspin;
@@ -127,7 +127,8 @@ struct Function
             epsx[i]=x[i]+epsdx[i][0];
             epsspin[i]=spin[i]+epsdx[i][1];}
         FTYPE predicted=Apply_Derivatives(f,spin,offset,epsdx);
-        FTYPE actual=Derived::Evaluate(epsx,epsspin,offset)-initial;
+        TV f_final=F<TV>::Evaluate(epsx,epsspin,offset);
+        FTYPE actual=Derived::Evaluate(f_final,epsspin,offset)-initial;
         return Norm(actual-predicted);
     }
 };
@@ -140,6 +141,10 @@ struct F:public Function<TV,TV,F<TV>>
 
     static TV Evaluate(const std::array<TV,2>& x,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
         return x[1]+ROTATION<TV>::From_Rotation_Vector(spin[1])*offset[1]-(x[0]+ROTATION<TV>::From_Rotation_Vector(spin[0])*offset[0]);
+    }
+
+    static TV Evaluate(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
+        return f;
     }
 
     template<int V1,int VTYPE,std::enable_if_t<VTYPE==LINEAR>* = nullptr>
@@ -169,8 +174,8 @@ struct NF:public Function<TV,typename TV::Scalar,NF<TV>>
     typedef Function<TV,typename TV::Scalar,NF<TV>> BASE;
     using typename BASE::T;using typename BASE::M_VxV;using typename BASE::T_TENSOR;using typename BASE::T_SPIN;
 
-    static T Evaluate(const std::array<TV,2>& x,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
-        return F<TV>::Evaluate(x,spin,offset).norm();}
+    static T Evaluate(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
+        return F<TV>::Evaluate(f,spin,offset).norm();}
 
     template<int V1,int VTYPE>
     static TV First_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
@@ -194,8 +199,8 @@ struct NFINV:public Function<TV,typename TV::Scalar,NFINV<TV>>
     typedef Function<TV,typename TV::Scalar,NFINV<TV>> BASE;
     using typename BASE::T;using typename BASE::M_VxV;using typename BASE::T_TENSOR;using typename BASE::T_SPIN;
 
-    static T Evaluate(const std::array<TV,2>& x,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
-        return 1/F<TV>::Evaluate(x,spin,offset).norm();}
+    static T Evaluate(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
+        return 1/F<TV>::Evaluate(f,spin,offset).norm();}
 
     template<int V1,int VTYPE>
     static TV First_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
@@ -217,8 +222,8 @@ struct F_NF:public Function<TV,TV,F_NF<TV>>
     typedef Function<TV,TV,F_NF<TV>> BASE;
     using typename BASE::T;using typename BASE::M_VxV;using typename BASE::T_TENSOR;using typename BASE::T_SPIN;
 
-    static TV Evaluate(const std::array<TV,2>& x,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
-        return F<TV>::Evaluate(x,spin,offset).normalized();}
+    static TV Evaluate(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
+        return F<TV>::Evaluate(f,spin,offset).normalized();}
 
     template<int V1,int VTYPE>
     static M_VxV First_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
@@ -285,7 +290,7 @@ struct RXO:public Function<TV,TV,RXO<TV,R>>
     typedef Function<TV,TV,RXO<TV,R>> BASE;
     using typename BASE::T;using typename BASE::M_VxV;using typename BASE::T_TENSOR;using typename BASE::T_SPIN;
 
-    static TV Evaluate(const std::array<TV,2>& x,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
+    static TV Evaluate(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
         return ROTATION<TV>::From_Rotation_Vector(spin[R])*offset[R];}
 
     template<int V1,int VTYPE,std::enable_if_t<VTYPE==ANGULAR && V1==R>* = nullptr>
@@ -314,8 +319,8 @@ struct RCF_NF:public Function<TV,TV,RCF_NF<TV,R>>
     typedef Function<TV,TV,RCF_NF<TV,R>> BASE;
     using typename BASE::T;using typename BASE::M_VxV;using typename BASE::T_TENSOR;using typename BASE::T_SPIN;
 
-    static TV Evaluate(const std::array<TV,2>& x,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
-        return RXO<TV,R>::Evaluate(x,spin,offset).cross(F<TV>::Evaluate(x,spin,offset).normalized());}
+    static TV Evaluate(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
+        return RXO<TV,R>::Evaluate(f,spin,offset).cross(F<TV>::Evaluate(f,spin,offset).normalized());}
 
     // this is only valid when V1 and R match and VTYPE is ANGULAR.  Otherwise the dr_da part is zero.
     template<int V1,int VTYPE>
@@ -342,6 +347,71 @@ struct RCF_NF:public Function<TV,TV,RCF_NF<TV,R>>
     }
 };
 
+
+template<class TV>
+struct Spring_Force
+{
+    typedef typename TV::Scalar T;
+    typedef typename ROTATION<TV>::SPIN T_SPIN;
+    enum {d=TV::RowsAtCompileTime,t=T_SPIN::RowsAtCompileTime};
+    typedef Matrix<T,d,d> M_VxV;
+
+    template<int E,int ETYPE,std::enable_if_t<ETYPE==LINEAR>* = nullptr>
+    static TV Evaluate(const T k,const T target,const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
+        T nf=std::max((T)1e-8,f.norm());
+        return -k*(nf-target)*f/nf*VSIGN<E>::SIGN;
+    }
+
+    template<int E,int ETYPE,std::enable_if_t<ETYPE==ANGULAR>* = nullptr>
+    static T_SPIN Evaluate(const T k,const T target,const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
+        T nf=std::max((T)1e-8,f.norm());
+        return (ROTATION<TV>::From_Rotation_Vector(spin[E])*offset[E]).cross(-k*(nf-target)*f/nf*VSIGN<E>::SIGN);
+    }
+
+    template<int E,int ETYPE,int V,int VTYPE,std::enable_if_t<ETYPE==LINEAR>* = nullptr>
+    static M_VxV First_Derivative(const T k,const T target,const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
+        T nf=std::max((T)1e-8,f.norm());
+        return -k*(NF<TV>::template First_Derivative<V,VTYPE>(f,spin,offset)*F_NF<TV>::Evaluate(f,spin,offset).transpose()+(nf-target)*F_NF<TV>::template First_Derivative<V,VTYPE>(f,spin,offset));
+    }
+
+    template<int E,int ETYPE,int V,int VTYPE,std::enable_if_t<ETYPE==ANGULAR>* = nullptr>
+    static M_VxV First_Derivative(const T k,const T target,const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
+        T nf=std::max((T)1e-8,f.norm());
+        return -k*(RCF_NF<TV,E>::template First_Derivative<V,VTYPE>(f,spin,offset)*(nf-target)+NF<TV>::template First_Derivative<V,VTYPE>(f,spin,offset)*RCF_NF<TV,E>::Evaluate(f,spin,offset).transpose());
+    }
+
+    template<int E,int ETYPE,int V,int VTYPE>
+    static void Matrix_Term(const std::array<int,2>& index,const T k,const T target,const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset,std::vector<Triplet<T>>& force_terms){
+        Flatten_Matrix_Term<T,t+d,t+d,d,d>(index[E],index[V],ETYPE,VTYPE,First_Derivative<E,ETYPE,V,VTYPE>(k,target,f,spin,offset),force_terms);
+    }
+
+    template<int E,int ETYPE>
+    static void First_Derivatives(const std::array<int,2>& index,const T k,const T target,const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset,std::vector<Triplet<T>>& force_terms){
+        Matrix_Term<E,ETYPE,0,LINEAR>(index,k,target,f,spin,offset,force_terms);
+        Matrix_Term<E,ETYPE,0,ANGULAR>(index,k,target,f,spin,offset,force_terms);
+        Matrix_Term<E,ETYPE,1,LINEAR>(index,k,target,f,spin,offset,force_terms);
+        Matrix_Term<E,ETYPE,1,ANGULAR>(index,k,target,f,spin,offset,force_terms);
+    }
+
+    static void Derivatives(const std::array<int,2>& index,const T k,const T target,const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset,std::vector<Triplet<T>>& force_terms){
+        First_Derivatives<0,LINEAR>(index,k,target,f,spin,offset,force_terms);
+        First_Derivatives<0,ANGULAR>(index,k,target,f,spin,offset,force_terms);
+        First_Derivatives<1,LINEAR>(index,k,target,f,spin,offset,force_terms);
+        First_Derivatives<1,ANGULAR>(index,k,target,f,spin,offset,force_terms);
+    }
+
+    template<int E,int ETYPE>
+    static void Evaluate_Term(const std::array<int,2>& index,const T k,const T target,const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset,Matrix<T,Dynamic,1>& error){
+        error.template block<d,1>(index[E]*(t+d)+ETYPE*d,0)+=Evaluate<E,ETYPE>(k,target,f,spin,offset);
+    }
+
+    static void Evaluate(const std::array<int,2>& index,const T k,const T target,const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset,Matrix<T,Dynamic,1>& error){
+        Evaluate_Term<0,LINEAR>(index,k,target,f,spin,offset,error);
+        Evaluate_Term<0,ANGULAR>(index,k,target,f,spin,offset,error);
+        Evaluate_Term<1,LINEAR>(index,k,target,f,spin,offset,error);
+        Evaluate_Term<1,ANGULAR>(index,k,target,f,spin,offset,error);
+    }
+};
 
 
 template<class TV>

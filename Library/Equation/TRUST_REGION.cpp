@@ -111,7 +111,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     equation->Gradient(gk);
     norm_gk=gk.norm();
     Update_Hessian(false);
-    Update_Preconditioner(true);
+    Update_Preconditioner(false);
 
     static int failed_radius=0;
     do{
@@ -130,9 +130,8 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
         if(status==MOVED || status==EXPAND){
             //Update_Hessian(status!=EXPAND);
             Update_Hessian(false);
-            if(simulation.force.Equations_Changed() || iteration%preconditioner_refresh_frequency==0){Update_Preconditioner(true);}
+            if(simulation.force.Equations_Changed() || iteration%preconditioner_refresh_frequency==0){Update_Preconditioner(false);}
             status=CONTINUE;}
-        //Check_Derivative(simulation,dt,time);
         if(simulation.substeps){
             //std::string frame_name="Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration)+" radius "+std::to_string(radius)+" real "+std::to_string(int(status==CONTINUE))+ " f "+std::to_string(f);
             std::string frame_name="Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration)+" real "+std::to_string(int(status==CONTINUE))+ " f "+std::to_string(f);
@@ -141,7 +140,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     }while(status==CONTINUE);
     std::string frame_name="End frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration)+" real "+std::to_string(int(status==CONTINUE))+ " f "+std::to_string(f);
     simulation.Write(frame_name);
-
+    //Check_Derivative(simulation,dt,time);
     LOG::cout<<"SOLVE STEPS: "<<iteration<<" Failed due to radius: "<<failed_radius<<std::endl;
     call_count++;
     total_steps+=iteration;

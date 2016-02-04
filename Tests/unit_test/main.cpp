@@ -259,6 +259,19 @@ TEST_CASE("Hessian"){
         Relative_Position_Force<TV>::Build(f,spins,offsets,{0,1},dxs,hessian_terms);
     }
 
+    SECTION("Spring_Force"){
+        T target=2;
+        T stiffness=20;
+        M_VxV derivative=Spring_Force<TV>::template First_Derivative<1,1,1,1>(stiffness,target,f,spins,offsets);
+        auto testlambda=[&](T eps){
+            TV predicted=derivative.transpose()*dxs[0][0]*eps;
+            TV actual=Spring_Force<TV>::template Evaluate<1,1>(stiffness,target,Evaluate(positions,{spins[0],spins[1]+eps*dxs[0][0]},offsets),{spins[0],spins[1]+eps*dxs[0][0]},offsets)-Spring_Force<TV>::template Evaluate<1,1>(stiffness,target,f,spins,offsets);
+            return (actual-predicted).norm();
+        };
+        T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);
+        REQUIRE(fabs(ratio-sqr(divisor))<0.1);
+    }
+
     SECTION("association dissociation"){
         ROTATION<TV> RC=ROTATION<TV>::From_Rotation_Vector(positions[0]);
         M_VxV derivative=R1XRCXR2INV<TV>::template First_Derivative<0>(RC,spins);
