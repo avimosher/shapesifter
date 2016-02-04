@@ -20,6 +20,7 @@ public:
     std::vector<SparseMatrix<T>> kinematic_projection_matrices;
     Matrix<T,Dynamic,1> error;
     SparseMatrix<T> hessian;
+    SparseMatrix<T> accurate_hessian;
     SparseMatrix<T> jacobian;
 
     NONLINEAR_EQUATION(){};
@@ -34,6 +35,7 @@ public:
     T Evaluate(){return error.squaredNorm()/2;}
     void Gradient(Matrix<T,Dynamic,1>& gradient) const{gradient=jacobian.adjoint()*error;}
     void RHS(Matrix<T,Dynamic,1>& rhs) const{rhs=error;}
+    void Accurate_Hessian(SparseMatrix<T>& hessian_out) const{hessian_out=accurate_hessian;}
     void Hessian(SparseMatrix<T>& hessian_out) const{hessian_out=hessian;}
     void Jacobian(SparseMatrix<T>& jacobian_out) const{jacobian_out=jacobian;}
     int System_Size(){return error.size();}

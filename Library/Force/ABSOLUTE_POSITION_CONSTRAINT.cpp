@@ -42,7 +42,7 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
         terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,constraint.s,constraint_vector));
         forces.push_back(Triplet<FORCE_VECTOR>(constraint.s,i,constraint_vector.transpose()));
         //RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Force_Derivative(constraint.s,stored_forces[i],constraint_right_hand_side[i]*constraint.direction,TV(),T_SPIN(),force_terms); // TODO: this constraint has no spin dependence!
-}
+    }
     for(int i=0;i<angular_constraints.size();i++){
         const ANGULAR_CONSTRAINT& constraint=angular_constraints[i];
         auto structure=rigid_data->structures[constraint.s];

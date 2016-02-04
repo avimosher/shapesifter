@@ -104,7 +104,7 @@ public:
         TV q=rotation.vec();
         T w=rotation.w();
         M_VxV ostar=Cross_Product_Matrix(o);
-        T ns=spin.norm();
+        T ns=std::max((T)1e-8,spin.norm());
         M_VxV d2w_ds2=d2w_dSpin2(spin,ns);
         T_TENSOR d2q_ds2=d2q_dSpin2(spin,ns);
         TV s_ns=spin/ns;

@@ -110,7 +110,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     f=equation->Evaluate();
     equation->Gradient(gk);
     norm_gk=gk.norm();
-    Update_Hessian();
+    Update_Hessian(false);
     Update_Preconditioner(true);
 
     static int failed_radius=0;
@@ -128,7 +128,8 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
 
         // update Hessian
         if(status==MOVED || status==EXPAND){
-            Update_Hessian();
+            //Update_Hessian(status!=EXPAND);
+            Update_Hessian(false);
             if(simulation.force.Equations_Changed() || iteration%preconditioner_refresh_frequency==0){Update_Preconditioner(true);}
             status=CONTINUE;}
         //Check_Derivative(simulation,dt,time);
@@ -163,9 +164,12 @@ Update_Preconditioner(bool identity)
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
-Update_Hessian()
+Update_Hessian(bool use_accurate_hessian)
 {
-    equation->Hessian(hessian);
+    if(use_accurate_hessian){
+        equation->Accurate_Hessian(hessian);}
+    else{
+        equation->Hessian(hessian);}
     equation->Jacobian(jacobian);
     nvars=hessian.rows();
 }
@@ -195,8 +199,8 @@ Update_One_Step(SIMULATION<TV>& simulation,const T dt,const T time)
     //Solve_Trust_Conjugate_Gradient(sk);
     //equation->Hessian(hessian);
     LOG::cout<<std::endl<<"BEGINNING NEW STEP"<<std::endl;
-    //Solve_Trust_Conjugate_Gradient(sk);
-    Solve_Trust_MINRES(sk);
+    Solve_Trust_Conjugate_Gradient(sk);
+    //Solve_Trust_MINRES(sk);
     T norm_sk_scaled=Norm(preconditioner,sk,wd);
     if(!finite(norm_sk_scaled)){step_status=FAILEDCG;}
     else{
@@ -280,6 +284,8 @@ Norm(const Preconditioner& preconditioner,const Vector& v,Vector& scratch)
 template<class TV> void TRUST_REGION<TV>::
 Solve_Trust_MINRES(Vector& sol)
 {
+    //LOG::cout<<hessian<<std::endl;
+    //LOG::cout<<gk.transpose()<<std::endl;
     std::array<T,2> alpha,beta,res;
     std::array<Vector,2> v,d;
     int n=hessian.rows();
@@ -370,15 +376,8 @@ Solve_Trust_MINRES(Vector& sol)
             if(sol.norm()>=radius){
                 LOG::cout<<"tau was originally "<<tau<<std::endl;
                 LOG::cout<<"Direction "<<d[cur].transpose()<<std::endl;
-                //std::array<T,2> tau_options=Find_Tau_Roots(old_sol,d[cur]);
                 d[cur]*=tau;
                 tau=Find_Tau(old_sol,d[cur]);
-                /*if(sign(tau)==sign(tau_options[0])){
-                    tau=tau_options[0];
-                }
-                else{
-                    tau=tau_options[1];
-                    }*/
                 LOG::cout<<"Chosen tau is "<<tau<<std::endl;
                 sol=old_sol+tau*d[cur];
                 reason<<"Intersect TR bound";
@@ -415,6 +414,8 @@ Solve_Trust_Conjugate_Gradient(Vector& pk)
     zj.setZero();
     rj=-gk;
     p_norm_gk=Norm(preconditioner,gk,wd);
+    T local_tol=std::min((T).5,(T)sqrt(p_norm_gk))*p_norm_gk;
+    LOG::cout<<"Local tol: "<<local_tol<<" tol: "<<tol<<std::endl;
 
     // Solve LL'y=r
     yj=preconditioner.solve(rj);
@@ -445,7 +446,7 @@ Solve_Trust_Conjugate_Gradient(Vector& pk)
         dot_ry=rj.dot(yj);
         rj.noalias()-=aj*(hessian.template selfadjointView<Lower>()*dj).eval();
         
-        if(Norm(preconditioner,rj,wd)/p_norm_gk<tol){
+        if(Norm(preconditioner,rj,wd)/p_norm_gk<local_tol){
             pk=zj;
             num_CG_iterations=j+1;
             reason<<"Reached tolerance";

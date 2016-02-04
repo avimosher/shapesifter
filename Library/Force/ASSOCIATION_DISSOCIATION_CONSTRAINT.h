@@ -105,6 +105,16 @@ public:
         for(int i=0;i<interaction_types.size();i++){archive(interaction_types[i].sites);}
     }
 
+    void Archive(cereal::JSONOutputArchive& archive){
+        archive(constraints,force_memory,partners,call_count);
+        for(int i=0;i<interaction_types.size();i++){archive(interaction_types[i].sites);}
+    }
+    void Archive(cereal::JSONInputArchive& archive){
+        archive(constraints,force_memory,partners,call_count);
+        for(int i=0;i<interaction_types.size();i++){archive(interaction_types[i].sites);}
+    }
+
+
     std::shared_ptr<FORCE_REFERENCE<T>> Create_Stored_Force() const;
     void Pack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information);
     void Unpack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_reference);

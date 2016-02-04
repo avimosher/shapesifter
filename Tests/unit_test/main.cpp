@@ -259,6 +259,18 @@ TEST_CASE("Hessian"){
         Relative_Position_Force<TV>::Build(f,spins,offsets,{0,1},dxs,hessian_terms);
     }
 
+    SECTION("association dissociation"){
+        ROTATION<TV> RC=ROTATION<TV>::From_Rotation_Vector(positions[0]);
+        M_VxV derivative=R1XRCXR2INV<TV>::template First_Derivative<0>(RC,spins);
+        auto testlambda=[&](T eps){
+            TV predicted=derivative.transpose()*dxs[0][0]*eps;
+            TV actual=R1XRCXR2INV<TV>::Evaluate(RC,{spins[0]+eps*dxs[0][0],spins[1]})-R1XRCXR2INV<TV>::Evaluate(RC,spins);
+            return (actual-predicted).norm();
+        };
+        T ratio=testlambda(epsilon)/testlambda(epsilon/2);
+        REQUIRE(fabs(ratio-sqr(divisor))<0.1);
+    }
+
     SECTION("d2f_nf_dVelocity2 full"){
         std::array<M_VxV,2> df_dvs;
         std::array<TV,2> dxs;

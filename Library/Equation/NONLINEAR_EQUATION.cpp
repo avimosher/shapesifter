@@ -125,7 +125,8 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     // build the Hessian
     SparseMatrix<T> hessian_addition;
     Merge_Block_Matrices(system.hessian_blocks,hessian_addition);
-    hessian=jacobian.adjoint()*jacobian+hessian_addition;
+    //accurate_hessian=jacobian.adjoint()*jacobian+hessian_addition;
+    hessian=jacobian.adjoint()*jacobian;
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(NONLINEAR_EQUATION)

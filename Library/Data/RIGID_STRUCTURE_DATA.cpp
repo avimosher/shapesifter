@@ -185,11 +185,13 @@ Viewer(osg::Node* node)
             program->addShader(vertexShader);
             auto stateSet=basicShapesGeode->getOrCreateStateSet();
             stateSet->setAttributeAndModes(program,osg::StateAttribute::ON);*/
+
+
             basicShapesGeode->getOrCreateStateSet()->setAttribute(new osg::PolygonMode(osg::PolygonMode::FRONT_AND_BACK,osg::PolygonMode::LINE));
             transform->addChild(basicShapesGeode);
-            auto line=createLine(osg::Vec4(1.0f,1.0f,1.0f,1.0f));
+            /*auto line=createLine(osg::Vec4(1.0f,1.0f,1.0f,1.0f));
             line->setName("LINE");
-            transform->addChild(line);
+            transform->addChild(line);*/
             rigid_group->addChild(transform);
         }
         group->addChild(rigid_group);
@@ -197,8 +199,8 @@ Viewer(osg::Node* node)
     for(int i=0;i<structures.size();i++){
         auto transform=(osg::PositionAttitudeTransform*)rigid_group->getChild(i);
         OSG_HELPERS<TV>::Initialize_Transform(structures[i]->frame,transform);
-        std::vector<TV> points={TV(),structures[i]->error.linear};
-        updateLine((osg::Geode*)transform->getChild(1),points);
+        //std::vector<TV> points={TV(),structures[i]->error.linear};
+        //updateLine((osg::Geode*)transform->getChild(1),points);
     }
 }
 ///////////////////////////////////////////////////////////////////////

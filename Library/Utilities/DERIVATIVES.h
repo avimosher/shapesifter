@@ -169,7 +169,6 @@ struct NF:public Function<TV,typename TV::Scalar,NF<TV>>
     typedef Function<TV,typename TV::Scalar,NF<TV>> BASE;
     using typename BASE::T;using typename BASE::M_VxV;using typename BASE::T_TENSOR;using typename BASE::T_SPIN;
 
-
     static T Evaluate(const std::array<TV,2>& x,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
         return F<TV>::Evaluate(x,spin,offset).norm();}
 
@@ -179,7 +178,7 @@ struct NF:public Function<TV,typename TV::Scalar,NF<TV>>
 
     template<int V1,int VTYPE1,int V2,int VTYPE2>
         static M_VxV Second_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
-        T nf=f.norm();
+        T nf=std::max(f.norm(),(T)1e-8);
         TV f_nf=f/nf;
         M_VxV df_dv1=F<TV>::template First_Derivative<V1,VTYPE1>(f,spin,offset).transpose();
         M_VxV df_dv2=F<TV>::template First_Derivative<V2,VTYPE2>(f,spin,offset).transpose();
@@ -200,11 +199,11 @@ struct NFINV:public Function<TV,typename TV::Scalar,NFINV<TV>>
 
     template<int V1,int VTYPE>
     static TV First_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
-        return -F<TV>::template First_Derivative<V1,VTYPE>(f,spin,offset)*f/cube(f.norm());}
+        return -F<TV>::template First_Derivative<V1,VTYPE>(f,spin,offset)*f/cube(std::max((T)1e-8,f.norm()));}
 
     template<int V1,int VTYPE1,int V2,int VTYPE2>
         static M_VxV Second_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
-        T nf=f.norm();
+        T nf=std::max((T)1e-8,f.norm());
         TV dnf_dv1=NF<TV>::template First_Derivative<V1,VTYPE1>(f,spin,offset);
         TV dnf_dv2=NF<TV>::template First_Derivative<V2,VTYPE2>(f,spin,offset);
         M_VxV d2nf_dv2=NF<TV>::template Second_Derivative<V1,VTYPE1,V2,VTYPE2>(f,spin,offset);
@@ -223,11 +222,11 @@ struct F_NF:public Function<TV,TV,F_NF<TV>>
 
     template<int V1,int VTYPE>
     static M_VxV First_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
-        return F<TV>::template First_Derivative<V1,VTYPE>(f,spin,offset)/f.norm()+NFINV<TV>::template First_Derivative<V1,VTYPE>(f,spin,offset)*f.transpose();}
+        return F<TV>::template First_Derivative<V1,VTYPE>(f,spin,offset)/std::max((T)1e-8,f.norm())+NFINV<TV>::template First_Derivative<V1,VTYPE>(f,spin,offset)*f.transpose();}
 
     template<int V1,int VTYPE1,int V2,int VTYPE2>
     static T_TENSOR Second_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
-        T nf=f.norm();
+        T nf=std::max((T)1e-8,f.norm());
         M_VxV df_dv1=F<TV>::template First_Derivative<V1,VTYPE1>(f,spin,offset);
         M_VxV df_dv2=F<TV>::template First_Derivative<V2,VTYPE2>(f,spin,offset);
         TV dnfinv_dv1=NFINV<TV>::template First_Derivative<V1,VTYPE1>(f,spin,offset);
@@ -238,6 +237,44 @@ struct F_NF:public Function<TV,TV,F_NF<TV>>
             BASE::Outer_Product(df_dv2,dnfinv_dv1,{1,2,0})+
             BASE::Outer_Product(d2nfinv_dv2,f,{0,1,2})+
             d2f_dv2*(1/nf);
+    }
+};
+
+template<class TV>
+struct R1XRCXR2INV
+{
+    typedef typename TV::Scalar T;
+    typedef typename ROTATION<TV>::SPIN T_SPIN;
+    enum {d=TV::RowsAtCompileTime,t=T_SPIN::RowsAtCompileTime};
+    typedef Matrix<T,d,d> M_VxV;
+
+    static TV Evaluate(const ROTATION<TV>& RC,const std::array<T_SPIN,2>& spin){
+        return (ROTATION<TV>::From_Rotation_Vector(spin[0])*RC*ROTATION<TV>::From_Rotation_Vector(spin[1]).inverse()).vec();}
+
+    template<int V,std::enable_if_t<V==0>* = nullptr>
+    static M_VxV First_Derivative(const ROTATION<TV>& RC,const std::array<T_SPIN,2>& spin){
+        ROTATION<TV> right=RC*ROTATION<TV>::From_Rotation_Vector(spin[1]).inverse();
+        ROTATION<TV> left=ROTATION<TV>::From_Rotation_Vector(spin[0]);
+        TV vec=right.vec();
+        T ns=std::max((T)1e-8,spin[0].norm());
+        TV dw_ds=RIGID_STRUCTURE_INDEX_MAP<TV>::dw_dSpin(spin[0],ns);
+        M_VxV dq_ds=RIGID_STRUCTURE_INDEX_MAP<TV>::dq_dSpin(spin[0]/ns,ns);
+        return dw_ds*vec.transpose()+right.w()*dq_ds.transpose()-(Cross_Product_Matrix(vec)*dq_ds).transpose();}
+
+    template<int V,std::enable_if_t<V==1>* = nullptr>
+    static M_VxV First_Derivative(const ROTATION<TV>& RC,const std::array<T_SPIN,2>& spin){
+        ROTATION<TV> left=ROTATION<TV>::From_Rotation_Vector(spin[0])*RC;
+        ROTATION<TV> right=ROTATION<TV>::From_Rotation_Vector(spin[1]);
+        TV vec=left.vec();
+        T ns=std::max((T)1e-8,spin[1].norm());
+        TV dw_ds=RIGID_STRUCTURE_INDEX_MAP<TV>::dw_dSpin(spin[1],ns);
+        M_VxV dq_ds=RIGID_STRUCTURE_INDEX_MAP<TV>::dq_dSpin(spin[1]/ns,ns);
+        return dw_ds*vec.transpose()-left.w()*dq_ds.transpose()-(Cross_Product_Matrix(vec)*dq_ds).transpose();}
+
+    static void Constraint_Derivatives(const int constraint_index,const std::array<int,2>& index,const ROTATION<TV>& RC,const std::array<T_SPIN,2>& spin,std::vector<Triplet<T>>& constraint_terms)
+    {
+        Flatten_Matrix_Term<T,t+d,t+d,d,d>(constraint_index,index[0],1,1,First_Derivative<0>(RC,spin).transpose(),constraint_terms);
+        Flatten_Matrix_Term<T,t+d,t+d,d,d>(constraint_index,index[1],1,1,First_Derivative<1>(RC,spin).transpose(),constraint_terms);
     }
 };
 
