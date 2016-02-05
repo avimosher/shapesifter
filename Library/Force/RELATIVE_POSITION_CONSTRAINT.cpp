@@ -96,17 +96,12 @@ Viewer(const DATA<TV>& data,osg::Node* node)
 {
     osg::Group* group=node->asGroup();
     osg::Group* relative_position_group=(osg::Group*)getNamedChild(group,Static_Name());
-    osg::Group* relative_position_error_group=(osg::Group*)getNamedChild(group,"relative_position_error_group");
     if(!relative_position_group){
         relative_position_group=new osg::Group();
         relative_position_group->setName(Static_Name());
-        relative_position_error_group=new osg::Group();
-        relative_position_error_group->setName("relative_position_error_group");
         for(int i=0;i<constraints.size();i++){
-            relative_position_group->addChild(createLine(osg::Vec4(1.0f,1.0f,0.0f,1.0f)));
-            relative_position_error_group->addChild(createLine(osg::Vec4(1.0f,1.0f,1.0f,1.0f)));}
+            relative_position_group->addChild(createLine(osg::Vec4(1.0f,1.0f,0.0f,1.0f)));}
         group->addChild(relative_position_group);
-        group->addChild(relative_position_error_group);
     }
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
     for(int i=0;i<constraints.size();i++){
@@ -119,12 +114,6 @@ Viewer(const DATA<TV>& data,osg::Node* node)
         auto secondAttachment=rigid_structure2->frame*constraint.v2;
         std::vector<TV> points={firstAttachment,secondAttachment};
         updateLine((osg::Geode*)relative_position_group->getChild(i),points);
-
-        if(errors.rows()==constraints.size()){
-            auto meanAttachment=(firstAttachment+secondAttachment)/2;
-            auto offsetAttachment=meanAttachment+TV::Unit(2)*errors(i);
-            std::vector<TV> error_points={meanAttachment,offsetAttachment};
-            updateLine((osg::Geode*)relative_position_error_group->getChild(i),error_points);}
     }
 }
 ///////////////////////////////////////////////////////////////////////
