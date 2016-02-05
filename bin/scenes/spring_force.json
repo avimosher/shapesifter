@@ -16,6 +16,7 @@
          "position": [5, 1, 1],
          "radius": 1
         },
+        {"type": "VOLUME_EXCLUSION_CONSTRAINT"},
         {"type": "BROWNIAN_FORCE",
          "temperature": 300},
         {"type": "STIFF_LINKER",

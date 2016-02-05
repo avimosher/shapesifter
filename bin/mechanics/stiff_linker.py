@@ -40,7 +40,21 @@ def stiff_linker(node,structure_nodes,force_nodes):
                         'offset2': node['offset2'],
                         'distance': distance
                     })
-    structure_nodes[node['structure2']]['position']=[x+y+z+t for x,y,z,t in zip(position,[0,0,collision_extent],node['link_offset'],node['offset2'])]
+    springs.append({'structure1': node['structure1'],
+                    'offset1': node['offset1'],
+                    'structure2': subnodes[1]['name'],
+                    'offset2': [0,0,-subnode_offset],
+                    'distance': 2*distance,
+                    'stiffness': stiffness
+                })
+    springs.append({'structure1': subnodes[-2]['name'],
+                    'offset1': [0,0,subnode_offset],
+                    'structure2': node['structure2'],
+                    'offset2': node['offset2'],
+                    'distance': 2*distance,
+                    'stiffness': stiffness
+                })
+    structure_nodes[node['structure2']]['position']=[x+y+z-t for x,y,z,t in zip(position,[0,0,collision_extent],node['link_offset'],node['offset2'])]
     for i in range(1,links):
         constraints.append({'structure1': subnodes[i-1]['name'],
                             'offset1': [0,0,subnode_offset],

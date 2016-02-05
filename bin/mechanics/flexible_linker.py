@@ -40,7 +40,7 @@ def flexible_linker(node,structure_nodes,force_nodes):
                         'offset2': node['offset2'],
                         'distance': distance
                     })
-    structure_nodes[node['structure2']]['position']=[x+y+z+t for x,y,z,t in zip(position,[0,0,collision_extent],node['link_offset'],node['offset2'])]
+    structure_nodes[node['structure2']]['position']=[x+y+z-t for x,y,z,t in zip(position,[0,0,collision_extent],node['link_offset'],node['offset2'])]
     for i in range(1,links):
         constraints.append({'structure1': subnodes[i-1]['name'],
                             'offset1': [0,0,subnode_offset],
