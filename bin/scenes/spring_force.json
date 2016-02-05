@@ -1,0 +1,52 @@
+{
+    "output_directory": "runs/spring_force",
+    "dt": 0.1,
+    "last_time": 100,
+    "root": [
+        {"type": "DATA",
+         "eta": 3.5},
+        {"type": "RIGID_STRUCTURE_DATA"},
+        {"type": "RIGID_STRUCTURE",
+         "name": "left",
+         "position": [0, 1, 1],
+         "radius": 1
+        },
+        {"type": "RIGID_STRUCTURE",
+         "name": "right",
+         "position": [5, 1, 1],
+         "radius": 1
+        },
+        {"type": "RIGID_STRUCTURE",
+         "name": "center",
+         "position": [2.5, 1, 1],
+         "radius": 0.2
+        },
+        {"type": "BROWNIAN_FORCE",
+         "temperature": 300},
+        {"type": "RELATIVE_POSITION_CONSTRAINT",
+         "constraints": [
+             {"structure1": "left",
+              "offset1": [0, 0, 1],
+              "structure2": "center",
+              "offset2": [0, 0, -0.2],
+              "distance": 5},
+             {"structure1": "center",
+              "offset1": [0, 0, 0.2],
+              "structure2": "right",
+              "offset2": [0, 0, 1],
+              "distance": 5}
+         ]
+        },
+        {"type": "SPRING_FORCE",
+         "springs": [
+             {"structure1": "left",
+              "offset1": [0, 0, 0],
+              "structure2": "right",
+              "offset2": [0, 0, 0],
+              "stiffness": 100,
+              "distance": 10}
+         ]
+        },
+        {"type": "TRUST_REGION"}
+    ]
+}

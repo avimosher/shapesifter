@@ -262,10 +262,10 @@ TEST_CASE("Hessian"){
     SECTION("Spring_Force"){
         T target=2;
         T stiffness=20;
-        M_VxV derivative=Spring_Force<TV>::template First_Derivative<1,1,1,1>(stiffness,target,f,spins,offsets);
+        M_VxV derivative=Spring_Force<TV>::template First_Derivative<1,0,0,1>(stiffness,target,f,spins,offsets);
         auto testlambda=[&](T eps){
             TV predicted=derivative.transpose()*dxs[0][0]*eps;
-            TV actual=Spring_Force<TV>::template Evaluate<1,1>(stiffness,target,Evaluate(positions,{spins[0],spins[1]+eps*dxs[0][0]},offsets),{spins[0],spins[1]+eps*dxs[0][0]},offsets)-Spring_Force<TV>::template Evaluate<1,1>(stiffness,target,f,spins,offsets);
+            TV actual=Spring_Force<TV>::template Evaluate<1,0>(stiffness,target,positions,{spins[0]+eps*dxs[0][0],spins[1]},offsets)-Spring_Force<TV>::template Evaluate<1,0>(stiffness,target,positions,spins,offsets);
             return (actual-predicted).norm();
         };
         T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);

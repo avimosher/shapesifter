@@ -22,16 +22,17 @@ Identify_Interactions_And_Compute_Errors(DATA<TV>& data,FORCE<TV>& force,const T
     VECTOR& right_hand_side=system.RHS(data,force,*rigid_data);
     for(int i=0;i<springs.size();i++){
         const SPRING& spring=springs[i];
-        std::array<TV,2> spun_offsets,points,base_offsets;
+        std::array<TV,2> spun_offsets,points,base_offsets,positions;
         std::array<T_SPIN,2> spins;
         for(int j=0;j<2;j++){
             auto structure=rigid_data->structures[spring.index[j]];
             spun_offsets[j]=structure->frame.orientation*spring.offset[j];
+            positions[j]=structure->frame.position;
             points[j]=structure->frame*spring.offset[j];
             spins[j]=structure->twist.angular;
             base_offsets[j]=ROTATION<TV>::From_Rotation_Vector(spins[j]).inverse()*spun_offsets[j];}
         TV relative_position=data.Minimum_Offset(points[0],points[1]);
-        Spring_Force<TV>::Evaluate(spring.index,spring.stiffness,spring.target_distance,relative_position,spins,base_offsets,right_hand_side);
+        Spring_Force<TV>::Evaluate(spring.index,spring.stiffness,spring.target_distance,positions,spins,base_offsets,right_hand_side);
     }
 }
 ///////////////////////////////////////////////////////////////////////
