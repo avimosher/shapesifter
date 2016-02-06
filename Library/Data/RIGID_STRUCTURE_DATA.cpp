@@ -148,50 +148,14 @@ Viewer(osg::Node* node)
                 auto bottomSphere=new osg::Sphere(osg::Vec3(0,0,-structures[i]->collision_extent.norm()),structures[i]->radius);
                 auto bottomSphereDrawable=new osg::ShapeDrawable(bottomSphere);
                 bottomSphereDrawable->setColor(color);
-                basicShapesGeode->addDrawable(bottomSphereDrawable);
-            }
+                basicShapesGeode->addDrawable(bottomSphereDrawable);}
             else{
                 auto unitSphere=new osg::Sphere(osg::Vec3(0,0,0),structures[i]->radius);
                 auto unitSphereDrawable=new osg::ShapeDrawable(unitSphere);
                 unitSphereDrawable->setColor(color);
-                basicShapesGeode->addDrawable(unitSphereDrawable);
-            }
-            /*auto program=new osg::Program;
-            auto fragmentShader=new osg::Shader(osg::Shader::FRAGMENT);
-            fragmentShader->setShaderSource(
-                "in vec2 vTexCoord;\n"
-                "void main(void)\n"
-                "{\n"
-                "    float x;x=fract(vTexCoord.x);\n"
-                "    if(x>0.5){gl_FragColor=vec4(1.0,1.0,1.0,1.0);}\n"
-                "    else{gl_FragColor=vec4(0.0,0.0,0.0,0.0);}\n"
-//                "    gl_FragColor=gl_FragCoord;\n"
-//                "    gl_FragColor=color*texture2D(base,gl_TexCoord[0]);\n"
-//                "    gl_FragColor=ColorFilter(gl_FragColor);\n"
-                "}\n"
-            );
-            fragmentShader->setName("fragment");
-            program->addShader(fragmentShader);
-            auto vertexShader=new osg::Shader(osg::Shader::VERTEX);
-            vertexShader->setShaderSource(
-                "in vec2 aTexCoord;\n"
-                "out vec2 vTexCoord;\n"
-                "void main(void)\n"
-                "{\n"
-                "    vTexCoord=aTexCoord;\n"
-                "}\n"
-            );
-            vertexShader->setName("vertex");
-            program->addShader(vertexShader);
-            auto stateSet=basicShapesGeode->getOrCreateStateSet();
-            stateSet->setAttributeAndModes(program,osg::StateAttribute::ON);*/
-
-
+                basicShapesGeode->addDrawable(unitSphereDrawable);}
             basicShapesGeode->getOrCreateStateSet()->setAttribute(new osg::PolygonMode(osg::PolygonMode::FRONT_AND_BACK,osg::PolygonMode::LINE));
             transform->addChild(basicShapesGeode);
-            /*auto line=createLine(osg::Vec4(1.0f,1.0f,1.0f,1.0f));
-            line->setName("LINE");
-            transform->addChild(line);*/
             rigid_group->addChild(transform);
         }
         group->addChild(rigid_group);
@@ -199,8 +163,6 @@ Viewer(osg::Node* node)
     for(int i=0;i<structures.size();i++){
         auto transform=(osg::PositionAttitudeTransform*)rigid_group->getChild(i);
         OSG_HELPERS<TV>::Initialize_Transform(structures[i]->frame,transform);
-        //std::vector<TV> points={TV(),structures[i]->error.linear};
-        //updateLine((osg::Geode*)transform->getChild(1),points);
     }
 }
 ///////////////////////////////////////////////////////////////////////

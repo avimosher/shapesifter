@@ -123,7 +123,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
         if(radius<=min_radius){ // trust region collapse
             status=ETOLG;
             failed_radius++;
-            Check_Derivative(simulation,dt,time);
+            //Check_Derivative(simulation,dt,time);
         }
 
         // update Hessian

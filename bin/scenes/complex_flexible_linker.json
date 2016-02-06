@@ -13,7 +13,8 @@
              "angle": -90},
          "radius": 1.75,
          "collision_extent": 2.3,
-         "name": "EGFRvIII"
+         "name": "EGFRvIII",
+         "kinematic": true
         },
         {"type": "RIGID_STRUCTURE",
          "position": [0, 7.1, 4],
@@ -56,33 +57,6 @@
          "link_offset": [1.2,0,0]
         },
         {"type": "VOLUME_EXCLUSION_CONSTRAINT"},
-        {"type": "ABSOLUTE_POSITION_CONSTRAINT",
-         "constraints": [
-             {
-                 "type": "linear",
-                 "structure": "EGFRvIII",
-                 "direction": [1,0,0],
-                 "magnitude": 0
-             },
-             {
-                 "type": "linear",
-                 "structure": "EGFRvIII",
-                 "direction": [0,1,0],
-                 "magnitude": 4.05
-             },
-             {
-                 "type": "linear",
-                 "structure": "EGFRvIII",
-                 "direction": [0,0,1],
-                 "magnitude": 0
-             },
-             {"structure": "EGFRvIII",
-              "type": "angular",
-              "orientation": {
-                  "angle": -90,
-                  "axis": [1,0,0]}}
-         ]
-        },
         {"type": "ANALYTE",
          "prerequisites": ["evolution"],
          "predicate": {

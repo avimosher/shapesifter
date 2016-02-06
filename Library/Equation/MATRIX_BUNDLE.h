@@ -90,12 +90,12 @@ public:
             for(int j=0;j<data.size()+force.size();j++){
               jacobian_blocks(i,j)=inverse_inertia_matrices[i]*jacobian_blocks(i,j);}
         }
-        /*for(int i=0;i<data.size()+force.size();i++){
+        for(int i=0;i<data.size()+force.size();i++){
             for(int j=0;j<data.size()+force.size();j++){
                 if(i<data.size()){
                     jacobian_blocks(i,j)=kinematic_projection_matrices[i]*jacobian_blocks(i,j);}
                 if(j<data.size()){
-                jacobian_blocks(i,j)=jacobian_blocks(i,j)*kinematic_projection_matrices[j].transpose();}}}*/
+                    jacobian_blocks(i,j)=jacobian_blocks(i,j)*kinematic_projection_matrices[j].transpose();}}}
     }
 
     template<class SUBTYPE1,class SUBTYPE2,class T_MATRIX>
