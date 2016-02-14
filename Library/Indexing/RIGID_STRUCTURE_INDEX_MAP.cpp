@@ -1,5 +1,5 @@
 #include <Indexing/RIGID_STRUCTURE_INDEX_MAP.h>
-#include <Utilities/DERIVATIVES.h>
+#include <Math/Relative_Position_Force.h>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void RIGID_STRUCTURE_INDEX_MAP<TV>::

@@ -5,8 +5,8 @@
 #include <Force/FORCE.h>
 #include <Force/RELATIVE_POSITION_CONSTRAINT.h>
 #include <Indexing/RIGID_STRUCTURE_INDEX_MAP.h>
+#include <Math/Relative_Position_Force.h>
 #include <Parsing/PARSER_REGISTRY.h>
-#include <Utilities/DERIVATIVES.h>
 #include <Utilities/EIGEN_HELPERS.h>
 #include <Utilities/LOG.h>
 #include <Utilities/MATH.h>

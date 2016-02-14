@@ -6,7 +6,15 @@
 #include <Force/FORCE.h>
 #include <Force/VOLUME_EXCLUSION_CONSTRAINT.h>
 #include <Indexing/RIGID_STRUCTURE_INDEX_MAP.h>
-#include <Utilities/DERIVATIVES.h>
+#include <Math/F.h>
+#include <Math/F_NF.h>
+#include <Math/NF.h>
+#include <Math/NFINV.h>
+#include <Math/R1XRCXR2INV.h>
+#include <Math/RCF_NF.h>
+#include <Math/RXO.h>
+#include <Math/Relative_Position_Force.h>
+#include <Math/Spring_Force.h>
 #include <Utilities/RANDOM.h>
 #include <Eigen/CXX11/Tensor>
 #include <Eigen/KroneckerProduct>

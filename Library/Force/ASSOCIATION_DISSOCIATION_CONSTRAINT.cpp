@@ -4,8 +4,8 @@
 #include <Force/ASSOCIATION_DISSOCIATION_CONSTRAINT.h>
 #include <Force/FORCE.h>
 #include <Indexing/RIGID_STRUCTURE_INDEX_MAP.h>
+#include <Math/R1XRCXR2INV.h>
 #include <Parsing/PARSER_REGISTRY.h>
-#include <Utilities/DERIVATIVES.h>
 #include <Utilities/OSG_HELPERS.h>
 #include <Utilities/RANDOM.h>
 #include <unsupported/Eigen/BVH>
