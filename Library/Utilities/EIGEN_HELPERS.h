@@ -217,7 +217,7 @@ static TensorFixedSize<T,Sizes<d,d,d>> Cross_Product(const MatrixBase<Derived>& 
 }
 
 template<class T,int d,typename Derived>
-static TensorFixedSize<T,Sizes<d,d,d>> Outer_Product(const MatrixBase<Derived>& m,const Matrix<T,d,1>& v,const std::array<int,3> indices){
+static TensorFixedSize<T,Sizes<d,d,d>> Outer_Product(const MatrixBase<Derived>& m,const Matrix<T,d,1>& v,const std::array<int,3>& indices){
     TensorFixedSize<T,Sizes<d,d,d>> tensor;
     std::array<int,3> index;
     for(index[0]=0;index[0]<3;index[0]++){
@@ -243,6 +243,19 @@ template<class T,int d>
 static T Contract(const Matrix<T,d,d>& m,const Matrix<T,d,1>& v1,const Matrix<T,d,1>& v2){
     return v1.transpose()*m*v2;
 }
+
+template<class T,int d,std::ptrdiff_t dt>
+static Matrix<T,d,d> Contract(const TensorFixedSize<T,Sizes<dt,dt,dt>>& t,const Matrix<T,d,1>& v){
+    Matrix<T,d,d> result;result.setZero();
+    std::array<int,3> index{};
+    for(index[0]=0;index[0]<3;index[0]++){
+        for(index[1]=0;index[1]<3;index[1]++){
+            for(index[2]=0;index[2]<3;index[2]++){
+                result(index[1],index[2])+=t(index[1],index[2],index[0])*v(index[0]);
+            }}}
+    return result;
+}
+
 
 template<class T>
 T Angle_Between(const Eigen::Matrix<T,3,1>& v1,const Eigen::Matrix<T,3,1>& v2)

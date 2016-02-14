@@ -263,17 +263,6 @@ public:
         return 2/cube(nf)*dnf_dv1*dnf_dv2.transpose()-1/sqr(nf)*d2nf_dv2;
     }
 
-    static M_VxV Contract(const T_TENSOR& t,const TV& v,const std::array<int,3>& indices){
-        M_VxV result;result.setZero();
-        std::array<int,3> index{};
-        for(index[0]=0;index[0]<3;index[0]++){
-            for(index[1]=0;index[1]<3;index[1]++){
-                for(index[2]=0;index[2]<3;index[2]++){
-                    result(index[1],index[2])+=t(index[indices[0]],index[indices[1]],index[indices[2]])*v(index[0]);
-                }}}
-        return result;
-    }
-
     // d2(|f2-f1|)/dv1/dv2
     template<int DTYPE1,int DTYPE2>    
     static M_VxV d2n_dVelocity2(const TV& f,const std::array<int,2>& signs,const std::array<T_SPIN,2>& spins,const std::array<TV,2>& offsets){
@@ -283,7 +272,7 @@ public:
         M_VxV df_dv2=df_dVelocity<DTYPE2>(signs[1],spins[1],offsets[1]);
         T_TENSOR d2f_dv2=d2f_dV2<DTYPE1,DTYPE2>(signs,spins[0],offsets[0]);
         return 1/nf*df_dv1.transpose()*(M_VxV::Identity()-f_nf*f_nf.transpose())*df_dv2+
-            Contract(d2f_dv2,f_nf,{1,2,0});
+            Contract(d2f_dv2,f_nf);
     }
 
     // d((f2-f1)/|f2-f1|)/dv

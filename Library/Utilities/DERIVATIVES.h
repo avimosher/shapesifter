@@ -1,7 +1,7 @@
 #ifndef __DERIVATIVES__
 #define __DERIVATIVES__
 
-#include <Indexing/RIGID_STRUCTURE_INDEX_MAP.h>
+#include <Utilities/EIGEN_HELPERS.h>
 #include <type_traits>
 
 namespace std{
@@ -266,14 +266,9 @@ struct F:public Function<TV,TV,F<TV>>
         return RXO<TV,V1>::template First_Derivative<V1,VTYPE>(f,spin,offset)*VSIGN<V1>::SIGN;
     }
 
-    template<int V1,int VTYPE1,int V2,int VTYPE2,std::enable_if_t<VTYPE1==ANGULAR && VTYPE2==ANGULAR && V1==V2>* = nullptr>
+    template<int V1,int VTYPE1,int V2,int VTYPE2>
     static T_TENSOR Second_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
-        return RIGID_STRUCTURE_INDEX_MAP<TV>::d2so_dSpin2(spin[V1],offset[V1])*(T)VSIGN<V1>::SIGN;
-    }
-
-    template<int V1,int VTYPE1,int V2,int VTYPE2,std::enable_if_t<!(VTYPE1==ANGULAR && VTYPE2==ANGULAR && V1==V2)>* = nullptr>
-    static T_TENSOR Second_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
-        T_TENSOR t;t.setZero();return t;
+        return RXO<TV,V1>::template Second_Derivative<V1,VTYPE1,V2,VTYPE2>(f,spin,offset)*(T)VSIGN<V1>::SIGN;
     }
 };
 
@@ -291,14 +286,14 @@ struct NF:public Function<TV,typename TV::Scalar,NF<TV>>
         return F<TV>::template First_Derivative<V1,VTYPE>(f,spin,offset)*f.normalized();}
 
     template<int V1,int VTYPE1,int V2,int VTYPE2>
-        static M_VxV Second_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
+    static M_VxV Second_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
         T nf=std::max(f.norm(),(T)1e-8);
         TV f_nf=f/nf;
         M_VxV df_dv1=F<TV>::template First_Derivative<V1,VTYPE1>(f,spin,offset).transpose();
         M_VxV df_dv2=F<TV>::template First_Derivative<V2,VTYPE2>(f,spin,offset).transpose();
         T_TENSOR d2f_dv2=F<TV>::template Second_Derivative<V1,VTYPE1,V2,VTYPE2>(f,spin,offset);
-        return 1/nf*df_dv1.transpose()*(M_VxV::Identity()-f_nf*f_nf.transpose())*df_dv2+
-            RIGID_STRUCTURE_INDEX_MAP<TV>::Contract(d2f_dv2,f_nf,{1,2,0});
+        return df_dv1.transpose()*(M_VxV::Identity()-f_nf*f_nf.transpose())*df_dv2*(1/nf)+
+            Contract(d2f_dv2,f_nf);
     }
 };
 
@@ -370,9 +365,9 @@ struct R1XRCXR2INV
         ROTATION<TV> right=RC*ROTATION<TV>::From_Rotation_Vector(spin[1]).inverse();
         ROTATION<TV> left=ROTATION<TV>::From_Rotation_Vector(spin[0]);
         TV vec=right.vec();
-        T ns=std::max((T)1e-8,spin[0].norm());
-        TV dw_ds=RIGID_STRUCTURE_INDEX_MAP<TV>::dw_dSpin(spin[0],ns);
-        M_VxV dq_ds=RIGID_STRUCTURE_INDEX_MAP<TV>::dq_dSpin(spin[0]/ns,ns);
+        T ns=std::max((T)epsilon(),spin[0].norm());
+        TV dw_ds=Q_W<TV>::First_Derivative(spin[0],ns);
+        M_VxV dq_ds=Q_V<TV>::First_Derivative(spin[0],ns);
         return dw_ds*vec.transpose()+right.w()*dq_ds.transpose()-(Cross_Product_Matrix(vec)*dq_ds).transpose();}
 
     template<int V,std::enable_if_t<V==1>* = nullptr>
@@ -380,9 +375,9 @@ struct R1XRCXR2INV
         ROTATION<TV> left=ROTATION<TV>::From_Rotation_Vector(spin[0])*RC;
         ROTATION<TV> right=ROTATION<TV>::From_Rotation_Vector(spin[1]);
         TV vec=left.vec();
-        T ns=std::max((T)1e-8,spin[1].norm());
-        TV dw_ds=RIGID_STRUCTURE_INDEX_MAP<TV>::dw_dSpin(spin[1],ns);
-        M_VxV dq_ds=RIGID_STRUCTURE_INDEX_MAP<TV>::dq_dSpin(spin[1]/ns,ns);
+        T ns=std::max((T)epsilon(),spin[1].norm());
+        TV dw_ds=Q_W<TV>::First_Derivative(spin[1],ns);
+        M_VxV dq_ds=Q_V<TV>::First_Derivative(spin[1],ns);
         return dw_ds*vec.transpose()-left.w()*dq_ds.transpose()-(Cross_Product_Matrix(vec)*dq_ds).transpose();}
 
     static void Constraint_Derivatives(const int constraint_index,const std::array<int,2>& index,const ROTATION<TV>& RC,const std::array<T_SPIN,2>& spin,std::vector<Triplet<T>>& constraint_terms)
