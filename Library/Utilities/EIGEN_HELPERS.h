@@ -57,6 +57,8 @@ Matrix<T,3,1> cwiseMinMag(const Matrix<T,3,1>& v1,const Matrix<T,3,1>& v2)
 }
 
 
+using namespace Eigen;
+
 // define utilities for manipulating form of Eigen matrices with non-scalar entries
 namespace Mechanics{
 
@@ -186,6 +188,60 @@ template<class T>
 Eigen::Matrix<T,0,0> Cross_Product_Matrix(const Eigen::Matrix<T,0,1>& v)
 {
     return Eigen::Matrix<T,0,0>();
+}
+
+// assumption: the columns of m1 should go in index 0, columns of m2 in index 1, and cross product results in index 2
+template<class T,int d,typename DerivedLeft>
+static TensorFixedSize<T,Sizes<d,d,d>> Cross_Product(const MatrixBase<DerivedLeft>& m1,const Matrix<T,d,d>& m2){
+    TensorFixedSize<T,Sizes<d,d,d>> tensor;
+    for(int i=0;i<3;i++){
+        for(int j=0;j<3;j++){
+            Matrix<T,d,1> cross=m1.col(i).cross(m2.col(j));
+            for(int k=0;k<3;k++){
+                tensor(i,j,k)=cross(k);}}}
+    return tensor;
+}
+
+template<class T,std::ptrdiff_t d,typename Derived>
+// cross product between cross product matrix and dimension 2 of a tensor
+static TensorFixedSize<T,Sizes<d,d,d>> Cross_Product(const MatrixBase<Derived>& m,const TensorFixedSize<T,Sizes<d,d,d>>& t){
+    TensorFixedSize<T,Sizes<d,d,d>> tensor;
+    for(int i=0;i<3;i++){
+        for(int j=0;j<3;j++){
+            Matrix<T,d,1> tvec;
+            for(int k=0;k<3;k++){tvec[k]=t(i,j,k);}
+            Matrix<T,d,1> cross=m*tvec;
+            for(int k=0;k<3;k++){
+                tensor(i,j,k)=cross(k);}}}
+    return tensor;
+}
+
+template<class T,int d,typename Derived>
+static TensorFixedSize<T,Sizes<d,d,d>> Outer_Product(const MatrixBase<Derived>& m,const Matrix<T,d,1>& v,const std::array<int,3> indices){
+    TensorFixedSize<T,Sizes<d,d,d>> tensor;
+    std::array<int,3> index;
+    for(index[0]=0;index[0]<3;index[0]++){
+        for(index[1]=0;index[1]<3;index[1]++){
+            for(index[2]=0;index[2]<3;index[2]++){
+                tensor(index[0],index[1],index[2])=m(index[indices[0]],index[indices[1]])*v(index[indices[2]]);}}}
+    return tensor;
+}
+
+        
+template<class T,int d,std::ptrdiff_t dt>
+static Matrix<T,d,1> Contract(const TensorFixedSize<T,Sizes<dt,dt,dt>>& t,const Matrix<T,d,1>& v1,const Matrix<T,d,1>& v2){
+    Matrix<T,d,1> result;result.setZero();
+    std::array<int,3> index;
+    for(index[0]=0;index[0]<3;index[0]++){
+        for(index[1]=0;index[1]<3;index[1]++){
+            for(index[2]=0;index[2]<3;index[2]++){
+                result(index[2])+=t(index[0],index[1],index[2])*v1(index[0])*v2(index[1]);}}}
+    return result;
+}
+
+template<class T,int d>
+static T Contract(const Matrix<T,d,d>& m,const Matrix<T,d,1>& v1,const Matrix<T,d,1>& v2){
+    return v1.transpose()*m*v2;
 }
 
 template<class T>

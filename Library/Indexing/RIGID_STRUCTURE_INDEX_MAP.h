@@ -24,7 +24,6 @@ class RIGID_STRUCTURE_INDEX_MAP
     typedef Matrix<T,d,t> M_VxT;
     typedef TensorFixedSize<T,Sizes<3,3,3>> T_TENSOR;
     typedef Dimension::LINEARITY LINEARITY;
-    //static constexpr T epsilon=1e-8;
 public:
 
     RIGID_STRUCTURE_INDEX_MAP(){}
@@ -112,8 +111,8 @@ public:
         M_VxV dq_ds=dq_dSpin(s_ns,ns);
         TV dw_ds=dw_dSpin(spin,ns);
         return Outer_Product(-2*ostar*dq_ds,dw_ds,{2,1,0})+
-            Outer_Product(d2w_ds2,2*q.cross(o),{0,1,2})+
-            Outer_Product(ostar*dq_ds,dw_ds*(-2),{2,0,1})+Cross_Product(-2*dq_ds,ostar*dq_ds)+Cross_Product(2*ostar*dq_ds,dq_ds)+
+            Outer_Product(d2w_ds2,(2*q.cross(o)).eval(),{0,1,2})+
+            Outer_Product(ostar*dq_ds,(dw_ds*(-2)).eval(),{2,0,1})+Cross_Product(-2*dq_ds,(ostar*dq_ds).eval())+Cross_Product(2*ostar*dq_ds,dq_ds)+
             Cross_Product(-2*(w*ostar+Cross_Product_Matrix(q.cross(o))+Cross_Product_Matrix(q)*ostar),d2q_ds2);
     }
     
@@ -292,40 +291,6 @@ public:
     static M_VxV df_nf_dVelocity(const TV& f,int ts,const T_SPIN& spin,const TV& offset){
         T nf=f.norm();
         return df_dVelocity<DTYPE>(ts,spin,offset)/nf+f*dnfinv_dVelocity<DTYPE>(f,nf,ts,spin,offset).transpose();
-    }
-
-    // assumption: the columns of m1 should go in index 0, columns of m2 in index 1, and cross product results in index 2
-    static T_TENSOR Cross_Product(const M_VxV& m1,const M_VxV& m2){
-        T_TENSOR tensor;
-        for(int i=0;i<3;i++){
-            for(int j=0;j<3;j++){
-                TV cross=m1.col(i).cross(m2.col(j));
-                for(int k=0;k<3;k++){
-                    tensor(i,j,k)=cross(k);}}}
-        return tensor;
-    }
-
-    // cross product between cross product matrix and dimension 2 of a tensor
-    static T_TENSOR Cross_Product(const M_VxV& m,const T_TENSOR& t){
-        T_TENSOR tensor;
-        for(int i=0;i<3;i++){
-            for(int j=0;j<3;j++){
-                TV tvec;
-                for(int k=0;k<3;k++){tvec[k]=t(i,j,k);}
-                TV cross=m*tvec;
-                for(int k=0;k<3;k++){
-                    tensor(i,j,k)=cross(k);}}}
-        return tensor;
-    }
-
-    static T_TENSOR Outer_Product(const M_VxV& m,const TV& v,const std::vector<int>& indices){
-        T_TENSOR tensor;
-        Matrix<int,3,1> index;index<<0,0,0;
-        for(index[0]=0;index[0]<3;index[0]++){
-            for(index[1]=0;index[1]<3;index[1]++){
-                for(index[2]=0;index[2]<3;index[2]++){
-                    tensor(index[0],index[1],index[2])=m(index(indices[0]),index(indices[1]))*v(index(indices[2]));}}}
-        return tensor;
     }
 
     // d2((f2-f1)/|f2-f1|)/dv2

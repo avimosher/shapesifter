@@ -19,63 +19,17 @@ template<> struct VSIGN<1>{enum{SIGN=1};};
 
 template<class TV> struct F;
 
+inline double epsilon(){return 1e-8;}
+
 template<class TV,class FTYPE,class Derived>
 struct Function
 {
     typedef typename TV::Scalar T;
     typedef typename ROTATION<TV>::SPIN T_SPIN;
     enum {d=TV::RowsAtCompileTime,t=T_SPIN::RowsAtCompileTime};
+    typedef Matrix<T,1,d> TV_T;
     typedef Matrix<T,d,d> M_VxV;
     typedef TensorFixedSize<T,Sizes<3,3,3>> T_TENSOR;
-
-    // assumption: the columns of m1 should go in index 0, columns of m2 in index 1, and cross product results in index 2
-    static T_TENSOR Cross_Product(const M_VxV& m1,const M_VxV& m2){
-        T_TENSOR tensor;
-        for(int i=0;i<3;i++){
-            for(int j=0;j<3;j++){
-                TV cross=m1.col(i).cross(m2.col(j));
-                for(int k=0;k<3;k++){
-                    tensor(i,j,k)=cross(k);}}}
-        return tensor;
-    }
-
-    // cross product between cross product matrix and dimension 2 of a tensor
-    static T_TENSOR Cross_Product(const M_VxV& m,const T_TENSOR& t){
-        T_TENSOR tensor;
-        for(int i=0;i<3;i++){
-            for(int j=0;j<3;j++){
-                TV tvec;
-                for(int k=0;k<3;k++){tvec[k]=t(i,j,k);}
-                TV cross=m*tvec;
-                for(int k=0;k<3;k++){
-                    tensor(i,j,k)=cross(k);}}}
-        return tensor;
-    }
-
-    static T_TENSOR Outer_Product(const M_VxV& m,const TV& v,const std::vector<int>& indices){
-        T_TENSOR tensor;
-        Matrix<int,3,1> index;index<<0,0,0;
-        for(index[0]=0;index[0]<3;index[0]++){
-            for(index[1]=0;index[1]<3;index[1]++){
-                for(index[2]=0;index[2]<3;index[2]++){
-                    tensor(index[0],index[1],index[2])=m(index(indices[0]),index(indices[1]))*v(index(indices[2]));}}}
-        return tensor;
-    }
-
-        
-    static TV Contract(const T_TENSOR& t,const TV& v1,const TV& v2){
-        TV result;result.setZero();
-        std::array<int,3> index{};
-        for(index[0]=0;index[0]<3;index[0]++){
-            for(index[1]=0;index[1]<3;index[1]++){
-                for(index[2]=0;index[2]<3;index[2]++){
-                    result(index[2])+=t(index[0],index[1],index[2])*v1(index[0])*v2(index[1]);}}}
-        return result;
-    }
-
-    static T Contract(const M_VxV& m,const TV& v1,const TV& v2){
-        return v1.transpose()*m*v2;
-    }
 
     template<int V1,int VTYPE1,int V2,int VTYPE2>
     static FTYPE Apply_Second(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset,const std::array<std::array<TV,2>,2>& dx)
@@ -133,6 +87,161 @@ struct Function
     }
 };
 
+
+
+// 1/|a|
+template<class TV>
+struct ONE_NA
+{
+    typedef typename TV::Scalar T;
+    static T Evaluate(const TV& a,const T na){return 1/na;}
+    static TV First_Derivative(const TV& a,const T na){return -a/cube(na);}
+};
+
+
+// |a|
+template<class TV>
+struct NA
+{
+    typedef typename TV::Scalar T;
+    enum {d=TV::RowsAtCompileTime};
+    typedef Matrix<T,d,d> M_VxV;
+
+    static M_VxV Second_Derivative(const TV& a,const T na){
+        return M_VxV::Identity()/na+a*ONE_NA<TV>::First_Derivative(a,na).transpose();
+    }
+};
+
+// a/|a|
+template<class TV>
+struct A_NA
+{
+    typedef typename TV::Scalar T;
+    enum {d=TV::RowsAtCompileTime};
+    typedef Matrix<T,d,d> M_VxV;
+    typedef TensorFixedSize<T,Sizes<d,d,d>> T_TENSOR;
+
+    static TV Evaluate(const TV& a,const T na){return a/na;}
+
+    static M_VxV First_Derivative(const TV& a,const T na){
+        if(na<epsilon()){return M_VxV::Zero();}
+        T one_na=1/na;
+        TV a_na=a*one_na;
+        return one_na*(M_VxV::Identity()-a_na*a_na.transpose());
+    }
+
+    static T_TENSOR Second_Derivative(const TV& a,const T na){
+        M_VxV da_na_da=First_Derivative(a,na);
+        T one_na=1/na;
+        TV a_na=a*one_na;
+        TV dnainv_da=ONE_NA<TV>::First_Derivative(a,na);
+        
+        return Outer_Product(M_VxV::Identity()-a_na*a_na.transpose(),dnainv_da,{2,0,1})-
+            Outer_Product(da_na_da,a_na,{2,0,1})*(1/na)-Outer_Product(da_na_da,a_na,{1,0,2})*(1/na);
+    }
+};
+
+// scalar part of quaternion from spin
+template<class TV>
+struct Q_W
+{
+    typedef typename TV::Scalar T;
+    typedef typename ROTATION<TV>::SPIN T_SPIN;
+    enum {d=TV::RowsAtCompileTime,t=T_SPIN::RowsAtCompileTime};
+    typedef Matrix<T,d,d> M_VxV;
+
+    static T Evaluate(const T_SPIN& spin,const T norm_spin){return cos(norm_spin/2);}
+    static TV First_Derivative(const T_SPIN& spin,const T norm_spin){return -sinc(norm_spin/2)/4*spin.transpose();}
+
+    static M_VxV Second_Derivative(const T_SPIN& spin,const T norm_spin){
+        TV dna_da=spin/norm_spin;
+        M_VxV d2na_da2=NA<TV>::Second_Derivative(spin,norm_spin);
+        return -(T).25*cos(norm_spin/2)*dna_da*dna_da.transpose()-(T).5*sin(norm_spin/2)*d2na_da2;
+    }
+};
+
+// vector part of quaternion from spin
+template<class TV>
+struct Q_V
+{
+    typedef typename TV::Scalar T;
+    typedef typename ROTATION<TV>::SPIN T_SPIN;
+    enum {d=TV::RowsAtCompileTime,t=T_SPIN::RowsAtCompileTime};
+    typedef Matrix<T,d,d> M_VxV;
+    typedef TensorFixedSize<T,Sizes<d,d,d>> T_TENSOR;
+
+    static TV Evaluate(const T_SPIN& spin,const T norm_spin){return sinc(norm_spin/2)*spin/2;}
+
+    static M_VxV First_Derivative(const T_SPIN& spin,const T norm_spin){
+        T_SPIN spin_normspin=spin/norm_spin;
+        return cos(norm_spin/2)/2*spin_normspin*spin_normspin.transpose()+sinc(norm_spin/2)/2*(Matrix<T,t,t>::Identity()-spin_normspin*spin_normspin.transpose());
+    }
+
+    static T_TENSOR Second_Derivative(const T_SPIN& spin,const T norm_spin){
+        T_SPIN s_ns=spin/norm_spin;
+        T_SPIN dns_ds=s_ns;
+        M_VxV ds_ns_ds=A_NA<TV>::First_Derivative(spin,norm_spin);
+        M_VxV d2ns_ds2=ds_ns_ds;
+        T_TENSOR d2s_ns_ds2=A_NA<TV>::Second_Derivative(spin,norm_spin);
+        
+        T s=sinc(norm_spin/2);
+        T c=cos(norm_spin/2);
+        return Outer_Product(dns_ds*dns_ds.transpose(),spin,{0,1,2})*(-(T).125*s)+
+            (Outer_Product(ds_ns_ds,dns_ds,{2,0,1})+Outer_Product(ds_ns_ds,dns_ds,{2,1,0})+Outer_Product(d2ns_ds2,s_ns,{0,1,2}))*(T).5*c+
+            d2s_ns_ds2*(s*norm_spin/2);
+    }
+};
+
+// rotation times offset
+template<class TV,int R>
+struct RXO:public Function<TV,TV,RXO<TV,R>>
+{
+    typedef Function<TV,TV,RXO<TV,R>> BASE;
+    using typename BASE::T;using typename BASE::M_VxV;using typename BASE::T_TENSOR;using typename BASE::T_SPIN;using typename BASE::TV_T;
+
+    static TV Evaluate(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
+        return ROTATION<TV>::From_Rotation_Vector(spin[R])*offset[R];}
+
+    template<int V1,int VTYPE,std::enable_if_t<VTYPE==ANGULAR && V1==R>* = nullptr>
+    static M_VxV First_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
+        T norm_spin=spin[R].norm();
+        TV_T dw_dspin=Q_W<TV>::First_Derivative(spin[R],norm_spin);
+        TV spin_normspin=(norm_spin>epsilon())?(TV)(spin[R]/norm_spin):TV::UnitX();
+        M_VxV dq_dspin=Q_V<TV>::First_Derivative(spin_normspin,norm_spin);
+        T w=cos(norm_spin/2);
+        TV q=sinc(norm_spin/2)*spin[R]/2;
+        return (2*q.cross(offset[R])*dw_dspin-2*(Cross_Product_Matrix(offset[R])*w+Cross_Product_Matrix(q.cross(offset[R]))+Cross_Product_Matrix(q)*Cross_Product_Matrix(offset[R]))*dq_dspin).transpose();
+    }
+
+    template<int V1,int VTYPE,std::enable_if_t<!(VTYPE==ANGULAR && V1==R)>* = nullptr>
+    static M_VxV First_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
+        return M_VxV::Zero();}
+
+    template<int V1,int VTYPE1,int V2,int VTYPE2,std::enable_if_t<VTYPE1==ANGULAR && VTYPE2==ANGULAR && V1==V2 && V1==R>* = nullptr>
+    static T_TENSOR Second_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
+        ROTATION<TV> rotation(ROTATION<TV>::From_Rotation_Vector(spin[R]));
+        TV q=rotation.vec();
+        T w=rotation.w();
+        M_VxV ostar=Cross_Product_Matrix(offset[R]);
+        T ns=std::max((T)epsilon(),spin[R].norm());
+        M_VxV d2w_ds2=Q_W<TV>::Second_Derivative(spin[R],ns);
+        T_TENSOR d2q_ds2=Q_V<TV>::Second_Derivative(spin[R],ns);
+        TV s_ns=spin[R]/ns;
+        M_VxV dq_ds=Q_V<TV>::First_Derivative(spin[R],ns);
+        TV dw_ds=Q_W<TV>::First_Derivative(spin[R],ns);
+        return Outer_Product(-2*ostar*dq_ds,dw_ds,{2,1,0})+
+            Outer_Product(d2w_ds2,(2*q.cross(offset[R])).eval(),{0,1,2})+
+            Outer_Product(ostar*dq_ds,(dw_ds*(-2)).eval(),{2,0,1})+Cross_Product(-2*dq_ds,(ostar*dq_ds).eval())+Cross_Product(2*ostar*dq_ds,dq_ds)+
+            Cross_Product(-2*(w*ostar+Cross_Product_Matrix(q.cross(offset[R]))+Cross_Product_Matrix(q)*ostar),d2q_ds2);
+    }
+
+    template<int V1,int VTYPE1,int V2,int VTYPE2,std::enable_if_t<!(VTYPE1==ANGULAR && VTYPE2==ANGULAR && V1==V2 && V1==R)>* = nullptr>
+    static T_TENSOR Second_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
+        T_TENSOR t;t.setZero();return t;
+    }
+};
+
+
 template<class TV>
 struct F:public Function<TV,TV,F<TV>>
 {
@@ -154,7 +263,7 @@ struct F:public Function<TV,TV,F<TV>>
 
     template<int V1,int VTYPE,std::enable_if_t<VTYPE==ANGULAR>* = nullptr>
     static M_VxV First_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
-        return RIGID_STRUCTURE_INDEX_MAP<TV>::dRotatedOffset_dSpin(spin[V1],offset[V1]).transpose()*VSIGN<V1>::SIGN;
+        return RXO<TV,V1>::template First_Derivative<V1,VTYPE>(f,spin,offset)*VSIGN<V1>::SIGN;
     }
 
     template<int V1,int VTYPE1,int V2,int VTYPE2,std::enable_if_t<VTYPE1==ANGULAR && VTYPE2==ANGULAR && V1==V2>* = nullptr>
@@ -238,9 +347,9 @@ struct F_NF:public Function<TV,TV,F_NF<TV>>
         TV dnfinv_dv2=NFINV<TV>::template First_Derivative<V2,VTYPE2>(f,spin,offset);
         M_VxV d2nfinv_dv2=NFINV<TV>::template Second_Derivative<V1,VTYPE1,V2,VTYPE2>(f,spin,offset);
         T_TENSOR d2f_dv2=F<TV>::template Second_Derivative<V1,VTYPE1,V2,VTYPE2>(f,spin,offset);
-        return BASE::Outer_Product(df_dv1,dnfinv_dv2,{0,2,1})+
-            BASE::Outer_Product(df_dv2,dnfinv_dv1,{1,2,0})+
-            BASE::Outer_Product(d2nfinv_dv2,f,{0,1,2})+
+        return Outer_Product(df_dv1,dnfinv_dv2,{0,2,1})+
+            Outer_Product(df_dv2,dnfinv_dv1,{1,2,0})+
+            Outer_Product(d2nfinv_dv2,f,{0,1,2})+
             d2f_dv2*(1/nf);
     }
 };
@@ -283,35 +392,6 @@ struct R1XRCXR2INV
     }
 };
 
-// rotation times offset
-template<class TV,int R>
-struct RXO:public Function<TV,TV,RXO<TV,R>>
-{
-    typedef Function<TV,TV,RXO<TV,R>> BASE;
-    using typename BASE::T;using typename BASE::M_VxV;using typename BASE::T_TENSOR;using typename BASE::T_SPIN;
-
-    static TV Evaluate(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
-        return ROTATION<TV>::From_Rotation_Vector(spin[R])*offset[R];}
-
-    template<int V1,int VTYPE,std::enable_if_t<VTYPE==ANGULAR && V1==R>* = nullptr>
-    static M_VxV First_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
-        return RIGID_STRUCTURE_INDEX_MAP<TV>::dRotatedOffset_dSpin(spin[R],offset[R]).transpose();}
-
-    template<int V1,int VTYPE,std::enable_if_t<!(VTYPE==ANGULAR && V1==R)>* = nullptr>
-    static M_VxV First_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
-        return M_VxV::Zero();}
-
-    template<int V1,int VTYPE1,int V2,int VTYPE2,std::enable_if_t<VTYPE1==ANGULAR && VTYPE2==ANGULAR && V1==V2 && V1==R>* = nullptr>
-    static T_TENSOR Second_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
-        return RIGID_STRUCTURE_INDEX_MAP<TV>::d2so_dSpin2(spin[R],offset[R]);
-    }
-
-    template<int V1,int VTYPE1,int V2,int VTYPE2,std::enable_if_t<!(VTYPE1==ANGULAR && VTYPE2==ANGULAR && V1==V2 && V1==R)>* = nullptr>
-    static T_TENSOR Second_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
-        T_TENSOR t;t.setZero();return t;
-    }
-};
-
 // R specifies whether the offset is V1 or V2
 template<class TV,int R>
 struct RCF_NF:public Function<TV,TV,RCF_NF<TV,R>>
@@ -339,11 +419,10 @@ struct RCF_NF:public Function<TV,TV,RCF_NF<TV,R>>
         TV r=ROTATION<TV>::From_Rotation_Vector(spin[R])*offset[R];
         T_TENSOR d2r_da2=RXO<TV,R>::template Second_Derivative<V1,VTYPE1,V2,VTYPE2>(f,spin,offset);
         T_TENSOR d2f_nf_da2=F_NF<TV>::template Second_Derivative<V1,VTYPE1,V2,VTYPE2>(f,spin,offset);
-        return BASE::Cross_Product(-Cross_Product_Matrix(f_nf),d2r_da2)+
-            BASE::Cross_Product(dr_da,df_db)+
-            BASE::Cross_Product(-df_da,dr_db)+
-            BASE::Cross_Product(Cross_Product_Matrix(r),d2f_nf_da2);
-
+        return Cross_Product(-Cross_Product_Matrix(f_nf),d2r_da2)+
+            Cross_Product(dr_da,df_db)+
+            Cross_Product(-df_da,dr_db)+
+            Cross_Product(Cross_Product_Matrix(r),d2f_nf_da2);
     }
 };
 

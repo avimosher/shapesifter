@@ -48,5 +48,4 @@ Gaussian(T mean,T stddev)
     return mean+stddev*Gaussian();
 }
 ///////////////////////////////////////////////////////////////////////
-template class RANDOM<float>;
 template class RANDOM<double>;

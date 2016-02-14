@@ -12,6 +12,7 @@
 #include <Utilities/OSG_HELPERS.h>
 #include <Utilities/RANDOM.h>
 #include <iostream>
+#include <stdexcept>
 #include <math.h>
 #include <osg/Geometry>
 #include <osg/Geode>
@@ -25,6 +26,7 @@ template<class T> ROTATION<Matrix<T,3,1>> Find_Appropriate_Rotation(const ROTATI
 template<class TV> void ABSOLUTE_POSITION_CONSTRAINT<TV>::
 Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic)
 {
+    throw std::logic_error("Implementation out of date");
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
     Matrix<T,Dynamic,1>& right_hand_side=system.RHS(data,force,*rigid_data);
     Matrix<T,Dynamic,1>& constraint_right_hand_side=system.RHS(data,force,*this);

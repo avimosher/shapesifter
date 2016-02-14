@@ -45,7 +45,7 @@ Register()
     namespace Mechanics{                        \
     bool Register_##TYPE##_Parser() \
     { \
-        REGISTER_PARSER_GENERIC(TYPE,float,PARSED_TYPE);REGISTER_PARSER_GENERIC(TYPE,double,PARSED_TYPE); \
+        REGISTER_PARSER_GENERIC(TYPE,double,PARSED_TYPE); \
     return true; \
     } \
     static bool registered=Register_##TYPE##_Parser(); \
@@ -75,7 +75,7 @@ Register()
     namespace Mechanics{                                                \
     bool Register_##TYPE##_Parser()                                     \
     {                                                                   \
-        REGISTER_TEMPLATE_PARSER_GENERIC(TYPE,float,PARSED_TYPE);REGISTER_TEMPLATE_PARSER_GENERIC(TYPE,double,PARSED_TYPE); \
+        REGISTER_TEMPLATE_PARSER_GENERIC(TYPE,double,PARSED_TYPE); \
         return true;                                                    \
     }                                                                   \
     static bool TYPE##_registered=Register_##TYPE##_Parser();                  \
