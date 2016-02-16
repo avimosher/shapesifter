@@ -57,7 +57,8 @@ Compute_Derivatives(DATA<TV>& data,FORCE<TV>& force,MATRIX_BUNDLE<TV>& system)
     const Matrix<T,Dynamic,1>& force_balance_error=system.RHS(data,force,*rigid_data);
 
     std::vector<Triplet<CONSTRAINT_VECTOR>> terms;
-    std::vector<Triplet<FORCE_VECTOR>> forces;
+    std::vector<Triplet<T>> forces;
+    //std::vector<Triplet<FORCE_VECTOR>> forces;
     for(int i=0;i<constraints.size();i++){
         const CONSTRAINT& constraint=constraints[i];
         std::array<int,2> indices={constraint.s1,constraint.s2};
@@ -75,14 +76,15 @@ Compute_Derivatives(DATA<TV>& data,FORCE<TV>& force,MATRIX_BUNDLE<TV>& system)
         for(int s=0,sgn=-1;s<2;s++,sgn+=2){
             terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,indices[s],sgn*RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(spins[s],base_offsets[s],relative_position)));
             // contribution to force-balance RHS
-            FORCE_VECTOR force_direction=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(spun_offsets[s]).transpose()*relative_position.normalized(); // TODO: may be problematic for distance=0
-            forces.push_back(Triplet<FORCE_VECTOR>(indices[s],i,sgn*force_direction));
+            //FORCE_VECTOR force_direction=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(spun_offsets[s]).transpose()*relative_position.normalized(); // TODO: may be problematic for distance=0
+            //forces.push_back(Triplet<FORCE_VECTOR>(indices[s],i,sgn*force_direction));
         }
-        Relative_Position_Force<TV>::First_Derivatives(indices,stored_forces[i],relative_position,spins,base_offsets,force_terms);
+        Relative_Position_Force<TV>::Balance_Force_Derivatives(indices,i,relative_position,spins,base_offsets,forces);
+        Relative_Position_Force<TV>::Balance_Velocity_Derivatives(indices,stored_forces[i],relative_position,spins,base_offsets,force_terms);
         //RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Second_Derivatives(force_balance_error,indices,i,constraint_right_hand_side[i],stored_forces[i],relative_position,spins,base_offsets,f_scaling,hessian_terms,force_constraint_terms,constraint_force_terms);
     }
     system.Flatten_Jacobian_Block(data,force,*this,*rigid_data,terms);
-    system.Flatten_Jacobian_Block(data,force,*rigid_data,*this,forces);
+    system.Build_Jacobian_Block(data,force,*rigid_data,*this,forces);
     system.Flatten_Hessian_Block(data,force,*this,*rigid_data,constraint_force_terms);
     system.Flatten_Hessian_Block(data,force,*rigid_data,*this,force_constraint_terms);
 }

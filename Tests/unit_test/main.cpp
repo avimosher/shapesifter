@@ -264,7 +264,7 @@ TEST_CASE("Hessian"){
     SECTION("practical"){
         std::vector<Triplet<T>> hessian_terms;
         TV f=F<TV>::Evaluate(positions,spins,offsets);
-        Relative_Position_Force<TV>::Build(f,spins,offsets,{0,1},dxs,hessian_terms);
+        Relative_Position_Force<TV>::Second_Derivatives(f,spins,offsets,{0,1},dxs,hessian_terms);
     }
 
     SECTION("Spring_Force"){

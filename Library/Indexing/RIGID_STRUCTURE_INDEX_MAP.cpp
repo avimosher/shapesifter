@@ -1,4 +1,5 @@
 #include <Indexing/RIGID_STRUCTURE_INDEX_MAP.h>
+#include <Math/Relative_Position_Constraint_Term.h>
 #include <Math/Relative_Position_Force.h>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
@@ -15,9 +16,9 @@ Compute_Constraint_Second_Derivatives(const Matrix<T,Dynamic,1>& force_balance_e
             int r_index=indices[s1]*(t+d)+i+3;
             unforced_error[s1][1][i]=force_balance_error(r_index)*f_scaling.coeff(r_index,r_index);
             error[s1][1][i]=scalar_force*unforced_error[s1][1][i];}}
-    Relative_Position_Force<TV>::Build(relative_position,spin,offset,indices,error,hessian_terms);
+    Relative_Position_Force<TV>::Second_Derivatives(relative_position,spin,offset,indices,error,hessian_terms);
     Relative_Position_Force<TV>::Force_Velocity(relative_position,spin,offset,indices,constraint_index,unforced_error,force_constraint_terms,constraint_force_terms);
-    Relative_Position_Force<TV>::Constraint_Second_Derivatives(indices,constraint_error,relative_position,spin,offset,hessian_terms);
+    Relative_Position_Constraint_Term<TV>::Constraint_Second_Derivatives(indices,constraint_error,relative_position,spin,offset,hessian_terms);
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(RIGID_STRUCTURE_INDEX_MAP)
