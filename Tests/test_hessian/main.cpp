@@ -28,25 +28,25 @@ int main(int argc,char **argv)
 
     auto rigid_data=data.template Find_Or_Create<RIGID_STRUCTURE_DATA<TV>>();
     auto structure1=std::make_shared<RIGID_STRUCTURE<TV>>();
-    structure1->frame.position=TV();
+    structure1->frame.position=TV::UnitX();
     structure1->name="first";
     structure1->radius=1;
     structure1->Initialize_Inertia(3.5);
     rigid_data->structures.push_back(structure1);
 
     auto structure2=std::make_shared<RIGID_STRUCTURE<TV>>();
-    structure2->frame.position=2*TV::UnitX();
+    structure2->frame.position=TV::UnitY();
     structure2->name="second";
     structure2->radius=1;
     structure2->Initialize_Inertia(3.5);
     rigid_data->structures.push_back(structure2);
 
-    auto structure3=std::make_shared<RIGID_STRUCTURE<TV>>();
+    /*auto structure3=std::make_shared<RIGID_STRUCTURE<TV>>();
     structure3->frame.position=3*TV::UnitX();
     structure3->name="third";
     structure3->radius=1;
     structure3->Initialize_Inertia(3.5);
-    rigid_data->structures.push_back(structure3);
+    rigid_data->structures.push_back(structure3);*/
 
     Matrix<T,Dynamic,1> positions;
     data.Pack_Positions(positions);
@@ -57,17 +57,17 @@ int main(int argc,char **argv)
     constraint.s1=rigid_data->Structure_Index("first");
     constraint.v1=TV::UnitY();
     constraint.s2=rigid_data->Structure_Index("second");
-    constraint.v2.setZero();//=TV::UnitY();
+    constraint.v2.setZero();//=TV::UnitX();
     constraint.target_distance=4;
     relative_position_constraint->constraints.push_back(constraint);
 
-    typename RELATIVE_POSITION_CONSTRAINT<TV>::CONSTRAINT constraint2;
+    /*typename RELATIVE_POSITION_CONSTRAINT<TV>::CONSTRAINT constraint2;
     constraint2.s1=rigid_data->Structure_Index("second");
     constraint2.v1.setZero();//TV::UnitY();
     constraint2.s2=rigid_data->Structure_Index("third");
     constraint2.v2.setZero();//TV::UnitY();
     constraint2.target_distance=4;
-    relative_position_constraint->constraints.push_back(constraint2);
+    relative_position_constraint->constraints.push_back(constraint2);*/
 
     relative_position_constraint->stored_forces.resize(relative_position_constraint->constraints.size());
     relative_position_constraint->stored_forces.setZero();
@@ -75,7 +75,7 @@ int main(int argc,char **argv)
 
     T dt=0.1;
     T time=0;
-    T epsilon=4e-3;
+    T epsilon=1e-3;
     auto equation=new NONLINEAR_EQUATION<TV>();
 
     //***********************
@@ -97,6 +97,10 @@ int main(int argc,char **argv)
     // Calculate step result
     //***********************
     data.random.Direction(unknowns);
+    /*for(int i=0;i<3;i++){
+        unknowns[3+i]=0;
+        unknowns[9+i]=0;
+        }*/
 
     auto Evaluate_Step_Error = [&](T eps){
 
@@ -106,7 +110,7 @@ int main(int argc,char **argv)
         equation->Increment_Unknowns(-eps*unknowns,data,force);
 
         T f1=equation->Evaluate();
-        T predicted_delta_f=gradient0.dot(eps*unknowns)+(T).5*eps*eps*unknowns.transpose()*hessian*unknowns;
+        T predicted_delta_f=gradient0.dot(eps*unknowns);//+(T).5*eps*eps*unknowns.transpose()*hessian*unknowns;
         T error=f1-f0-predicted_delta_f;
         std::cout<<"Error: "<<error<<std::endl;
         return error;

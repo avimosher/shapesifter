@@ -248,7 +248,7 @@ TEST_CASE("Hessian"){
         REQUIRE(fabs(ratio-cube(divisor))<0.1);}
 
     SECTION("RXO"){
-        T ratio=RXO<TV,0>::Test_Error(positions,spins,offsets,dxs,epsilon)/RXO<TV,0>::Test_Error(positions,spins,offsets,dxs,epsilon/divisor);
+        T ratio=RXO<TV,1>::Test_Error(positions,spins,offsets,dxs,epsilon)/RXO<TV,1>::Test_Error(positions,spins,offsets,dxs,epsilon/divisor);
         REQUIRE(fabs(ratio-cube(divisor))<0.1);}
 
     SECTION("RXF_NF"){
@@ -268,12 +268,12 @@ TEST_CASE("Hessian"){
     }
 
     SECTION("Spring_Force"){
-        T target=2;
-        T stiffness=20;
-        M_VxV derivative=Spring_Force<TV>::template First_Derivative<1,0,0,1>(stiffness,target,f,spins,offsets);
+        T target=3;
+        T stiffness=10;
+        M_VxV derivative=Spring_Force<TV>::template First_Derivative<1,1,0,1>(stiffness,target,f,spins,offsets);
         auto testlambda=[&](T eps){
             TV predicted=derivative.transpose()*dxs[0][0]*eps;
-            TV actual=Spring_Force<TV>::template Evaluate<1,0>(stiffness,target,positions,{spins[0]+eps*dxs[0][0],spins[1]},offsets)-Spring_Force<TV>::template Evaluate<1,0>(stiffness,target,positions,spins,offsets);
+            TV actual=Spring_Force<TV>::template Evaluate<1,1>(stiffness,target,{positions[0],positions[1]},{spins[0]+eps*dxs[0][0],spins[1]},offsets)-Spring_Force<TV>::template Evaluate<1,1>(stiffness,target,positions,spins,offsets);
             return (actual-predicted).norm();
         };
         T ratio=testlambda(epsilon)/testlambda(epsilon/divisor);

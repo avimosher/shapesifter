@@ -5,6 +5,7 @@
 #include <Math/RXO.h>
 
 namespace Mechanics{
+// r x f/|f|
 // R specifies whether the offset is V1 or V2
 template<class TV,int R>
 struct RCF_NF:public Function<TV,TV,RCF_NF<TV,R>>

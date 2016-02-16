@@ -12,6 +12,15 @@ using enable_if_t=typename enable_if<B,T>::type;
 namespace Mechanics{
 
 enum VARTYPE{LINEAR,ANGULAR};
+enum BODY{FIRST,SECOND};
+
+#define WRAP_FUNCTION(function) function<
+#define EXPAND_FUNCTION(function,...) function<__VA_ARGS__,
+#define EXPAND_BODIES_TYPES(fixed,...) \
+    fixed FIRST,LINEAR>(__VA_ARGS__);       \
+    fixed FIRST,ANGULAR>(__VA_ARGS__);      \
+    fixed SECOND,LINEAR>(__VA_ARGS__);      \
+    fixed SECOND,ANGULAR>(__VA_ARGS__);
 
 template<int V> struct VSIGN{};
 template<> struct VSIGN<0>{enum{SIGN=-1};};
@@ -62,13 +71,8 @@ struct Function
             Apply_Part_One<1,LINEAR>(f,spin,offset,dx)+Apply_Part_One<1,ANGULAR>(f,spin,offset,dx);
     }
 
-    static T Norm(const TV& v){
-        return v.norm();
-    }
-
-    static T Norm(const T v){
-        return fabs(v);
-    }
+    static T Norm(const TV& v){return v.norm();}
+    static T Norm(const T v){return fabs(v);}
 
     static T Test_Error(const std::array<TV,2>& x,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset,const std::array<std::array<TV,2>,2>& dx,T eps){
         TV f=F<TV>::Evaluate(x,spin,offset);

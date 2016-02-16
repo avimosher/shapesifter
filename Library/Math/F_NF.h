@@ -11,7 +11,7 @@ struct F_NF:public Function<TV,TV,F_NF<TV>>
     using typename BASE::T;using typename BASE::M_VxV;using typename BASE::T_TENSOR;using typename BASE::T_SPIN;
 
     static TV Evaluate(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
-        return F<TV>::Evaluate(f,spin,offset).normalized();}
+        return F<TV>::Evaluate(f,spin,offset)/std::max((T)epsilon(),f.norm());}
 
     template<int V1,int VTYPE>
     static M_VxV First_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){

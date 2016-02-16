@@ -35,13 +35,9 @@ Identify_Interactions_And_Compute_Errors(DATA<TV>& data,FORCE<TV>& force,const T
         for(int j=0;j<2;j++){
             spun_offsets[j]=frames[j].orientation*offsets[j];
             base_offsets[j]=ROTATION<TV>::From_Rotation_Vector(spins[j]).inverse()*spun_offsets[j];}
-        
+
         TV relative_position=data.Minimum_Offset(frames[0]*constraint.v1,frames[1]*constraint.v2);
-        for(int s=0,sgn=-1;s<2;s++,sgn+=2){
-            // contribution to force-balance RHS
-            FORCE_VECTOR force_direction=RIGID_STRUCTURE_INDEX_MAP<TV>::Map_Twist_To_Velocity(spun_offsets[s]).transpose()*relative_position.normalized(); // TODO: may be problematic for distance=0
-            right_hand_side.template block<t+d,1>(indices[s]*(t+d),0)+=sgn*force_direction*stored_forces[i];
-        }
+        Relative_Position_Force<TV>::Right_Hand_Sides(indices,relative_position,stored_forces[i],spins,base_offsets,right_hand_side);
         constraint_right_hand_side[i]=relative_position.norm()-constraint.target_distance;
     }
     // This has to go before Flatten calls - it determines the DOF for this force

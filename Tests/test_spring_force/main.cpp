@@ -55,7 +55,7 @@ int main(int argc,char **argv)
 
     T dt=0.1;
     T time=0;
-    T epsilon=4e-3;
+    T epsilon=1e-1;
     auto equation=new NONLINEAR_EQUATION<TV>();
 
     //***********************
@@ -77,6 +77,10 @@ int main(int argc,char **argv)
     // Calculate step result
     //***********************
     data.random.Direction(unknowns);
+    /*for(int i=0;i<3;i++){
+        unknowns[3+i]=0;
+        unknowns[9+i]=0;
+    }*/
 
     auto Evaluate_Step_Error = [&](T eps){
 
@@ -86,12 +90,19 @@ int main(int argc,char **argv)
         equation->Increment_Unknowns(-eps*unknowns,data,force);
 
         T f1=equation->Evaluate();
-        T predicted_delta_f=gradient0.dot(eps*unknowns)+(T).5*eps*eps*unknowns.transpose()*hessian*unknowns;
+        T predicted_delta_f=gradient0.dot(eps*unknowns);//+(T).5*eps*eps*unknowns.transpose()*hessian*unknowns;
         T error=f1-f0-predicted_delta_f;
-        std::cout<<"Error: "<<error<<std::endl;
         return error;
     };
 
-    std::cout<<"Ratio: "<<Evaluate_Step_Error(epsilon)/Evaluate_Step_Error(epsilon/2)<<std::endl;
+    T last;
+    for(int i=0;i<6;i++,epsilon/=2){
+        T next=Evaluate_Step_Error(epsilon);
+        if(i>1){
+            std::cout<<"Ratio: "<<last/next<<std::endl;
+            //std::cout<<"Ratio: "<<Evaluate_Step_Error(epsilon)/Evaluate_Step_Error(epsilon/2)<<std::endl;
+        }
+        last=next;
+    }
     return 0;
 }

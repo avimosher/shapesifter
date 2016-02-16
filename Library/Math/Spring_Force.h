@@ -45,17 +45,11 @@ struct Spring_Force
 
     template<int E,int ETYPE>
     static void First_Derivatives(const std::array<int,2>& index,const T k,const T target,const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset,std::vector<Triplet<T>>& force_terms){
-        Matrix_Term<E,ETYPE,0,LINEAR>(index,k,target,f,spin,offset,force_terms);
-        Matrix_Term<E,ETYPE,0,ANGULAR>(index,k,target,f,spin,offset,force_terms);
-        Matrix_Term<E,ETYPE,1,LINEAR>(index,k,target,f,spin,offset,force_terms);
-        Matrix_Term<E,ETYPE,1,ANGULAR>(index,k,target,f,spin,offset,force_terms);
+        EXPAND_BODIES_TYPES(EXPAND_FUNCTION(Matrix_Term,E,ETYPE),index,k,target,f,spin,offset,force_terms);
     }
 
     static void Derivatives(const std::array<int,2>& index,const T k,const T target,const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset,std::vector<Triplet<T>>& force_terms){
-        First_Derivatives<0,LINEAR>(index,k,target,f,spin,offset,force_terms);
-        First_Derivatives<0,ANGULAR>(index,k,target,f,spin,offset,force_terms);
-        First_Derivatives<1,LINEAR>(index,k,target,f,spin,offset,force_terms);
-        First_Derivatives<1,ANGULAR>(index,k,target,f,spin,offset,force_terms);
+        EXPAND_BODIES_TYPES(WRAP_FUNCTION(First_Derivatives),index,k,target,f,spin,offset,force_terms);
     }
 
     template<int E,int ETYPE>
@@ -64,10 +58,7 @@ struct Spring_Force
     }
 
     static void Evaluate(const std::array<int,2>& index,const T k,const T target,const std::array<TV,2>& x,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset,Matrix<T,Dynamic,1>& error){
-        Evaluate_Term<0,LINEAR>(index,k,target,x,spin,offset,error);
-        Evaluate_Term<0,ANGULAR>(index,k,target,x,spin,offset,error);
-        Evaluate_Term<1,LINEAR>(index,k,target,x,spin,offset,error);
-        Evaluate_Term<1,ANGULAR>(index,k,target,x,spin,offset,error);
+        EXPAND_BODIES_TYPES(WRAP_FUNCTION(Evaluate_Term),index,k,target,x,spin,offset,error);
     }
 };
 }

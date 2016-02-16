@@ -26,6 +26,7 @@ struct F:public Function<TV,TV,F<TV>>
 
     template<int V1,int VTYPE,std::enable_if_t<VTYPE==ANGULAR>* = nullptr>
     static M_VxV First_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
+        //return M_VxV::Zero();
         return RXO<TV,V1>::template First_Derivative<V1,VTYPE>(f,spin,offset)*VSIGN<V1>::SIGN;
     }
 
