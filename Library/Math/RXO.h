@@ -17,10 +17,9 @@ struct RXO:public Function<TV,TV,RXO<TV,R>>
 
     template<int V1,int VTYPE,std::enable_if_t<VTYPE==ANGULAR && V1==R>* = nullptr>
     static M_VxV First_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
-        T norm_spin=spin[R].norm();
+        T norm_spin=std::max((T)epsilon(),spin[R].norm());
         TV_T dw_dspin=Q_W<TV>::First_Derivative(spin[R],norm_spin);
-        TV spin_normspin=(norm_spin>epsilon())?(TV)(spin[R]/norm_spin):TV::UnitX();
-        M_VxV dq_dspin=Q_V<TV>::First_Derivative(spin_normspin,norm_spin);
+        M_VxV dq_dspin=Q_V<TV>::First_Derivative(spin[R],norm_spin);
         T w=cos(norm_spin/2);
         TV q=sinc(norm_spin/2)*spin[R]/2;
         return (2*q.cross(offset[R])*dw_dspin-2*(Cross_Product_Matrix(offset[R])*w+Cross_Product_Matrix(q.cross(offset[R]))+Cross_Product_Matrix(q)*Cross_Product_Matrix(offset[R]))*dq_dspin).transpose();
