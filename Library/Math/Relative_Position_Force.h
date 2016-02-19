@@ -82,12 +82,12 @@ struct Relative_Position_Force
 
     template<int E,int ETYPE,std::enable_if_t<ETYPE==LINEAR>* = nullptr>
     static TV Balance_Force_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
-        return f.normalized();
+        return clamped_normalize(f);
     }
 
     template<int E,int ETYPE,std::enable_if_t<ETYPE==ANGULAR>* = nullptr>
     static TV Balance_Force_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
-        return (ROTATION<TV>::From_Rotation_Vector(spin[E])*offset[E]).cross(f.normalized());
+        return (ROTATION<TV>::From_Rotation_Vector(spin[E])*offset[E]).cross(clamped_normalize(f));
     }
 
     template<int E,int ETYPE>

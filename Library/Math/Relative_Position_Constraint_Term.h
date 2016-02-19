@@ -2,6 +2,7 @@
 #define __Relative_Position_Constraint_Term__
 
 #include <Math/NF.h>
+#include <Math/RXO.h>
 
 namespace Mechanics{
 template<class TV>
@@ -10,15 +11,38 @@ struct Relative_Position_Constraint_Term
     typedef typename TV::Scalar T;
     typedef typename ROTATION<TV>::SPIN T_SPIN;
     enum {d=TV::RowsAtCompileTime,t=T_SPIN::RowsAtCompileTime};
+    typedef Matrix<T,1,d> TV_T;
     typedef Matrix<T,d,d> M_VxV;
+
+    //*********************************************
+    // C
 
     static T Evaluate(const TV& relative_position,const T target_distance){
         return relative_position.norm()-target_distance;
     }
 
-    static void Constraint_Velocity_Derivatives(){
+    //*********************************************
+    // dC/dv
+
+    template<int V,int VTYPE,std::enable_if_t<VTYPE==LINEAR>* = nullptr>
+    static TV_T Constraint_Velocity_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
+        return clamped_normalize(f).transpose();
     }
 
+    template<int V,int VTYPE,std::enable_if_t<VTYPE==ANGULAR>* = nullptr>
+    static TV_T Constraint_Velocity_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
+        return (RXO<TV,V>::template First_Derivative<V,VTYPE>(f,spin,offset)*clamped_normalize(f)).transpose();
+    }
+
+    template<int V,int VTYPE>
+    static void Store_Constraint_Velocity_Derivative(const std::array<int,2>& index,int constraint_index,const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset,std::vector<Triplet<T>>& terms){
+        Flatten_Matrix_Term<T,1,t+d,1,d>(constraint_index,index[V],0,VTYPE,Constraint_Velocity_Derivative<V,VTYPE>(f,spin,offset)*(T)VSIGN<V>::SIGN,terms);
+    }
+
+    // for a particular constraint.  There should be four derivatives.
+    static void Constraint_Velocity_Derivatives(const std::array<int,2>& index,int constraint_index,const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset,std::vector<Triplet<T>>& terms){
+        EXPAND_BODIES_TYPES(WRAP_FUNCTION(Store_Constraint_Velocity_Derivative),index,constraint_index,f,spin,offset,terms);
+    }
     
 
     //*********************************************

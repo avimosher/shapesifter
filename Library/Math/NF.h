@@ -15,7 +15,7 @@ struct NF:public Function<TV,typename TV::Scalar,NF<TV>>
 
     template<int V1,int VTYPE>
     static TV First_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
-        return F<TV>::template First_Derivative<V1,VTYPE>(f,spin,offset)*f.normalized();}
+        return F<TV>::template First_Derivative<V1,VTYPE>(f,spin,offset)*clamped_normalize(f);}
 
     template<int V1,int VTYPE1,int V2,int VTYPE2>
     static M_VxV Second_Derivative(const TV& f,const std::array<T_SPIN,2>& spin,const std::array<TV,2>& offset){
