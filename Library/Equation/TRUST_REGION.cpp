@@ -265,6 +265,9 @@ Update_One_Step(SIMULATION<TV>& simulation,const T dt,const T time)
             //radius=std::max(expand_factor*norm_sk_scaled,radius);
             radius*=expand_factor;
             break;
+    default:
+            std::cout<<"Not a valid case"<<std::endl;
+            exit(-1);
     };
     return step_status;
 }

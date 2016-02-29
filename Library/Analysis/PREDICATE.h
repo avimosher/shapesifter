@@ -20,8 +20,8 @@ public:
     SUBTYPE Get_Subtype()
         {return subtype;}
 
-    virtual T Scalar(const SIMULATION<TV>& simulation){}
-    virtual TV Vector(const SIMULATION<TV>& simulation){}
+    virtual T Scalar(const SIMULATION<TV>& simulation){return 0;}
+    virtual TV Vector(const SIMULATION<TV>& simulation){return TV();}
 };
     
 template<class TV>

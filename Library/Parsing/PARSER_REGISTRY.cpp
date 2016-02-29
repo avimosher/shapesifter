@@ -12,7 +12,9 @@ Parsers()
 }
 ///////////////////////////////////////////////////////////////////////
 #define SCALAR_TYPE_DEFINITION(TYPE,T,RET)           \
-    template class TYPE<Matrix<T,3,1>,RET>;
+  namespace Mechanics{                               \
+    template class TYPE<Matrix<T,3,1>,RET>;          \
+  }
 
 #define PARSER_TYPE_DEFINITION(RET) \
     SCALAR_TYPE_DEFINITION(PARSER_REGISTRY,double,void)
@@ -20,7 +22,9 @@ Parsers()
 PARSER_TYPE_DEFINITION(void)
 
 #define COMPLEX_SCALAR_TYPE_DEFINITION(TYPE,T,RET)           \
-    template class TYPE<Matrix<T,3,1>,RET<Matrix<T,3,1>>>;
+  namespace Mechanics{                                       \
+    template class TYPE<Matrix<T,3,1>,RET<Matrix<T,3,1>>>;   \
+  }
 
 #define COMPLEX_PARSER_TYPE_DEFINITION(RET) \
     COMPLEX_SCALAR_TYPE_DEFINITION(PARSER_REGISTRY,double,RET)

@@ -48,4 +48,6 @@ Gaussian(T mean,T stddev)
     return mean+stddev*Gaussian();
 }
 ///////////////////////////////////////////////////////////////////////
-template class RANDOM<double>;
+namespace Mechanics{
+  template class RANDOM<double>;
+}
