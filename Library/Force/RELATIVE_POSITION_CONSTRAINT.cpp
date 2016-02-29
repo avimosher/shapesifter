@@ -4,7 +4,6 @@
 #include <Driver/SIMULATION.h>
 #include <Force/FORCE.h>
 #include <Force/RELATIVE_POSITION_CONSTRAINT.h>
-#include <Indexing/RIGID_STRUCTURE_INDEX_MAP.h>
 #include <Math/Relative_Position_Constraint_Term.h>
 #include <Math/Relative_Position_Force.h>
 #include <Parsing/PARSER_REGISTRY.h>

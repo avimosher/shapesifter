@@ -123,13 +123,13 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
         if(radius<=min_radius){ // trust region collapse
             status=ETOLG;
             failed_radius++;
-            //Check_Derivative(simulation,dt,time);
         }
 
         // update Hessian
         if(status==MOVED || status==EXPAND){
             //Update_Hessian(status!=EXPAND);
             Update_Hessian(false);
+            //Check_Derivative(simulation,dt,time);
             if(simulation.force.Equations_Changed() || iteration%preconditioner_refresh_frequency==0){Update_Preconditioner(false);}
             status=CONTINUE;}
         if(simulation.substeps){

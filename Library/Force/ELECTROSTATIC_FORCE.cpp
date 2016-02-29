@@ -6,6 +6,19 @@
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void ELECTROSTATIC_FORCE<TV>::
+Identify_Interactions_And_Compute_Errors(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic)
+{
+    // build list of charges
+    
+    KdBVH<T,3,int> hierarchy(index_list.begin(),index_list.end(),bounding_list.begin(),bounding_list.end());
+    
+    for(int c1=0;c1<charges.size();c1++){
+        CHARGE_PROXIMITY_SEARCH<TV> intersector(data,charges[c1]);
+        // do stuff with charge
+    }
+}
+///////////////////////////////////////////////////////////////////////
+template<class TV> void ELECTROSTATIC_FORCE<TV>::
 Linearize(DATA<TV>& data,const T dt,const T target_time,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& constraint_terms,SparseMatrix<T>& constraint_forces,Matrix<T,Dynamic,1>& right_hand_side,Matrix<T,Dynamic,1>& constraint_rhs,bool stochastic)
 {
     std::vector<AlignedBox<T,d>> bounding_list(charges.size());
