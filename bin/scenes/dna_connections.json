@@ -1,0 +1,34 @@
+{
+    "output_directory": "runs/dna_connections",
+    "dt": 0.1,
+    "last_time": 100,
+    "root": [
+        {"type": "DATA",
+         "eta": 3.5},
+        {"type": "RIGID_STRUCTURE_DATA"},
+        {"type": "RIGID_STRUCTURE",
+         "name": "base",
+         "position": [0, 0, 0],
+         "radius": 1
+        },
+        {"type": "RIGID_STRUCTURE",
+         "name": "top",
+         "position": [0, 0, 10],
+         "radius": 1
+        },
+        {"type": "VOLUME_EXCLUSION_CONSTRAINT"},
+        {"type": "BROWNIAN_FORCE",
+         "temperature": 300},
+        {"type": "STIFF_LINKER",
+         "structure1": "base",
+         "offset1": [0,0,1],
+         "structure2": "top",
+         "offset2": [0,0,-1],
+         "links": 10,
+         "link_radius": 0.5,
+         "link_offset": [0,0,1.2],
+         "stiffness": 100
+        },
+        {"type": "TRUST_REGION"}
+    ]
+}
