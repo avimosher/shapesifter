@@ -62,6 +62,8 @@ using namespace Eigen;
 // define utilities for manipulating form of Eigen matrices with non-scalar entries
 namespace Mechanics{
 
+inline double epsilon(){return 1e-8;}
+
 template<class T>
 using Quadruplet = std::tuple<int,int,int,T>; // row, col, o-index, value
 
@@ -78,7 +80,8 @@ void Flatten_Matrix_Term(int row,int col,const Eigen::Matrix<T,rows,cols>& term,
 {
     for(int i=0;i<rows;i++){
         for(int j=0;j<cols;j++){
-            flat_terms.push_back(Eigen::Triplet<T>(row*rows+i,col*cols+j,term(i,j)));}}
+            if(std::fabs(term(i,j))>epsilon()){
+                flat_terms.push_back(Eigen::Triplet<T>(row*rows+i,col*cols+j,term(i,j)));}}}
 }
 
 template<class T,int rows,int cols,int rows_per_block,int cols_per_block>
@@ -88,7 +91,8 @@ void Flatten_Matrix_Term(int row,int col,int block_row,int block_col,const Eigen
     // rows: rows per outer block
     for(int i=0;i<rows_per_block;i++){
         for(int j=0;j<cols_per_block;j++){
-            flat_terms.push_back(Eigen::Triplet<T>(rows_per_block*block_row+rows*row+i,cols_per_block*block_col+cols*col+j,term(i,j)));}}
+            if(std::fabs(term(i,j))>epsilon()){
+                flat_terms.push_back(Eigen::Triplet<T>(rows_per_block*block_row+rows*row+i,cols_per_block*block_col+cols*col+j,term(i,j)));}}}
 }
 
 template<class T,int d1,int d2,int d3,int d1_per_block,int d2_per_block,int d3_per_block>

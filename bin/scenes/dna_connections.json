@@ -9,11 +9,23 @@
         {"type": "RIGID_STRUCTURE",
          "name": "base",
          "position": [0, 0, 0],
-         "radius": 1
+         "radius": 1,
+         "kinematic": true
         },
         {"type": "RIGID_STRUCTURE",
          "name": "top",
          "position": [0, 0, 10],
+         "radius": 1
+        },
+        {"type": "RIGID_STRUCTURE",
+         "name": "second_base",
+         "position": [10, 0, 0],
+         "radius": 1,
+         "kinematic": true
+        },
+        {"type": "RIGID_STRUCTURE",
+         "name": "second_top",
+         "position": [10, 0, 10],
          "radius": 1
         },
         {"type": "VOLUME_EXCLUSION_CONSTRAINT"},
@@ -24,10 +36,20 @@
          "offset1": [0,0,1],
          "structure2": "top",
          "offset2": [0,0,-1],
-         "links": 10,
+         "links": 20,
          "link_radius": 0.5,
          "link_offset": [0,0,1.2],
-         "stiffness": 100
+         "stiffness": 1000
+        },
+        {"type": "STIFF_LINKER",
+         "structure1": "second_base",
+         "offset1": [0,0,1],
+         "structure2": "second_top",
+         "offset2": [0,0,-1],
+         "links": 20,
+         "link_radius": 0.5,
+         "link_offset": [0,0,1.2],
+         "stiffness": 1000
         },
         {"type": "TRUST_REGION"}
     ]

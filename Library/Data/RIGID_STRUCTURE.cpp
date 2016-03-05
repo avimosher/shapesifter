@@ -75,6 +75,6 @@ DEFINE_AND_REGISTER_PARSER(RIGID_STRUCTURE,void)
     structure->Initialize_Inertia(simulation.data.globals["eta"]);
     auto rigid_structure_data=simulation.data.template Find_Or_Create<RIGID_STRUCTURE_DATA<TV>>();
     rigid_structure_data->structures.push_back(structure);
-    std::cout<<"Name: "<<structure->name<<" index: "<<rigid_structure_data->structures.size()-1<<std::endl;
+    LOG::cout<<"Name: "<<structure->name<<" index: "<<rigid_structure_data->structures.size()-1<<std::endl;
     return 0;
 }

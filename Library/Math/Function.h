@@ -28,8 +28,6 @@ template<> struct VSIGN<1>{enum{SIGN=1};};
 
 template<class TV> struct F;
 
-inline double epsilon(){return 1e-8;}
-
 template<class TV>
 TV clamped_normalize(const TV& f){
     return f/std::max((typename TV::Scalar)epsilon(),f.norm());

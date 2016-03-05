@@ -116,6 +116,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     static int failed_radius=0;
     do{
         iteration++;
+        LOG::cout<<std::endl<<"BEGINNING STEP "<<iteration<<std::endl;
         status=Update_One_Step(simulation,dt,time);
         LOG::cout<<"norm_gk: "<<norm_gk<<" norm_gk/sqrt(nvars): "<<norm_gk/sqrt(T(nvars))<<std::endl;
         if(norm_gk/sqrt(T(nvars))<=precision && f<=precision){status=SUCCESS;}
@@ -150,6 +151,9 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
 template<class TV> void TRUST_REGION<TV>::
 Update_Preconditioner(bool identity)
 {
+    /*Matrix<T,Dynamic,Dynamic> dense(hessian);
+    EigenSolver<Matrix<T,Dynamic,Dynamic>> es(dense,false);
+    LOG::cout<<es.eigenvalues()<<std::endl;*/
     if(!identity){
         preconditioner.compute(hessian);}
     if(identity || preconditioner.info()!=ComputationInfo::Success){
@@ -157,9 +161,9 @@ Update_Preconditioner(bool identity)
         SparseMatrix<T> BB(nvars,nvars);
         BB.setIdentity();
         preconditioner.compute(BB);}
-    inverse_scale.resize(nvars);
+    /*inverse_scale.resize(nvars);
     for(int i=0;i<nvars;i++){
-        inverse_scale(i)=1/preconditioner.scalingS()(i);}
+    inverse_scale(i)=1/preconditioner.scalingS()(i);}*/
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
@@ -197,7 +201,6 @@ Update_One_Step(SIMULATION<TV>& simulation,const T dt,const T time)
     //hessian=jacobian.adjoint()*jacobian;
     //Solve_Trust_Conjugate_Gradient(sk);
     //equation->Hessian(hessian);
-    LOG::cout<<std::endl<<"BEGINNING NEW STEP"<<std::endl;
     Solve_Trust_Conjugate_Gradient(sk);
     //Solve_Trust_MINRES(sk);
     T norm_sk_scaled=Norm(preconditioner,sk,wd);
@@ -265,9 +268,8 @@ Update_One_Step(SIMULATION<TV>& simulation,const T dt,const T time)
             //radius=std::max(expand_factor*norm_sk_scaled,radius);
             radius*=expand_factor;
             break;
-    default:
-            std::cout<<"Not a valid case"<<std::endl;
-            exit(-1);
+        default:
+            break;
     };
     return step_status;
 }
@@ -278,7 +280,6 @@ Norm(const Preconditioner& preconditioner,const Vector& v,Vector& scratch)
     if(preconditioner.permutationP().rows() == v.rows()){
         scratch=preconditioner.permutationP()*v;}
     else{scratch=v;}
-    scratch=inverse_scale.asDiagonal()*scratch;
     scratch=preconditioner.matrixL().adjoint().template triangularView<Upper>()*scratch;
     return scratch.norm();
 }
@@ -286,8 +287,6 @@ Norm(const Preconditioner& preconditioner,const Vector& v,Vector& scratch)
 template<class TV> void TRUST_REGION<TV>::
 Solve_Trust_MINRES(Vector& sol)
 {
-    //LOG::cout<<hessian<<std::endl;
-    //LOG::cout<<gk.transpose()<<std::endl;
     std::array<T,2> alpha,beta,res;
     std::array<Vector,2> v,d;
     int n=hessian.rows();
@@ -407,11 +406,6 @@ Solve_Trust_Conjugate_Gradient(Vector& pk)
 {
     T dot_ry,dot_ry_old,aj,tau,dBd,p_norm_gk;
     int j;
-    /*LOG::cout<<"Hessian: "<<std::endl;
-    Print_No_Angular(Matrix<T,Dynamic,Dynamic>(hessian));
-    LOG::cout<<"Gradient: "<<std::endl;
-    Print_No_Angular((-gk).transpose());*/
-
     zj.resize(hessian.rows());
     zj.setZero();
     rj=-gk;
@@ -469,8 +463,6 @@ Solve_Trust_Conjugate_Gradient(Vector& pk)
 
     CG_stop_reason=reason.str();
     LOG::cout<<"CG reason: "<<CG_stop_reason<<" iterations: "<<num_CG_iterations<<std::endl;
-    /*LOG::cout<<"sk: "<<std::endl;Print_No_Angular(sk.transpose());
-      LOG::cout<<"H*sk: "<<std::endl;Print_No_Angular((hessian*sk).transpose());*/
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void TRUST_REGION<TV>::
@@ -479,10 +471,8 @@ Multiply(const Preconditioner& X,const Vector& v,Vector& out)
     if(X.permutationP().rows() == v.rows()){
         out=X.permutationP()*v;}
     else{out=v;}
-    out=inverse_scale.asDiagonal()*out;
     out=X.matrixL().adjoint().template triangularView<Upper>()*out;
     out=X.matrixL().template triangularView<Lower>()*out;
-    out=inverse_scale.asDiagonal()*out;
     if(X.permutationP().rows() == v.rows()){
         out=X.permutationP().inverse()*out;}
 }
