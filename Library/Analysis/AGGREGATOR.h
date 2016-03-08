@@ -13,6 +13,8 @@ class AGGREGATOR
 {
     typedef typename TV::Scalar T;
 public:
+    int subtype;
+
     AGGREGATOR(){}
     virtual ~AGGREGATOR(){}
 
@@ -53,6 +55,7 @@ class SUM_AGGREGATOR:public AGGREGATOR<TV>
     int tv_count;
     TV tv_total;
 public:
+    using AGGREGATOR<TV>::subtype;
     SUM_AGGREGATOR();
 
     virtual void Aggregate_Subtype(const T aggregate)

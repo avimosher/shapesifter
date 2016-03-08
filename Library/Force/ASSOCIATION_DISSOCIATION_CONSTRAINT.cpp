@@ -103,7 +103,8 @@ Interaction_Candidates(DATA<TV>& data,const T dt,int type_index,int type1,int ty
                     std::get<SITE_ACTIVE>(first_site)=false;
                     std::get<SITE_ACTIVE>(second_site)=false;
                     partners[partnership]=false;
-                    std::cout<<"CONSTRAINT DEACTIVATED: "<<s1<<" "<<s2<<std::endl;}}
+                    //std::cout<<"CONSTRAINT DEACTIVATED: "<<s1<<" "<<s2<<std::endl;
+                }}
             else if(!std::get<SITE_ACTIVE>(first_site) && !std::get<SITE_ACTIVE>(second_site) && !partners[partnership]){ // do not re-bind already bound
                 auto structure2_frame=rigid_data->structures[s2]->frame;
                 auto second_site_position=structure2_frame*interaction_type.site_offsets[type2];
@@ -119,8 +120,7 @@ Interaction_Candidates(DATA<TV>& data,const T dt,int type_index,int type1,int ty
                 T cumulative_distribution=1-exp(-association_rate*dt);
                 constraint_active=data.random.Uniform((T)0,(T)1)<cumulative_distribution;
                 if(constraint_active){
-                    std::cout<<"CONSTRAINT ACTIVATED: "<<s1<<" "<<s2<<std::endl;
-                    //std::cout<<"CONSTRAINT ACTIVATED: "<<s1<<" "<<s2<<" "<<candidate_first<<" "<<candidate_second<<" remembered: "<<remembered.first<<" call count: "<<call_count<<" interaction: "<<i<<" test: "<<std::get<1>(interaction_type.sites[candidate_first])<<" "<<std::get<1>(interaction_type.sites[candidate_second])<<" "<<partners[partnership]<<std::endl;
+                    //std::cout<<"CONSTRAINT ACTIVATED: "<<rigid_data->structures[s1]->name<<" "<<rigid_data->structures[s2]->name<<std::endl;
                     std::get<SITE_ACTIVE>(first_site)=true;
                     std::get<SITE_ACTIVE>(second_site)=true;
                     partners[partnership]=true;}}

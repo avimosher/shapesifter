@@ -1,0 +1,109 @@
+{
+    "output_directory": "runs/scfv",
+    "dt": 0.1,
+    "last_time": 1000,
+    "root": [
+        {"type": "DATA",
+         "eta": 3.5,
+         "domain": {
+             "minimum_corner": [0,0,0],
+             "maximum_corner": [10,10,10]}
+        },
+        {"type": "RIGID_STRUCTURE_DATA"},
+        {"type": "RIGID_STRUCTURE",
+         "name": "light",
+         "position": [0, 1, 1],
+         "radius": 1
+        },
+        {"type": "RIGID_STRUCTURE",
+         "name": "heavy",
+         "position": [5, 1, 1],
+         "radius": 1
+        },
+        {"type": "RIGID_STRUCTURE_DATA"},
+        {"type": "RIGID_STRUCTURE",
+         "name": "light2",
+         "position": [0, 5, 1],
+         "radius": 1
+        },
+        {"type": "RIGID_STRUCTURE",
+         "name": "heavy2",
+         "position": [5, 5, 1],
+         "radius": 1
+        },
+        {"type": "VOLUME_EXCLUSION_CONSTRAINT"},
+        {"type": "BROWNIAN_FORCE",
+         "temperature": 300},
+        {"type": "FLEXIBLE_LINKER",
+         "structure1": "light",
+         "offset1": [1,0,0],
+         "structure2": "heavy",
+         "offset2": [-1,0,0],
+         "links": 4,
+         "link_radius": 0.2,
+         "link_offset": [1.2,0,0],
+         "stiffness": 0
+        },
+        {"type": "FLEXIBLE_LINKER",
+         "structure1": "light2",
+         "offset1": [1,0,0],
+         "structure2": "heavy2",
+         "offset2": [-1,0,0],
+         "links": 4,
+         "link_radius": 0.2,
+         "link_offset": [1.2,0,0],
+         "stiffness": 0
+        },
+        {"type": "ASSOCIATION_DISSOCIATION_CONSTRAINT",
+         "interactions": [
+             {
+                 "bond_distance_threshold": 1,
+                 "bond_orientation_threshold": 1.5,
+                 "base_dissociation_time": 1000,
+                 "base_association_time": 0.0001,
+                 "binder_orientation": {
+                     "primary_axis": [-1,0,0],
+                     "secondary_axis": {"from": [0.55,0.318,0.898], "to": [-0.55,0.953,0]}
+                 },
+                 "sites": [
+                     {"site_offset": [1.1,0,0],
+                      "bodies": ["light","heavy","light2","heavy2"]}]
+             }
+         ]
+        },
+        {"type": "TRUST_REGION",
+         "name": "evolution"},
+        {"type": "ANALYTE",
+         "aggregator": {"type": "sum"},
+         "condition": {"type": "bound",
+                       "first_binder": "heavy",
+                       "second_binder": "light"},
+         "predicate": {"type": "dt"},
+         "prerequisites": ["evolution"]
+        },
+        {"type": "ANALYTE",
+         "aggregator": {"type": "sum"},
+         "condition": {"type": "bound",
+                       "first_binder": "heavy",
+                       "second_binder": "light2"},
+         "predicate": {"type": "dt"},
+         "prerequisites": ["evolution"]
+        },
+        {"type": "ANALYTE",
+         "aggregator": {"type": "sum"},
+         "condition": {"type": "bound",
+                       "first_binder": "heavy2",
+                       "second_binder": "light"},
+         "predicate": {"type": "dt"},
+         "prerequisites": ["evolution"]
+        },
+        {"type": "ANALYTE",
+         "aggregator": {"type": "sum"},
+         "condition": {"type": "bound",
+                       "first_binder": "heavy2",
+                       "second_binder": "light2"},
+         "predicate": {"type": "dt"},
+         "prerequisites": ["evolution"]
+        }
+    ]
+}

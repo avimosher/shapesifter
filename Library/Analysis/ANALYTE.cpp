@@ -27,6 +27,7 @@ DEFINE_AND_REGISTER_PARSER(ANALYTE,void)
     analyte->aggregator=PARSER_REGISTRY<TV,AGGREGATOR<TV>>::Parse(node["aggregator"],simulation);
     if(node.isMember("condition")){analyte->condition=PARSER_REGISTRY<TV,PREDICATE<TV>>::Parse(node["condition"],simulation);}
     analyte->predicate=PARSER_REGISTRY<TV,PREDICATE<TV>>::Parse(node["predicate"],simulation);
+    analyte->aggregator->subtype=analyte->predicate->subtype;
     Json::Value prerequisites=node["prerequisites"];
     if(!prerequisites.isNull()){
         for(Json::ValueIterator it=prerequisites.begin();it!=prerequisites.end();it++){

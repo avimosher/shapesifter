@@ -51,8 +51,10 @@ SUM_AGGREGATOR()
 template<class TV> void SUM_AGGREGATOR<TV>::
 Print_Report(std::ostream& out)
 {
-    if(t_count>0){out<<t_total;}
-    if(tv_count>0){out<<tv_total;}
+    if(subtype==PREDICATE<TV>::SCALAR){
+        out<<t_total;}
+    else{
+        out<<tv_total;}
 }
 //////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(SUM_AGGREGATOR)
