@@ -1,5 +1,6 @@
 #include <Data/DATA.h>
 #include <Data/RIGID_STRUCTURE_DATA.h>
+#include <Driver/SIMULATION.h>
 #include <Equation/MATRIX_BUNDLE.h>
 #include <Force/ASSOCIATION_DISSOCIATION_CONSTRAINT.h>
 #include <Force/FORCE.h>

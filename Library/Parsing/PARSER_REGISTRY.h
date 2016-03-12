@@ -2,7 +2,6 @@
 #define __PARSER_REGISTRY__
 
 #include <Data/ROTATION.h>
-#include <Driver/SIMULATION.h>
 #include <Evolution/EVOLUTION.h>
 #include <Utilities/LOG.h>
 #include <iostream>

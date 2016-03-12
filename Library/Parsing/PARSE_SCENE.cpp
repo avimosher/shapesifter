@@ -1,3 +1,4 @@
+#include <Driver/SIMULATION.h>
 #include <Parsing/PARSE_SCENE.h>
 #include <Parsing/PARSER_REGISTRY.h>
 #include <Utilities/LOG.h>

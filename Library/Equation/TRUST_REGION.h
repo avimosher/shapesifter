@@ -36,6 +36,7 @@ public:
     int preconditioner_refresh_frequency;
     int max_iterations,num_CG_iterations,trust_iterations;
     int nvars;
+    int iteration;
     std::string CG_stop_reason;
 
     STORED_FORCE<T> solve_forces;
@@ -46,6 +47,8 @@ public:
     TRUST_REGION();
     ~TRUST_REGION(){}
 
+    int Iterations(){return iteration;}
+    T Solve_Quality(){return f;}
     void Step(SIMULATION<TV>& simulation,const T dt,const T time);
     void Linearize(SIMULATION<TV>& simulation,const T dt,const T time);
     void Linearize_Around(SIMULATION<TV>& simulation,const T dt,const T time,const Vector& solve_vector);

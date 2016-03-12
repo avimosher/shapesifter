@@ -1,4 +1,5 @@
 #include <Data/DATA.h>
+#include <Driver/SIMULATION.h>
 #include <Equation/EQUATION.h>
 #include <Equation/NONLINEAR_EQUATION.h>
 #include <Equation/TRUST_REGION.h>
@@ -97,7 +98,6 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     static int call_count=0;
     static int total_steps=0;
     // loosely based on trustOptim implementation
-    int iteration=0;
     auto status=CONTINUE;
 
     iteration=0;

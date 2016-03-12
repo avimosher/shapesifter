@@ -1,4 +1,5 @@
 #include <Data/DATA.h>
+#include <Driver/SIMULATION.h>
 #include <Parsing/PARSER_REGISTRY.h>
 #include <Utilities/RANDOM.h>
 #include <fstream>

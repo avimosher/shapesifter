@@ -1,6 +1,7 @@
 #include <Analysis/AGGREGATOR.h>
 #include <Analysis/ANALYTE.h>
 #include <Analysis/PREDICATE.h>
+#include <Driver/SIMULATION.h>
 #include <Parsing/PARSER_REGISTRY.h>
 #include <Utilities/LOG.h>
 #include <iostream>

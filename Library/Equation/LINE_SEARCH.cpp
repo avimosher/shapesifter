@@ -1,3 +1,4 @@
+#include <Driver/SIMULATION.h>
 #include <Equation/LINE_SEARCH.h>
 #include <Equation/NONLINEAR_EQUATION.h>
 #include <Parsing/PARSER_REGISTRY.h>
