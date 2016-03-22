@@ -62,6 +62,7 @@ public:
     int frame;
     bool animating;
     bool writing;
+    bool hide_titles;
     T lastTime;
     T frameTime;
     SIMULATION<TV> simulation;
@@ -69,8 +70,8 @@ public:
     WindowCaptureCallback *capture;
     osgViewer::Viewer* pViewer;
 
-    AnimationHandler(osgViewer::Viewer* viewer)
-        :root(new osg::Group()),animating(false),writing(false),lastTime(0),frameTime((T).05),pViewer(viewer)
+    AnimationHandler(osgViewer::Viewer* viewer,bool hide_titles_input)
+        :root(new osg::Group()),animating(false),writing(false),hide_titles(hide_titles_input),lastTime(0),frameTime((T).05),pViewer(viewer)
     {
         PARSE_SCENE<TV>::Parse_Scene(std::cin,simulation);
         reset();
@@ -100,7 +101,7 @@ public:
           std::stringstream stream;
           stream<<simulation.output_directory+"/image."<<std::setw(5)<<std::setfill('0')<<frame<<".png";
           capture->setFrame(stream.str());}
-        simulation.Viewer(root);
+        simulation.Viewer(root,hide_titles);
     }
 
     void goToFrame(int goFrame){
@@ -182,10 +183,20 @@ public:
     }
 };
 
+char* Get_Command_Option(char** begin,char** end,const std::string& option)
+{
+    char **itr=std::find(begin,end,option);
+    if(itr!=end){
+        if(++itr!=end){return *itr;}
+        else{return *(--itr);}}
+    return 0;
+}
+
 int main(int argc,char **argv)
 {
     osgViewer::Viewer viewer;
-    AnimationHandler* animation=new AnimationHandler(&viewer);
+    bool hide_titles=Get_Command_Option(argv,argv+argc,"-hidetitles");
+    AnimationHandler* animation=new AnimationHandler(&viewer,hide_titles);
     KeyboardEventHandler* keyboardEventHandler=new KeyboardEventHandler(animation);
     viewer.addEventHandler(keyboardEventHandler);
     viewer.setSceneData(animation->root);

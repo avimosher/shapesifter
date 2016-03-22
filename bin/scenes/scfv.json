@@ -6,7 +6,7 @@
         {"type": "DATA",
          "eta": 3.5,
          "domain": {
-             "minimum_corner": [0,0,0],
+             "minimum_corner": [-10,10,10],
              "maximum_corner": [10,10,10]}
         },
         {"type": "RIGID_STRUCTURE_DATA"},
@@ -39,7 +39,7 @@
          "offset1": [1,0,0],
          "structure2": "heavy",
          "offset2": [-1,0,0],
-         "links": 1,
+         "links": 2,
          "link_radius": 0.2,
          "link_offset": [1.2,0,0],
          "stiffness": 0
@@ -49,7 +49,7 @@
          "offset1": [1,0,0],
          "structure2": "heavy2",
          "offset2": [-1,0,0],
-         "links": 1,
+         "links": 2,
          "link_radius": 0.2,
          "link_offset": [1.2,0,0],
          "stiffness": 0

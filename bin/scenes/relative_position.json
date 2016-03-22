@@ -1,7 +1,7 @@
 {
     "output_directory": "runs/relative_position",
     "dt": 0.1,
-    "last_time": 10000,
+    "last_time": 100,
     "root": [
         {"type": "DATA",
          "eta": 3.5},

@@ -1,5 +1,5 @@
 {
-    "output_directory": "runs/nanopore",
+    "output_directory": "runs/alpha_hemolysine",
     "dt": 0.1,
     "last_time": 64397.51553,
     "root": [

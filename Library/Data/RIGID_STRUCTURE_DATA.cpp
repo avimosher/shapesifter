@@ -135,7 +135,7 @@ Viewer(osg::Node* node)
         for(int i=0;i<structures.size();i++){
             auto transform=new osg::PositionAttitudeTransform();
             auto basicShapesGeode=new osg::Geode();
-            osg::Vec4 color=colorMap(i);
+            osg::Vec4 color=colorMap(structures[i]->name);
             if(structures[i]->collision_extent.norm()){
                 auto cylinder=new osg::Cylinder(osg::Vec3(0,0,0),structures[i]->radius,2*structures[i]->collision_extent.norm());
                 auto cylinderDrawable=new osg::ShapeDrawable(cylinder);

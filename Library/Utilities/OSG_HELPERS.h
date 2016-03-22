@@ -6,6 +6,7 @@
 #include <osg/Geode>
 #include <osg/Geometry>
 #include <osg/PositionAttitudeTransform>
+#include <functional>
 #include <iostream>
 
 namespace Mechanics{
@@ -50,7 +51,7 @@ inline osg::Drawable* getNamedDrawable(osg::Geode* geode,const std::string& name
     return 0;
 }
 
-inline osg::Vec4 colorMap(int index)
+inline osg::Vec4 colorMap(const std::string& name)
 {
     static const std::vector<osg::Vec4> colors={
         osg::Vec4(0.271,0.647,0.424,1),
@@ -73,7 +74,7 @@ inline osg::Vec4 colorMap(int index)
         osg::Vec4(1,0.647,0.565,1),
         osg::Vec4(0.776,0.333,0.227,1)};
 //        osg::Vec4(0.635,0.212,0.11,1)};
-    return colors[std::hash<int>()(index)%colors.size()];
+    return colors[std::hash<std::string>()(name)%colors.size()];
 }
 
 inline osg::Geode* createLine(osg::Vec4 color)

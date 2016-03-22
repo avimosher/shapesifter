@@ -282,6 +282,8 @@ DEFINE_AND_REGISTER_PARSER(ASSOCIATION_DISSOCIATION_CONSTRAINT,void)
         TV primary_axis;Parse_Vector(binder_orientation["primary_axis"],primary_axis);
         TV secondary_axis_from;Parse_Vector(binder_orientation["secondary_axis"]["from"],secondary_axis_from);
         TV secondary_axis_to;Parse_Vector(binder_orientation["secondary_axis"]["to"],secondary_axis_to);
+        // the offset must go to the primary axis in the new frame
+        // the secondary axis from must go to the secondary axis to in the final frame
         ROTATION<TV> primary_rotation=ROTATION<TV>::From_Rotated_Vector(interaction.site_offsets[0],primary_axis);
         ROTATION<TV> secondary_rotation=ROTATION<TV>::From_Rotated_Vector_Around_Axis(primary_rotation*secondary_axis_from,secondary_axis_to,primary_axis);
         interaction.relative_orientation=secondary_rotation*primary_rotation;

@@ -38,7 +38,7 @@ public:
 
     void Write(const std::string& frame_title);
     bool Read(const int frame);
-    void Viewer(osg::Group*& root);
+    void Viewer(osg::Group*& root,bool hide_titles);
 };
 }
 #endif
