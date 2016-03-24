@@ -2,4 +2,4 @@
 
 args=("$*")
 script=$(cat)
-echo "$script" | ./expand_scene.py | ./simulate $args
+echo "$script" | ./expand_scene.sh | ./simulate $args

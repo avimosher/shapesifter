@@ -297,7 +297,6 @@ var running;
 var frame_total = 0;
 
 function render() {
-
     if (running) {
 
         // update structures
@@ -336,20 +335,18 @@ function render() {
 
     }
 
-    requestAnimationFrame(render);
     renderer.render(scene, camera);
     controls.update();
-    if(frame_index==5){
-        try{
-            var remote=require('remote');
-            remote.getCurrentWindow().capturePage(function(buf){
-                console.log(buf.toPng());
-                remote.require('fs').writeFile('screenshot'+frame_index+'.png',buf.toPng(),function(err){
-                    console.log(err);
-                })});
-        }
-        catch(err){}
+    try{
+        var remote=require('remote');
+        remote.getCurrentWindow().capturePage(function(buf){
+            console.log(buf.toPng());
+            var S=require('string');
+            remote.require('fs').writeFile(frame_directory+'/screenshot.'+S(frame_index).padLeft(5,'0')+'.png',buf.toPng(),function(){
+                requestAnimationFrame(render);
+            })});
     }
+    catch(err){}
 };
 
 
