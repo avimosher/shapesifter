@@ -50,7 +50,6 @@ function createStructures(callback, scene_data) {
                 // container object for capsule elements
                 var merged = new THREE.Geometry();
 
-
                 //texture test
                 var texture = new THREE.CanvasTexture( createColor(i) );
                 var proteinMaterial = new THREE.MeshBasicMaterial( { map: texture, wireframe: true } );
@@ -62,11 +61,11 @@ function createStructures(callback, scene_data) {
 
                 // set position of bottom and top spheres
                 var m1 = new THREE.Matrix4();
-                m1.makeTranslation(0,collision_extent/2,0);
+                m1.makeTranslation(0,0,collision_extent/2);
                 top.applyMatrix(m1);
 
                 var m2 = new THREE.Matrix4();
-                m2.makeTranslation(0,-collision_extent/2,0);
+                m2.makeTranslation(0,0,-collision_extent/2);
                 bottom.applyMatrix(m2);
 
                 // add spheres and cylinder to merged object
@@ -75,24 +74,18 @@ function createStructures(callback, scene_data) {
                 merged.merge(top);
 
                 // set proper orientation
-                if(scene_data.root[i].orientation){
+                // I'm fairly sure this shouldn't happen here
+                /*if(scene_data.root[i].orientation){
 
                     var m3 = new THREE.Matrix4();
                     radians = scene_data.root[i].orientation.angle * Math.PI / 180;
-
-                    if (scene_data.root[i].orientation.axis[0] == 1){
-                        m3.makeRotationX(radians);
-                    }
-                    if (scene_data.root[i].orientation.axis[1] == 1){
-                        m3.makeRotationY(radians);
-                    }
-                    if (scene_data.root[i].orientation.axis[2] == 1){
-                        m3.makeRotationZ(radians);
-                    }
+                    var axis=new THREE.Vector3();axis.fromArray(scene_data.root[i].orientation.axis);
+                    var quaternion=new THREE.Quaternion();
+                    quaternion.setFromAxisAngle(axis,radians);
+                    m3.makeRotationFromQuaternion(quaternion);
 
                     merged.applyMatrix(m3);
-
-                }
+                }*/
 
                 // create capsule
                 var protein = new THREE.Mesh(merged, proteinMaterial);
@@ -111,6 +104,10 @@ function createStructures(callback, scene_data) {
             }   
         }
     }
+    /*var loader=new THREE.OBJLoader();
+    loader.load('untitled.obj',function(object){
+        structures.add(object);
+    });*/
     callback(structures);   
 }
 
@@ -235,7 +232,7 @@ var scene;
 var camera;
 var controls;
 
-var initialize_viewer = function() {
+var initializeViewer = function() {
         // set the scene size
         var WIDTH = window.innerWidth,
                 HEIGHT = window.innerHeight;
@@ -274,7 +271,7 @@ var initialize_viewer = function() {
         // add light to the scene
         scene.add(pointLight);
 
-        var ipc=require('ipc');
+        var ipc=require('electron').ipcRenderer;
         scene_data=ipc.sendSync('synchronous-message','');
 
         // read scene data
@@ -285,7 +282,7 @@ var initialize_viewer = function() {
 }
 
 
-var scene_initialized=false;
+var sceneInitialized=false;
 var structures=new THREE.Object3D();
 var linkers=new THREE.Object3D();
 var forces=new THREE.Object3D();
@@ -340,7 +337,6 @@ function render() {
     try{
         var remote=require('remote');
         remote.getCurrentWindow().capturePage(function(buf){
-            console.log(buf.toPng());
             var S=require('string');
             remote.require('fs').writeFile(frame_directory+'/screenshot.'+S(frame_index).padLeft(5,'0')+'.png',buf.toPng(),function(){
                 requestAnimationFrame(render);
@@ -351,15 +347,15 @@ function render() {
 
 
 var main = function() {
-    if(!scene_initialized){
-        initialize_viewer();
-        scene_initialized=true;
+    if(!sceneInitialized){
+        initializeViewer();
+        sceneInitialized=true;
     }
     scene.remove(structures);
     scene.remove(linkers);
     scene.remove(forces);
 
-        frame_directory=scene_data['output_directory'];
+    frame_directory=scene_data['output_directory'];
 
     // create structures 
     createStructures(function (allStructures){

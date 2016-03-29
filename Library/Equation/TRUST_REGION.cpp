@@ -119,7 +119,8 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
         LOG::cout<<std::endl<<"BEGINNING STEP "<<iteration<<std::endl;
         status=Update_One_Step(simulation,dt,time);
         LOG::cout<<"norm_gk: "<<norm_gk<<" norm_gk/sqrt(nvars): "<<norm_gk/sqrt(T(nvars))<<std::endl;
-        if(norm_gk/sqrt(T(nvars))<=precision && f<=precision){status=SUCCESS;}
+        //if(norm_gk/sqrt(T(nvars))<=precision && f<=precision){status=SUCCESS;}
+        if(norm_gk/sqrt(T(nvars))<=precision){status=SUCCESS;}
         if(iteration>=max_iterations){status=EMAXITER;}
         if(radius<=min_radius){ // trust region collapse
             status=ETOLG;
