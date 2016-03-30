@@ -27,6 +27,7 @@ public:
     T collision_radius;
     TV collision_extent; // require to be in the Z direction for now
     bool kinematic;
+    std::shared_ptr<Matrix<T,4,1>> color;
 
     RIGID_STRUCTURE():initialized(false),kinematic(false){}
     ~RIGID_STRUCTURE(){}
@@ -102,6 +103,7 @@ public:
             CEREAL_NVP(radius),
             CEREAL_NVP(collision_radius),
             CEREAL_NVP(collision_extent),
+            CEREAL_NVP(color),
             CEREAL_NVP(initialized));}
 
     TV Displacement(const DATA<TV>& data,const RIGID_STRUCTURE<TV>& structure,TV& offset1,TV& offset2) const;

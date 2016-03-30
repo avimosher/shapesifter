@@ -71,6 +71,11 @@ DEFINE_AND_REGISTER_PARSER(RIGID_STRUCTURE,void)
     Parse_Scalar(node["collision_radius"],structure->collision_radius,structure->radius);
     Parse_Scalar(node["kinematic"],structure->kinematic,false);
     Parse_Rotation(node["orientation"],structure->frame.orientation);
+    if(!node["color"].isNull()){
+        Matrix<T,4,1> color;
+        Parse_Vector(node["color"],color);
+        structure->color.reset(new Matrix<T,4,1>(color));
+    }
     structure->name=node["name"].asString();
     structure->Initialize_Inertia(simulation.data.globals["eta"]);
     auto rigid_structure_data=simulation.data.template Find_Or_Create<RIGID_STRUCTURE_DATA<TV>>();

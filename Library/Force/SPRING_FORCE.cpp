@@ -64,6 +64,7 @@ Compute_Derivatives(DATA<TV>& data,FORCE<TV>& force,MATRIX_BUNDLE<TV>& system)
 template<class TV> void SPRING_FORCE<TV>::
 Viewer(const DATA<TV>& data,osg::Node* node)
 {
+#if 0
     osg::Group* group=node->asGroup();
     osg::Group* relative_position_group=(osg::Group*)getNamedChild(group,Static_Name());
     if(!relative_position_group){
@@ -81,6 +82,7 @@ Viewer(const DATA<TV>& data,osg::Node* node)
             points[j]=rigid_data->structures[spring.index[j]]->frame*spring.offset[j];}
         updateLine((osg::Geode*)relative_position_group->getChild(i),points);
     }
+#endif
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(SPRING_FORCE)

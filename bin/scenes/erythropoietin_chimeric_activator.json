@@ -1,0 +1,77 @@
+{
+    "output_directory": "runs/erythropoietin_chimeric_activator",
+    "dt": 0.1,
+    "last_time": 1000,
+    "root": [
+        {"type": "DATA",
+         "eta": 3.5},
+        {"type": "RIGID_STRUCTURE_DATA"},
+        {"type": "RIGID_STRUCTURE",
+         "position": [0,0,0],
+         "radius": 0.2,
+         "name": "glycophorin_anchor",
+         "kinematic": true,
+         "color": [71,73,137,0]
+        },
+        {"type": "RIGID_STRUCTURE",
+         "position": [0,0,0],
+         "radius": 0.2,
+         "name": "glycophorin_terminus",
+         "color": [71,73,137,0]
+        },
+        {"type": "RIGID_STRUCTURE",
+         "position": [0, 2, 3.2],
+         "orientation": {
+             "axis": [1,0,0],
+             "angle": 0},
+         "radius": 1.435,
+         "collision_extent": 0.34,
+         "name": "scFv",
+         "color": [92,184,195,0]
+        },
+        {"type": "RIGID_STRUCTURE",
+         "position": [5, 1, 1],
+         "radius": 1.1,
+         "collision_extent": 0.2,
+         "name": "erythropoietin",
+         "color": [207,33,31,0]
+        },
+        {"type": "TRUST_REGION",
+         "name": "evolution"},
+        {"type": "BROWNIAN_FORCE",
+         "temperature": 300},
+        {"type": "STIFF_LINKER",
+         "structure1": "glycophorin_anchor",
+         "offset1": [0,0,0],
+         "structure2": "glycophorin_terminus",
+         "offset2": [0,0,0],
+         "links": 7,
+         "link_radius": 0.2,
+         "link_offset": [0,0,0.8],
+         "stiffness": 200,
+         "color": [71,73,137,0]
+        },
+        {"type": "RELATIVE_POSITION_CONSTRAINT",
+         "constraints": [
+             {
+                 "structure1": "unQ55",
+                 "offset1": [0,0.2,0],
+                 "structure2": "scFv",
+                 "offset2": [0,-1.435,0],
+                 "distance": 0.1
+             }
+         ]
+        },
+        {"type": "FLEXIBLE_LINKER",
+         "structure1": "scFv",
+         "offset1": [-1.015,0,1.355],
+         "structure2": "erythropoietin",
+         "offset2": [0,0,0.3],
+         "links": 10,
+         "link_radius": 0.15,
+         "link_offset": [1.2,0,0],
+         "color": [11,11,10,0]
+        },
+        {"type": "VOLUME_EXCLUSION_CONSTRAINT"}
+    ]
+}

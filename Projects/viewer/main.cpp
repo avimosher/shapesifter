@@ -74,6 +74,7 @@ public:
         :root(new osg::Group()),animating(false),writing(false),hide_titles(hide_titles_input),lastTime(0),frameTime((T).05),pViewer(viewer)
     {
         PARSE_SCENE<TV>::Parse_Scene(std::cin,simulation);
+        pViewer->getCamera()->setClearColor(osg::Vec4(1.0,1.0,1.0,1.0));
         reset();
         root->setUpdateCallback(this);
         capture=new WindowCaptureCallback(GL_FRONT);

@@ -20,7 +20,7 @@ TRUST_REGION()
     contract_factor=.25;
     expand_factor=2.5;
     contract_threshold=.4;
-    expand_threshold_ap=.8;
+    expand_threshold=.8;
     expand_threshold_rad=.8;
     trust_iterations=20;
     tol=1e-8;
@@ -243,7 +243,7 @@ Update_One_Step(SIMULATION<TV>& simulation,const T dt,const T time)
                 Matrix<T,Dynamic,1> error;
                 equation->RHS(error);
                 Print_No_Angular(error.transpose());*/
-                if(step_quality>expand_threshold_ap){// && norm_sk_scaled>=expand_threshold_rad*radius){
+                if(step_quality>expand_threshold){// && norm_sk_scaled>=expand_threshold_rad*radius){
                     step_status=EXPAND;}
                 else{step_status=MOVED;}}
             else{step_status=FAILEDCG;}}
@@ -534,6 +534,12 @@ DEFINE_AND_REGISTER_PARSER(TRUST_REGION,void)
     step->equation=new NONLINEAR_EQUATION<TV>();
     Parse_String(node["name"],step->name);
     Parse_Scalar(node["precision"],step->precision,step->precision);
+    Parse_Scalar(node["contract_threshold"],step->contract_threshold,step->contract_threshold);
+    Parse_Scalar(node["expand_threshold"],step->expand_threshold,step->expand_threshold);
+    Parse_Scalar(node["contract_factor"],step->contract_factor,step->contract_factor);
+    Parse_Scalar(node["expand_factor"],step->expand_factor,step->expand_factor);
+    Parse_Scalar(node["trust_iterations"],step->trust_iterations,step->trust_iterations);
+    Parse_Scalar(node["tol"],step->tol,step->tol);
     simulation.evolution.push_back(step);
     return 0;
 }

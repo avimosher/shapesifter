@@ -31,7 +31,7 @@ public:
     T contract_factor;
     T expand_factor;
     T contract_threshold;
-    T expand_threshold_ap;
+    T expand_threshold;
     T expand_threshold_rad;
     int preconditioner_refresh_frequency;
     int max_iterations,num_CG_iterations,trust_iterations;

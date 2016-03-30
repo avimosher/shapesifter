@@ -135,7 +135,10 @@ Viewer(osg::Node* node)
         for(int i=0;i<structures.size();i++){
             auto transform=new osg::PositionAttitudeTransform();
             auto basicShapesGeode=new osg::Geode();
-            osg::Vec4 color=colorMap(structures[i]->name);
+            osg::Vec4 color;
+            if(structures[i]->color){
+                color=osg::Vec4((*structures[i]->color)[0]/255,(*structures[i]->color)[1]/255,(*structures[i]->color)[2]/255,(*structures[i]->color)[3]/255);}
+            else{color=colorMap(structures[i]->name);}
             if(structures[i]->collision_extent.norm()){
                 auto cylinder=new osg::Cylinder(osg::Vec3(0,0,0),structures[i]->radius,2*structures[i]->collision_extent.norm());
                 auto cylinderDrawable=new osg::ShapeDrawable(cylinder);
@@ -154,7 +157,7 @@ Viewer(osg::Node* node)
                 auto unitSphereDrawable=new osg::ShapeDrawable(unitSphere);
                 unitSphereDrawable->setColor(color);
                 basicShapesGeode->addDrawable(unitSphereDrawable);}
-            basicShapesGeode->getOrCreateStateSet()->setAttribute(new osg::PolygonMode(osg::PolygonMode::FRONT_AND_BACK,osg::PolygonMode::LINE));
+            basicShapesGeode->getOrCreateStateSet()->setAttribute(new osg::PolygonMode(osg::PolygonMode::FRONT_AND_BACK,osg::PolygonMode::FILL));
             transform->addChild(basicShapesGeode);
             rigid_group->addChild(transform);
         }

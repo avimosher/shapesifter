@@ -1,4 +1,0 @@
-#include <Data/DATA_TYPE.h>
-using namespace Mechanics;
-///////////////////////////////////////////////////////////////////////
-GENERIC_TYPE_DEFINITION(DATA_TYPE)

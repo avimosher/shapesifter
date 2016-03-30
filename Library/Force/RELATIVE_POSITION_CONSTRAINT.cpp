@@ -92,7 +92,8 @@ Viewer(const DATA<TV>& data,osg::Node* node)
         relative_position_group=new osg::Group();
         relative_position_group->setName(Static_Name());
         for(int i=0;i<constraints.size();i++){
-            relative_position_group->addChild(createLine(osg::Vec4(1.0f,1.0f,0.0f,1.0f)));}
+//            relative_position_group->addChild(createLine(osg::Vec4(1.0f,1.0f,0.0f,1.0f)));}
+            relative_position_group->addChild(createLine(osg::Vec4(0.3f,0.3f,0.3f,1.0f)));}
         group->addChild(relative_position_group);
     }
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
