@@ -27,7 +27,7 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
         stored_right_hand_side.resize(right_hand_side.rows(),1);
         stored_right_hand_side.setZero();
         for(int i=0;i<(*rigid_data).structures.size();i++){
-            T radius=rigid_data->structures[i]->radius;
+            T radius=rigid_data->structures[i]->Substructure(0).radius;
             T linear_drag=6*M_PI*eta*radius;
             T translational_diffusion_coefficient=kT/linear_drag;
             T translational_variance=sqrt(2*translational_diffusion_coefficient*dt);

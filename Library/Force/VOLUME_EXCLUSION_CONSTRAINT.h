@@ -19,7 +19,7 @@ public:
     enum DEFINITIONS{d=TV::RowsAtCompileTime};
     const DATA<TV>& data;
     AlignedBox<T,d> box;
-    std::vector<int> candidates;
+    std::vector<std::pair<int,int>> candidates;
 
     BOX_PROXIMITY_SEARCH(DATA<TV>& data_input,const AlignedBox<T,d>& input_box)
         :data(data_input),box(input_box)
@@ -30,7 +30,7 @@ public:
         TV abs_offset=offset.cwiseAbs();
         return (abs_offset.array()<=((volume.sizes()+box.sizes())/2).array()).all();}
 
-    bool intersectObject(int structure){
+    bool intersectObject(const std::pair<int,int>& structure){
         candidates.push_back(structure);
         return false;}
 };
@@ -58,6 +58,7 @@ class VOLUME_EXCLUSION_CONSTRAINT:public FORCE_TYPE<TV>
     enum DEFINITIONS{d=TV::RowsAtCompileTime,t=T_SPIN::RowsAtCompileTime};
     typedef Matrix<T,1,t+d> CONSTRAINT_VECTOR;
     typedef Matrix<T,t+d,1> FORCE_VECTOR;
+    enum MEMORY{MEMORY_COUNT,MEMORY_FORCE};
 public:
     using FORCE_TYPE<TV>::stored_forces;using FORCE_TYPE<TV>::errors;
     enum CONSTRAINT_FIELDS{CONSTRAINT_FORCE_DIRECTIONS,CONSTRAINT_SPINS,CONSTRAINT_OFFSETS,CONSTRAINT_RELATIVE_POSITION};

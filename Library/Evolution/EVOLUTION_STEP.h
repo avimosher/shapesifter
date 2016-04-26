@@ -29,6 +29,7 @@ public:
     void Full_Step(SIMULATION<TV>& simulation,const T dt,const T time);
     virtual void Step(SIMULATION<TV>& simulation,const T dt,const T time)=0;
     virtual void Finalize(){}
+    virtual bool Success(){return true;}
 };
 }
 #endif

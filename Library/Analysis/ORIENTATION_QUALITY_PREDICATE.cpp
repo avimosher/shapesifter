@@ -10,8 +10,9 @@ template<class TV> typename TV::Scalar ORIENTATION_QUALITY_PREDICATE<TV>::
 Sample_Point(const TV& point,const TV& offset,const DATA<TV>& data,RIGID_STRUCTURE<TV>& receptor,const RIGID_STRUCTURE<TV>& occluder,const T height,const T one_over_distance_limit_squared)
 {
     receptor.frame.position=point+offset;
-    TV o1,o2;
-    if(occluder.Displacement(data,receptor,o1,o2).squaredNorm()>sqr(receptor.collision_radius+occluder.collision_radius)){
+    std::array<TV,2> offsets;
+    TV displacement=SUBSTRUCTURE<TV>::Displacement(data,occluder.frame,receptor.frame,occluder.Substructure(0),receptor.Substructure(0),offsets);
+    if(displacement.squaredNorm()>sqr(receptor.Substructure(0).radius+occluder.Substructure(0).radius)){
         return 1-(sqr(height)+offset.squaredNorm())*one_over_distance_limit_squared;}
     return 0;
 }
@@ -27,7 +28,7 @@ Scalar(const SIMULATION<TV>& simulation)
     static const T one_over_root_six=1/sqrt(6);
     static const T one_over_root_two=1/sqrt(2);
     TV binding_site=binder_frame*binder_bond_vector;
-    TV o1,o2;
+    std::array<TV,2> offsets;
     T height=binding_site(2)-target_height;
 
     if(height<0 || height>distance_limit){return 0;}
@@ -37,11 +38,11 @@ Scalar(const SIMULATION<TV>& simulation)
     if(occluder){
         TV central_point=binding_site;central_point(2)=occluder->frame.position(2);
         receptor.frame.position=central_point;
-        TV direction=occluder->Displacement(simulation.data,receptor,o1,o2);
+        TV direction=SUBSTRUCTURE<TV>::Displacement(simulation.data,occluder->frame,receptor.frame,occluder->Substructure(0),receptor.Substructure(0),offsets);
         T distance=direction.norm();direction.normalize();
         T contact_disk_radius=sqrt(sqr(distance_limit)-sqr(height));
         T one_over_distance_limit_squared=1/sqr(distance_limit);
-        if(distance<contact_disk_radius+receptor.collision_radius+occluder->collision_radius){
+        if(distance<contact_disk_radius+receptor.Substructure(0).radius+occluder->Substructure(0).radius){
             distance_factor=Sample_Point(central_point,TV(),simulation.data,receptor,*occluder,height,one_over_distance_limit_squared)/4;
             for(int s1=-1;s1<=1;s1+=2){
                 distance_factor+=Sample_Point(central_point,s1*TV::Unit(0)*root_two_thirds*contact_disk_radius,simulation.data,receptor,*occluder,height,one_over_distance_limit_squared)/8;
@@ -67,6 +68,7 @@ DEFINE_AND_REGISTER_TEMPLATE_PARSER(ORIENTATION_QUALITY_PREDICATE,PREDICATE)
     Parse_Vector(node["target_bond_orientation"],predicate->target_bond_orientation);
     Parse_Vector(node["binder_bond_vector"],predicate->binder_bond_vector);
     Parse_Scalar(node["target_height"],predicate->target_height);
-    Parse_Scalar(node["receptor_radius"],predicate->receptor.collision_radius);
+    // TODO: this will break because the Substructure hasn't been set up
+    Parse_Scalar(node["receptor_radius"],predicate->receptor.Substructure(0).radius);
     return predicate;
 }

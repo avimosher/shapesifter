@@ -64,25 +64,20 @@ Compute_Derivatives(DATA<TV>& data,FORCE<TV>& force,MATRIX_BUNDLE<TV>& system)
 template<class TV> void SPRING_FORCE<TV>::
 Viewer(const DATA<TV>& data,osg::Node* node)
 {
-#if 0
     osg::Group* group=node->asGroup();
     osg::Group* relative_position_group=(osg::Group*)getNamedChild(group,Static_Name());
     if(!relative_position_group){
         relative_position_group=new osg::Group();
         relative_position_group->setName(Static_Name());
-        for(int i=0;i<springs.size();i++){
-            relative_position_group->addChild(createLine(osg::Vec4(0.0f,1.0f,1.0f,1.0f)));}
-        group->addChild(relative_position_group);
-    }
+        osg::Vec4 color(0.0f,1.0f,1.0f,1.0f);
+        for(int i=0;i<springs.size();i++){relative_position_group->addChild(createLine(color));}
+        group->addChild(relative_position_group);}
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
     for(int i=0;i<springs.size();i++){
         const SPRING& spring=springs[i];
-        std::vector<TV> points(2);
-        for(int j=0;j<2;j++){
-            points[j]=rigid_data->structures[spring.index[j]]->frame*spring.offset[j];}
-        updateLine((osg::Geode*)relative_position_group->getChild(i),points);
-    }
-#endif
+        std::array<TV,2> points;
+        for(int j=0;j<2;j++){points[j]=rigid_data->structures[spring.index[j]]->frame*spring.offset[j];}
+        updateLine((osg::Geode*)relative_position_group->getChild(i),points);}
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(SPRING_FORCE)

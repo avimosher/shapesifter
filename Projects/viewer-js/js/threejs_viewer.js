@@ -52,12 +52,16 @@ function createStructures(callback, scene_data) {
 
                 //texture test
                 var texture = new THREE.CanvasTexture( createColor(i) );
-                var proteinMaterial = new THREE.MeshBasicMaterial( { map: texture, wireframe: true } );
+                //var proteinMaterial = new THREE.MeshBasicMaterial( { map: texture, wireframe: false } );
+                var proteinMaterial = new THREE.MeshLambertMaterial( { map: texture, wireframe: true } );
             
                 // define cylinder and two spheres to create a capsule
-                var cylinder = new THREE.CylinderGeometry(radius, radius,collision_extent, 24);
-                var top = new THREE.SphereGeometry(radius,17);
-                var bottom = new THREE.SphereGeometry(radius,17);
+                var cylinder = new THREE.CylinderGeometry(radius, radius, collision_extent, 17);
+                var matrix = new THREE.Matrix4();
+                matrix.makeRotationX(Math.PI/2);
+                cylinder.applyMatrix(matrix);
+                var top = new THREE.SphereGeometry(radius,17,17);
+                var bottom = new THREE.SphereGeometry(radius,17,17);
 
                 // set position of bottom and top spheres
                 var m1 = new THREE.Matrix4();
@@ -73,20 +77,6 @@ function createStructures(callback, scene_data) {
                 merged.merge(bottom);
                 merged.merge(top);
 
-                // set proper orientation
-                // I'm fairly sure this shouldn't happen here
-                /*if(scene_data.root[i].orientation){
-
-                    var m3 = new THREE.Matrix4();
-                    radians = scene_data.root[i].orientation.angle * Math.PI / 180;
-                    var axis=new THREE.Vector3();axis.fromArray(scene_data.root[i].orientation.axis);
-                    var quaternion=new THREE.Quaternion();
-                    quaternion.setFromAxisAngle(axis,radians);
-                    m3.makeRotationFromQuaternion(quaternion);
-
-                    merged.applyMatrix(m3);
-                }*/
-
                 // create capsule
                 var protein = new THREE.Mesh(merged, proteinMaterial);
                 protein.name = scene_data.root[i].name
@@ -96,7 +86,7 @@ function createStructures(callback, scene_data) {
             // spheres
             else{
                 
-                var linkerMaterial = new THREE.MeshBasicMaterial( {color: 0xCCFF33, wireframe: true});
+                var linkerMaterial = new THREE.MeshLambertMaterial( {color: 0xCCFF33, wireframe: false});
                 var linkerChainGeometry = new THREE.SphereGeometry(radius, 32, 32);
                 var linkerChain = new THREE.Mesh(linkerChainGeometry, linkerMaterial);
                 linkerChain.name = scene_data.root[i].name;

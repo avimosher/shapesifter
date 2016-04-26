@@ -20,6 +20,7 @@ using namespace Mechanics;
 
 int main(int argc,char **argv)
 {
+#if 0
     typedef double T;
     typedef Matrix<T,3,1> TV;
     auto simulation=std::make_shared<SIMULATION<TV>>();
@@ -117,5 +118,6 @@ int main(int argc,char **argv)
         if(i>1){std::cout<<"Ratio: "<<last/next<<std::endl;}
         last=next;
     }
+#endif
     return 0;
 }

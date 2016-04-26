@@ -135,28 +135,30 @@ Viewer(osg::Node* node)
         for(int i=0;i<structures.size();i++){
             auto transform=new osg::PositionAttitudeTransform();
             auto basicShapesGeode=new osg::Geode();
-            osg::Vec4 color;
-            if(structures[i]->color){
-                color=osg::Vec4((*structures[i]->color)[0]/255,(*structures[i]->color)[1]/255,(*structures[i]->color)[2]/255,(*structures[i]->color)[3]/255);}
-            else{color=colorMap(structures[i]->name);}
-            if(structures[i]->collision_extent.norm()){
-                auto cylinder=new osg::Cylinder(osg::Vec3(0,0,0),structures[i]->radius,2*structures[i]->collision_extent.norm());
-                auto cylinderDrawable=new osg::ShapeDrawable(cylinder);
-                cylinderDrawable->setColor(color);
-                basicShapesGeode->addDrawable(cylinderDrawable);
-                auto topSphere=new osg::Sphere(osg::Vec3(0,0,structures[i]->collision_extent.norm()),structures[i]->radius);
-                auto topSphereDrawable=new osg::ShapeDrawable(topSphere);
-                topSphereDrawable->setColor(color);
-                basicShapesGeode->addDrawable(topSphereDrawable);
-                auto bottomSphere=new osg::Sphere(osg::Vec3(0,0,-structures[i]->collision_extent.norm()),structures[i]->radius);
-                auto bottomSphereDrawable=new osg::ShapeDrawable(bottomSphere);
-                bottomSphereDrawable->setColor(color);
-                basicShapesGeode->addDrawable(bottomSphereDrawable);}
-            else{
-                auto unitSphere=new osg::Sphere(osg::Vec3(0,0,0),structures[i]->radius);
-                auto unitSphereDrawable=new osg::ShapeDrawable(unitSphere);
-                unitSphereDrawable->setColor(color);
-                basicShapesGeode->addDrawable(unitSphereDrawable);}
+            for(auto& substructure : structures[i]->Substructures()){
+                osg::Vec4 color;
+                if(substructure.color){
+                    color=osg::Vec4((*substructure.color)[0]/255,(*substructure.color)[1]/255,(*substructure.color)[2]/255,(*substructure.color)[3]/255);}
+                else{color=colorMap(structures[i]->name);}
+                
+                if(substructure.capsule_extent.norm()){
+                    auto cylinder=new osg::Cylinder(osg::Vec3(0,0,0),substructure.radius,2*substructure.capsule_extent.norm());
+                    auto cylinderDrawable=new osg::ShapeDrawable(cylinder);
+                    cylinderDrawable->setColor(color);
+                    basicShapesGeode->addDrawable(cylinderDrawable);
+                    auto topSphere=new osg::Sphere(osg::Vec3(0,0,substructure.capsule_extent.norm()),substructure.radius);
+                    auto topSphereDrawable=new osg::ShapeDrawable(topSphere);
+                    topSphereDrawable->setColor(color);
+                    basicShapesGeode->addDrawable(topSphereDrawable);
+                    auto bottomSphere=new osg::Sphere(osg::Vec3(0,0,-substructure.capsule_extent.norm()),substructure.radius);
+                    auto bottomSphereDrawable=new osg::ShapeDrawable(bottomSphere);
+                    bottomSphereDrawable->setColor(color);
+                    basicShapesGeode->addDrawable(bottomSphereDrawable);}
+                else{
+                    auto unitSphere=new osg::Sphere(osg::Vec3(substructure.offset[0],substructure.offset[1],substructure.offset[2]),substructure.radius);
+                    auto unitSphereDrawable=new osg::ShapeDrawable(unitSphere);
+                    unitSphereDrawable->setColor(color);
+                    basicShapesGeode->addDrawable(unitSphereDrawable);}}
             basicShapesGeode->getOrCreateStateSet()->setAttribute(new osg::PolygonMode(osg::PolygonMode::FRONT_AND_BACK,osg::PolygonMode::FILL));
             transform->addChild(basicShapesGeode);
             rigid_group->addChild(transform);

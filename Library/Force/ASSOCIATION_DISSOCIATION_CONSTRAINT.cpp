@@ -163,8 +163,7 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
         auto structure1=rigid_data->structures[indices[0]],structure2=rigid_data->structures[indices[1]];
         std::array<T_SPIN,2> spin={structure1->twist.angular,structure2->twist.angular};
         
-        //TV direction=structure1->Displacement(data,*structure2,offset1,offset2).normalized(); // use core-core direction for stability reasons
-        TV position_error=data.Minimum_Offset(structure1->frame*site_offsets[0],structure2->frame*site_offsets[1]); // can't easily use point-point distance then, though.
+        TV position_error=data.Minimum_Offset(structure1->frame*site_offsets[0],structure2->frame*site_offsets[1]);
         
         ROTATION<TV> relative_orientation_inverse=interaction_type.relative_orientation.inverse();
         std::array<ROTATION<TV>,2> current_rotations={ROTATION<TV>::From_Rotation_Vector(structure1->twist.angular),ROTATION<TV>::From_Rotation_Vector(structure2->twist.angular)};

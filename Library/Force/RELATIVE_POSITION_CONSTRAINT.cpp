@@ -99,14 +99,11 @@ Viewer(const DATA<TV>& data,osg::Node* node)
     auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
     for(int i=0;i<constraints.size();i++){
         const CONSTRAINT& constraint=constraints[i];
-        int body_index1=constraint.s1;
-        int body_index2=constraint.s2;
-        auto rigid_structure1=rigid_data->structures[body_index1];
-        auto rigid_structure2=rigid_data->structures[body_index2];
+        auto rigid_structure1=rigid_data->structures[constraint.s1];
+        auto rigid_structure2=rigid_data->structures[constraint.s2];
         auto firstAttachment=rigid_structure1->frame*constraint.v1;
         auto secondAttachment=rigid_structure2->frame*constraint.v2;
-        std::vector<TV> points={firstAttachment,secondAttachment};
-        updateLine((osg::Geode*)relative_position_group->getChild(i),points);
+        updateLine<TV>((osg::Geode*)relative_position_group->getChild(i),{firstAttachment,secondAttachment});
     }
 }
 ///////////////////////////////////////////////////////////////////////

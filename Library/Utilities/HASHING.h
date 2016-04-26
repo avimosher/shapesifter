@@ -5,33 +5,58 @@
 
 namespace std
 {
-
-template<class A,class B>
-class hash<std::pair<A,B>>
-{
-  public:
-    size_t operator()(const pair<A,B>& p) const {
-        static hash<A> first_hash;
-        static hash<B> second_hash;
-        size_t h1=first_hash(p.first);
-        return h1^(second_hash(p.second)+0x9e3779b9+(h1<<6)+(h1>>2));
-    }
-};
-
 template<class T>
 inline void hash_combine(std::size_t& seed,T const& v)
 {
     seed^=std::hash<T>()(v)+0x9e3779b9+(seed<<6)+(seed>>2);
 }
 
-template<class A,class B,class C>
-class hash<tuple<A,B,C>>
+template<class A,class B>
+class hash<std::pair<A,B>>
 {
   public:
-    size_t operator()(const tuple<A,B,C>& p) const {
-        std::size_t hash_result=std::hash<A>()(std::get<0>(p));
-        hash_combine(hash_result,std::get<1>(p));
-        hash_combine(hash_result,std::get<2>(p));
+    size_t operator()(const pair<A,B>& p) const {
+        size_t h=std::hash<A>()(p.first);
+        hash_combine(h,p.second);
+        return h;
+    }
+};
+
+template<class Tuple,size_t Index=tuple_size<Tuple>::value-1>
+struct HashImplementation
+{
+    static void apply(size_t& seed,Tuple const& tt){
+        HashImplementation<Tuple,Index-1>::apply(seed,tt);
+        hash_combine(seed,std::get<Index>(tt));
+    }
+};
+
+template<class Tuple>
+struct HashImplementation<Tuple,0>
+{
+    static void apply(size_t& seed,Tuple const& tt){
+        hash_combine(seed,std::get<0>(tt));
+    }
+};
+
+// stackoverflow 7110301
+template<typename ... TT>
+struct hash<tuple<TT...>>
+{
+    size_t operator()(tuple<TT...> const& tt) const {
+        size_t seed=0;
+        HashImplementation<tuple<TT...>>::apply(seed,tt);
+        return seed;
+    }
+};
+
+template<class A,size_t n>
+class hash<array<A,n>>
+{
+  public:
+    size_t operator()(const array<A,n>& p) const {
+        std::size_t hash_result=std::hash<A>()(p[0]);
+        for(int i=1;i<n;i++){hash_combine(hash_result,p[i]);}
         return hash_result;
     }
 };
@@ -46,6 +71,7 @@ class hash<array<A,2>>
         return hash_result;
     }
 };
+
 }
 
 #endif

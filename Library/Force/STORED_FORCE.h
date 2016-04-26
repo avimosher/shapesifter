@@ -6,9 +6,8 @@
 namespace Mechanics{
 
 template<class T>
-class FORCE_REFERENCE
+struct FORCE_REFERENCE
 {
-public:
     Matrix<T,Dynamic,1> value;
 
     FORCE_REFERENCE(){}
@@ -19,9 +18,8 @@ public:
 };
 
 template<class T>
-class STORED_FORCE:public std::vector<std::shared_ptr<FORCE_REFERENCE<T>>>
+struct STORED_FORCE:public std::vector<std::shared_ptr<FORCE_REFERENCE<T>>>
 {
-public:
     template<class SUBTYPE> std::shared_ptr<SUBTYPE> Find_Or_Create() {
         Finder<std::shared_ptr<FORCE_REFERENCE<T>>> finder={SUBTYPE::Static_Name()};
         auto found=std::find_if(this->begin(),this->end(),finder);

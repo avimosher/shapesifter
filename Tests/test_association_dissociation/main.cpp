@@ -20,6 +20,7 @@ using namespace Mechanics;
 
 int main(int argc,char **argv)
 {
+#if 0
     typedef double T;
     typedef Matrix<T,3,1> TV;
     auto simulation=std::make_shared<SIMULATION<TV>>();
@@ -113,5 +114,6 @@ int main(int argc,char **argv)
     };
 
     std::cout<<"Ratio: "<<Evaluate_Step_Error(epsilon)/Evaluate_Step_Error(epsilon/2)<<std::endl;
+#endif
     return 0;
 }

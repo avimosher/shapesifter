@@ -98,7 +98,7 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
     static int call_count=0;
     static int total_steps=0;
     // loosely based on trustOptim implementation
-    auto status=CONTINUE;
+    status=CONTINUE;
 
     iteration=0;
     max_iterations=100;
@@ -135,7 +135,6 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
             if(simulation.force.Equations_Changed() || iteration%preconditioner_refresh_frequency==0){Update_Preconditioner(false);}
             status=CONTINUE;}
         if(simulation.substeps){
-            //std::string frame_name="Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration)+" radius "+std::to_string(radius)+" real "+std::to_string(int(status==CONTINUE))+ " f "+std::to_string(f);
             std::string frame_name="Frame "+std::to_string(simulation.current_frame)+" substep "+std::to_string(iteration)+" real "+std::to_string(int(status==CONTINUE))+ " f "+std::to_string(f);
             simulation.Write(frame_name);}
         if(status==CONTRACT){status=CONTINUE;}

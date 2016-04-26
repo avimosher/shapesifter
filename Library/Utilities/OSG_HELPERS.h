@@ -103,7 +103,7 @@ inline osg::Geode* createLine(osg::Vec4 color)
 }
 
 template<class TV>
-inline void updateLine(osg::Geode* lineGeode,const std::vector<TV>& points)
+inline void updateLine(osg::Geode* lineGeode,const std::array<TV,2>& points)
 {
     auto lineGeometry=(osg::Geometry*)lineGeode->getDrawable(0);
     auto vertices=(osg::Vec3Array*)lineGeometry->getVertexArray();

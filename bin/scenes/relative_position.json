@@ -1,7 +1,7 @@
 {
     "output_directory": "runs/relative_position",
     "dt": 0.1,
-    "last_time": 100,
+    "last_time": 10,
     "root": [
         {"type": "DATA",
          "eta": 3.5},
@@ -27,6 +27,14 @@
               "distance": 10}
          ]
         },
-        {"type": "TRUST_REGION"}
+        {"type": "TRUST_REGION",
+         "name": "evolution"},
+        {"type": "ANALYTE",
+         "prerequisites": ["evolution"],
+         "predicate": {
+             "type": "convergence",
+             "solver": "evolution"},
+         "aggregator": {"type": "sum"}
+        }
     ]
 }
