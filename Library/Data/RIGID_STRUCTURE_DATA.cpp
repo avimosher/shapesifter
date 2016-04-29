@@ -3,6 +3,7 @@
 #include <Driver/SIMULATION.h>
 #include <Parsing/PARSER_REGISTRY.h>
 #include <Utilities/OSG_HELPERS.h>
+#ifdef VIEWER
 #include <osg/Geode>
 #include <osg/LineWidth>
 #include <osg/Node>
@@ -10,6 +11,7 @@
 #include <osg/Shape>
 #include <osg/ShapeDrawable>
 #include <osgWidget/Box>
+#endif
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> int RIGID_STRUCTURE_DATA<TV>::

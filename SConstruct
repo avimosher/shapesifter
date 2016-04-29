@@ -5,8 +5,6 @@ Decider('timestamp-match')
 
 variables=Variables(None,ARGUMENTS)
 variables.Add(EnumVariable('TYPE','Type of build','release',allowed_values=('release','debug')))
-#options=Options()
-#options.AddOptions(EnumOption('TYPE','Type of build','release',allowed_values=('release','debug')))
 
 external_libraries_dir="#External_Libraries/"
 external_libraries={
@@ -19,10 +17,7 @@ external_libraries={
     'gl': {'default': 0,'flags': ['VIEWER'],'libs':['GL']}
 }
 
-env=Environment(variables=variables,ENV={'PATH' : os.environ['PATH'], 'LD_LIBRARY_PATH' : os.environ['LD_LIBRARY_PATH']})
-#env['USE_GL']=1
-#env['USE_OSG']=1
-
+env=Environment(variables=variables)#,ENV={'PATH' : os.environ['PATH'], 'LD_LIBRARY_PATH' : os.environ['LD_LIBRARY_PATH']})
 base_env=Environment()
 
 base_env.Append(CPPPATH=external_libraries['json']['cpppath'])

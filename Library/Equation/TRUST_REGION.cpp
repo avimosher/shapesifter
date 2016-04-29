@@ -204,11 +204,11 @@ Update_One_Step(SIMULATION<TV>& simulation,const T dt,const T time)
     Solve_Trust_Conjugate_Gradient(sk);
     //Solve_Trust_MINRES(sk);
     T norm_sk_scaled=Norm(preconditioner,sk,wd);
-    if(!finite(norm_sk_scaled)){step_status=FAILEDCG;}
+    if(!std::isfinite(norm_sk_scaled)){step_status=FAILEDCG;}
     else{
         Linearize_Around(simulation,dt,time,sk);
         try_f=equation->Evaluate();
-        if(finite(try_f)){
+        if(std::isfinite(try_f)){
             T actual_reduction=f-try_f;
             T gs=gk.dot(sk);
             T sBs=sk.dot(hessian.template selfadjointView<Lower>()*sk);
@@ -233,7 +233,7 @@ Update_One_Step(SIMULATION<TV>& simulation,const T dt,const T time)
     if(step_status!=FAILEDCG && step_status!=ENEGMOVE){
         if(step_quality>contract_threshold){
             equation->Gradient(try_g);
-            if(finite(try_g.norm())){
+            if(std::isfinite(try_g.norm())){
                 f=try_f;
                 Increment_X(simulation);
                 gk=try_g;

@@ -11,15 +11,15 @@ public:
     int overflow(int c){return c;}
 };
 
-class LOG:public std::ostream
+class LOG
 {
 public:
     static void Output(bool print){
-        if(print){cout.rdbuf(std::cout.rdbuf());}
-        else{cout.rdbuf(new NULLBUFFER());}
+        if(print){LOG::cout.rdbuf(std::cout.rdbuf());}
+        else{LOG::cout.rdbuf(new NULLBUFFER());}
     }
 
-    static LOG cout;
+    static std::ostream cout;
 };
 
 }

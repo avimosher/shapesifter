@@ -14,8 +14,10 @@
 #include <iostream>
 #include <math.h>
 #include <unsupported/Eigen/BVH>
+#ifdef VIEWER
 #include <osg/Geometry>
 #include <osg/Geode>
+#endif
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> std::shared_ptr<FORCE_REFERENCE<typename TV::Scalar>> VOLUME_EXCLUSION_CONSTRAINT<TV>::

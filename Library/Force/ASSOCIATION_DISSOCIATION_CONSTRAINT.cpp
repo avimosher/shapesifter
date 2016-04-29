@@ -10,9 +10,11 @@
 #include <Utilities/OSG_HELPERS.h>
 #include <Utilities/RANDOM.h>
 #include <unsupported/Eigen/BVH>
+#ifdef VIEWER
 #include <osg/Geometry>
 #include <osg/Geode>
 #include <osg/LineWidth>
+#endif
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> std::shared_ptr<FORCE_REFERENCE<typename TV::Scalar>> ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::

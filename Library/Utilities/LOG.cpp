@@ -1,3 +1,3 @@
 #include <Utilities/LOG.h>
 using namespace Mechanics;
-LOG LOG::cout;
+std::ostream LOG::cout(new NULLBUFFER());
