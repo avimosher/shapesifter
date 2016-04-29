@@ -9,11 +9,13 @@
 #include <Utilities/RANDOM.h>
 #include <fstream>
 #include <Eigen/Geometry>
+#ifdef VIEWER
 #include <osg/Geode>
 #include <osg/MatrixTransform>
 #include <osg/Projection>
 #include <osg/ShapeDrawable>
 #include <osgText/Text>
+#endif
 #include <sys/stat.h>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
@@ -61,6 +63,7 @@ Read(const int frame)
     return true;
 }
 /////////////////////////////////////////////////////////////////////// 
+#ifdef VIEWER
 template<class TV> void SIMULATION<TV>::
 Viewer(osg::Group*& root,bool hide_titles)
 {
@@ -130,5 +133,6 @@ Viewer(osg::Group*& root,bool hide_titles)
     data.Viewer(root);
     force.Viewer(data,root);
 }
+#endif
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(SIMULATION)

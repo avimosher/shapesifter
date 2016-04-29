@@ -9,7 +9,7 @@
 
 namespace Mechanics{
 template<class TV> class RIGID_STRUCTURE;
-typedef std::array<int,2> INDEX_PAIR;
+typedef std::array<int,4> INDICES; // structure1, structure2, substructure1, substructure2
 
 template<class TV>
 class BOX_PROXIMITY_SEARCH
@@ -40,7 +40,7 @@ class STORED_VOLUME_EXCLUSION_CONSTRAINT:public FORCE_REFERENCE<T>
 {
 public:
     using FORCE_REFERENCE<T>::value;
-    std::vector<INDEX_PAIR> constraints;
+    std::vector<INDICES> constraints;
 
     STORED_VOLUME_EXCLUSION_CONSTRAINT(){};
     virtual ~STORED_VOLUME_EXCLUSION_CONSTRAINT(){}
@@ -66,16 +66,17 @@ public:
     enum CONSTANT_FORCE_FIELDS{CONSTANT_FORCE_SPINS,CONSTANT_FORCE_OFFSETS,CONSTANT_FORCE_RELATIVE_POSITION,CONSTANT_FORCE_THRESHOLD};
     typedef std::tuple<std::array<T_SPIN,2>,std::array<TV,2>,TV,T> CONSTANT_FORCE;
 
-    std::vector<INDEX_PAIR> constraint_indices;
-    std::vector<INDEX_PAIR> constant_force_indices;
+    std::vector<INDICES> constraint_indices;
+    std::vector<int> constraint_force_indices;
+    std::vector<INDICES> constant_force_indices;
     std::vector<CONSTRAINT> constraints;
     std::vector<CONSTANT_FORCE> constant_forces;
     std::vector<T> rhs;
     int call_count;
     circular_stack<int> constraint_count;
     bool equations_changed;
-    std::unordered_map<INDEX_PAIR,std::pair<int,T>> force_memory;
-    std::unordered_map<INDEX_PAIR,std::pair<int,T>> constant_force_memory;
+    std::unordered_map<INDICES,std::pair<int,T>> force_memory;
+    std::unordered_map<INDICES,std::pair<int,T>> constant_force_memory;
 
     VOLUME_EXCLUSION_CONSTRAINT()
         :call_count(0),constraint_count(2)
@@ -89,13 +90,17 @@ public:
     void Archive(cereal::JSONInputArchive& archive){archive(constraint_indices,constant_force_indices,force_memory,call_count,errors);}
 
     int DOF() const{return constraints.size();}
+    int Rows() const{return constraints.size();}
+    int Columns() const{return constraint_force_indices.size();}
     std::shared_ptr<FORCE_REFERENCE<T>> Create_Stored_Force() const;
     void Pack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information);
     void Unpack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information);
     void Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,int increment);
     void Identify_Interactions_And_Compute_Errors(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic);
     void Compute_Derivatives(DATA<TV>& data,FORCE<TV>& force,MATRIX_BUNDLE<TV>& system);
+#ifdef VIEWER
     void Viewer(const DATA<TV>& data,osg::Node* node);
+#endif
     bool Equations_Changed() const{return equations_changed;};
     DEFINE_TYPE_NAME("VOLUME_EXCLUSION_CONSTRAINT")
 };

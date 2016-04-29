@@ -121,6 +121,7 @@ Kinematic_Projection(SparseMatrix<T>& kinematic_projection)
     kinematic_projection.setFromTriplets(projection_terms.begin(),projection_terms.end());
 }
 ///////////////////////////////////////////////////////////////////////
+#ifdef VIEWER
 template<class TV> void RIGID_STRUCTURE_DATA<TV>::
 Viewer(osg::Node* node)
 {
@@ -170,6 +171,7 @@ Viewer(osg::Node* node)
         OSG_HELPERS<TV>::Initialize_Transform(structures[i]->frame,transform);
     }
 }
+#endif
 ///////////////////////////////////////////////////////////////////////
 GENERIC_CEREAL_REGISTRATION(RIGID_STRUCTURE_DATA)
 GENERIC_TYPE_DEFINITION(RIGID_STRUCTURE_DATA)

@@ -1,3 +1,4 @@
+#ifdef VIEWER
 #ifndef __OSG_HELPERS__
 #define __OSG_HELPERS__
 
@@ -114,4 +115,5 @@ inline void updateLine(osg::Geode* lineGeode,const std::array<TV,2>& points)
 
 }
 
+#endif
 #endif

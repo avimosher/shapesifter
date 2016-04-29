@@ -6,7 +6,9 @@
 #include <Utilities/TYPE_UTILITIES.h>
 #include <limits>
 #include <Eigen/SparseCore>
+#ifdef VIEWER
 #include <osg/Node>
+#endif
 
 namespace Mechanics{
 template<class TV> class DATA;
@@ -36,12 +38,16 @@ public:
     virtual void Compute_Derivatives(DATA<TV>& data,FORCE<TV>& force,MATRIX_BUNDLE<TV>& system){};
     virtual void Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,MATRIX_BUNDLE<TV>& system,bool stochastic){};
     virtual int DOF() const{return stored_forces.size();}
+    virtual int Rows() const{return DOF();}
+    virtual int Columns() const{return DOF();}
     virtual void Identify_DOF(int index) const{LOG::cout<<Name()<<" DOF "<<index<<std::endl;}
     virtual void Archive(cereal::BinaryOutputArchive& archive){};
     virtual void Archive(cereal::BinaryInputArchive& archive){};
     virtual void Archive(cereal::JSONOutputArchive& archive){};
     virtual void Archive(cereal::JSONInputArchive& archive){};
+#ifdef VIEWER
     virtual void Viewer(const DATA<TV>& data,osg::Node* node){};
+#endif
     virtual bool Equations_Changed() const{return false;}
     virtual std::string Name() const{return "FORCE_TYPE";}
 };

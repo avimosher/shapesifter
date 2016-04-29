@@ -7,7 +7,9 @@
 #include <memory>
 #include <vector>
 #include <Eigen/SparseCore>
+#ifdef VIEWER
 #include <osg/Group>
+#endif
 
 
 namespace Mechanics{
@@ -49,7 +51,9 @@ public:
     void Unpack_Forces(const STORED_FORCE<T>& stored_force);
     void Increment_Forces(const STORED_FORCE<T>& stored_force,T ratio);
     void Store_Errors(const STORED_FORCE<T>& store_force);
+#ifdef VIEWER
     void Viewer(const DATA<TV>& data,osg::Group*& root);
+#endif
     bool Equations_Changed() const;
 };
 

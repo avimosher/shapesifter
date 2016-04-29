@@ -2,7 +2,9 @@
 #define __DATA_TYPE__
 
 #include <Utilities/TYPE_UTILITIES.h>
+#ifdef VIEWER
 #include <osg/Node>
+#endif
 
 namespace Mechanics{
 template<class TV> class DATA;
@@ -18,6 +20,8 @@ public:
 
     virtual int Size()=0;
     virtual int DOF() const{return Velocity_DOF();}
+    virtual int Rows() const{return DOF();}
+    virtual int Columns() const{return DOF();}
     virtual int Velocity_DOF() const {return 0;}
     virtual int Position_DOF() const {return 0;}
     virtual void Identify_DOF(int index) const{LOG::cout<<Name()<<" DOF "<<index<<std::endl;}
@@ -30,7 +34,9 @@ public:
     virtual void Eliminate_Rotation(const DATA<TV>& data){};
     template<class Archive> void serialize(Archive& archive){}
     virtual T Print(){return T();}
+#ifdef VIEWER
     virtual void Viewer(osg::Node* node){};
+#endif
     virtual std::string Name() const{return "DATA_TYPE";}
     virtual void Inertia(const T dt,std::vector<Triplet<T>>& force_terms,SparseMatrix<T>& inverse_inertia,Matrix<T,Dynamic,1>& rhs){};
     virtual void Kinematic_Projection(SparseMatrix<T>& kinematic_projection){};

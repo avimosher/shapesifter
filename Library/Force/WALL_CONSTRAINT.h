@@ -78,7 +78,9 @@ public:
     void Increment_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information,int increment);
     void Identify_Interactions_And_Compute_Errors(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic);
     void Compute_Derivatives(DATA<TV>& data,FORCE<TV>& force,MATRIX_BUNDLE<TV>& system);
+#ifdef VIEWER
     void Viewer(const DATA<TV>& data,osg::Node* node);
+#endif
     DEFINE_TYPE_NAME("WALL_CONSTRAINT");
 };
 }

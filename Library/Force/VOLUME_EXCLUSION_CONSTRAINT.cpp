@@ -28,9 +28,10 @@ template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
 Pack_Forces(std::shared_ptr<FORCE_REFERENCE<T>> force_information)
 {
     auto information=std::static_pointer_cast<STORED_VOLUME_EXCLUSION_CONSTRAINT<T>>(force_information);
-    information->constraints=constraint_indices;
-    information->value.resize(constraints.size());
+    information->constraints.resize(constraint_force_indices.size());
+    information->value.resize(constraint_force_indices.size());
     for(int i=0;i<information->constraints.size();i++){
+        information->constraints[i]=constraint_indices[constraint_force_indices[i]];
         information->value[i]=force_memory[information->constraints[i]].second;}
 }
 ///////////////////////////////////////////////////////////////////////
@@ -71,6 +72,7 @@ Identify_Interactions_And_Compute_Errors(DATA<TV>& data,FORCE<TV>& force,const T
     Matrix<T,Dynamic,1>& constraint_right_hand_side=system.RHS(data,force,*this);
     int new_constraints=0,old_constraints=0;
     constraints.clear();constant_forces.clear();constraint_indices.clear();constant_force_indices.clear();rhs.clear();
+    constraint_force_indices.clear();
     if(stochastic){
         constraint_count.push(0);
         // TODO: keep a list of which memories were touched and clean only those
@@ -87,13 +89,13 @@ Identify_Interactions_And_Compute_Errors(DATA<TV>& data,FORCE<TV>& force,const T
         auto structure=structures[s];
         for(int i=0;i<structure->Substructures().size();i++,current_substructure++){
             bounding_list[current_substructure]=structure->Substructure(i).Bounding_Box(structure->frame);
-            // TODO: fill index list correctly with pairs, also bounding_list.  Set correct sizes first?
             index_list[current_substructure]=std::pair<int,int>(s,i);}
     }
     KdBVH<T,3,std::pair<int,int>> hierarchy(index_list.begin(),index_list.end(),bounding_list.begin(),bounding_list.end());
     
     std::array<TV,2> offsets;
     std::array<FORCE_VECTOR,2> force_directions;
+    LOG::cout<<"Before loop"<<std::endl;
     for(int s1=0;s1<structures.size();s1++){
         auto structure1=structures[s1];
         for(int ss1=0;ss1<structure1->Substructures().size();ss1++){
@@ -109,8 +111,9 @@ Identify_Interactions_And_Compute_Errors(DATA<TV>& data,FORCE<TV>& force,const T
                 T threshold=substructure1.radius+substructure2.radius;
                 T constraint_violation=relative_position.norm()-threshold;
                 T slack_distance=-.005,push_out_distance=1e-8;
+                LOG::cout<<"s1: "<<s1<<" ss1: "<<ss1<<" s2: "<<s2.first<<" ss2: "<<ss2<<" viol: "<<constraint_violation<<std::endl;
                 if(constraint_violation<0){
-                    INDEX_PAIR indices({s1,s2.first}); // TODO: memory needs to be amended, this isn't right
+                    INDICES indices={s1,s2.first,ss1,ss2};
                     auto& memory=force_memory[indices];
                     auto& constant_memory=constant_force_memory[indices];
                     std::array<T_SPIN,2> spins={structure1->twist.angular,structure2->twist.angular};
@@ -124,15 +127,25 @@ Identify_Interactions_And_Compute_Errors(DATA<TV>& data,FORCE<TV>& force,const T
                                 std::get<MEMORY_FORCE>(memory)=std::get<MEMORY_FORCE>(constant_memory)*sqr(constraint_violation);}}
                         else{old_constraints++;}
                         right_hand_side_force=std::get<MEMORY_FORCE>(memory);
+                        /*if(right_hand_side_force<0 && constraint_violation<remembered_threshold){
+                            // TODO: switch the constraint force back on
+                            }*/
+                        if(right_hand_side_force>=0){
+                            constraint_force_indices.push_back(constraint_indices.size());
+                        }
                         rhs.push_back(constraint_violation-slack_distance-push_out_distance);
                         constraints.push_back(std::make_tuple(force_directions,spins,offsets,relative_position));
                         constraint_indices.push_back(indices);}
-                    else if(std::get<MEMORY_COUNT>(memory)==call_count || std::get<MEMORY_COUNT>(constant_memory)==call_count){
-                        if(std::get<MEMORY_COUNT>(constant_memory)!=call_count){std::get<MEMORY_FORCE>(constant_memory)=std::get<MEMORY_FORCE>(memory)/sqr(constraint_violation);}
+                    if((constraint_violation>=slack_distance || right_hand_side_force<0) && (std::get<MEMORY_COUNT>(constant_memory)==call_count || std::get<MEMORY_COUNT>(memory)==call_count)){
+                        if(std::get<MEMORY_COUNT>(memory)==call_count){ // this will hold whether the remembered force is positive or negative
+                                std::get<MEMORY_FORCE>(constant_memory)=std::get<MEMORY_FORCE>(memory)/sqr(constraint_violation);
+                        }
+                        //if(std::get<MEMORY_COUNT>(constant_memory)!=call_count){std::get<MEMORY_FORCE>(constant_memory)=std::get<MEMORY_FORCE>(memory)/sqr(constraint_violation);}
                         right_hand_side_force=std::get<MEMORY_FORCE>(constant_memory)*sqr(constraint_violation);
                         CONSTANT_FORCE constant_force(spins,offsets,relative_position,threshold);
                         constant_forces.push_back(constant_force);
                         constant_force_indices.push_back(indices);}
+                    LOG::cout<<"RHS force: "<<right_hand_side_force<<std::endl;
                     right_hand_side.template block<t+d,1>(s1*(t+d),0)-=force_directions[0]*right_hand_side_force;
                     right_hand_side.template block<t+d,1>(s2.first*(t+d),0)+=force_directions[1]*right_hand_side_force;}}}}
     equations_changed=new_constraints>0 || old_constraints!=constraint_count.peek();
@@ -148,24 +161,32 @@ Compute_Derivatives(DATA<TV>& data,FORCE<TV>& force,MATRIX_BUNDLE<TV>& system)
     std::vector<Triplet<FORCE_VECTOR>> forces;
 
     for(int i=0;i<constraints.size();i++){
-        CONSTRAINT& constraint=constraints[i];
-        INDEX_PAIR& indices=constraint_indices[i];
+        auto& constraint=constraints[i];
+        auto& indices=constraint_indices[i];
         auto& memory=force_memory[indices];
         for(int s=0,sgn=-1;s<2;s++,sgn+=2){
             terms.push_back(Triplet<CONSTRAINT_VECTOR>(i,indices[s],sgn*RIGID_STRUCTURE_INDEX_MAP<TV>::dConstraint_dTwist(std::get<CONSTRAINT_SPINS>(constraint)[s],std::get<CONSTRAINT_OFFSETS>(constraint)[s],std::get<CONSTRAINT_RELATIVE_POSITION>(constraint))));
+            /*forces.push_back(Triplet<FORCE_VECTOR>(indices[s],i,sgn*std::get<CONSTRAINT_FORCE_DIRECTIONS>(constraint)[s]));*/}
+        RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Force_Derivatives({indices[0],indices[1]},std::get<MEMORY_FORCE>(memory),std::get<CONSTRAINT_RELATIVE_POSITION>(constraint),std::get<CONSTRAINT_OFFSETS>(constraint),std::get<CONSTRAINT_SPINS>(constraint),force_terms);}
+
+    for(int i=0;i<constraint_force_indices.size();i++){
+        auto& constraint=constraints[constraint_force_indices[i]];
+        auto& indices=constraint_indices[constraint_force_indices[i]];
+        for(int s=0,sgn=-1;s<2;s++,sgn+=2){
             forces.push_back(Triplet<FORCE_VECTOR>(indices[s],i,sgn*std::get<CONSTRAINT_FORCE_DIRECTIONS>(constraint)[s]));}
-        RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Constraint_Force_Derivatives(indices,std::get<MEMORY_FORCE>(memory),std::get<CONSTRAINT_RELATIVE_POSITION>(constraint),std::get<CONSTRAINT_OFFSETS>(constraint),std::get<CONSTRAINT_SPINS>(constraint),force_terms);}
+    }
 
     for(int i=0;i<constant_forces.size();i++){
-        CONSTANT_FORCE& constant_force=constant_forces[i];
-        INDEX_PAIR& indices=constant_force_indices[i];
+        auto& constant_force=constant_forces[i];
+        auto& indices=constant_force_indices[i];
         auto& constant_memory=constant_force_memory[indices];
-        RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Penalty_Force_Derivatives(indices,std::get<CONSTANT_FORCE_THRESHOLD>(constant_force),std::get<MEMORY_FORCE>(constant_memory),std::get<CONSTANT_FORCE_RELATIVE_POSITION>(constant_force),std::get<CONSTANT_FORCE_OFFSETS>(constant_force),std::get<CONSTANT_FORCE_SPINS>(constant_force),force_terms);}
+        RIGID_STRUCTURE_INDEX_MAP<TV>::Compute_Penalty_Force_Derivatives({indices[0],indices[1]},std::get<CONSTANT_FORCE_THRESHOLD>(constant_force),std::get<MEMORY_FORCE>(constant_memory),std::get<CONSTANT_FORCE_RELATIVE_POSITION>(constant_force),std::get<CONSTANT_FORCE_OFFSETS>(constant_force),std::get<CONSTANT_FORCE_SPINS>(constant_force),force_terms);}
 
     system.Flatten_Jacobian_Block(data,force,*this,*rigid_data,terms);
     system.Flatten_Jacobian_Block(data,force,*rigid_data,*this,forces);
 }
 ///////////////////////////////////////////////////////////////////////
+#ifdef VIEWER
 template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
 Viewer(const DATA<TV>& data,osg::Node* node)
 {
@@ -177,7 +198,7 @@ Viewer(const DATA<TV>& data,osg::Node* node)
     for(int i=0;i<constraints.size();i++){
         auto lineGeometry=new osg::Geometry();
         auto vertices=new osg::Vec3Array(2);
-        const INDEX_PAIR& constraint=constraint_indices[i];
+        const auto& constraint=constraint_indices[i];
         auto rigid_structure1=rigid_data->structures[constraint[0]];
         auto rigid_structure2=rigid_data->structures[constraint[1]];
         auto firstAttachment=rigid_structure1->frame.position;
@@ -197,6 +218,7 @@ Viewer(const DATA<TV>& data,osg::Node* node)
     }
     group->addChild(volume_exclusion_group);
 }
+#endif
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(VOLUME_EXCLUSION_CONSTRAINT)
 DEFINE_AND_REGISTER_PARSER(VOLUME_EXCLUSION_CONSTRAINT,void)

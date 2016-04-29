@@ -15,11 +15,13 @@ external_libraries={
     'eigen': {'default': 1, 'libs':[''],'cpppath':[external_libraries_dir+'eigen',external_libraries_dir+'eigen/unsupported']},
     'ESBTL': {'default': 0, 'flags': ['NDEBUG'],'libs':['CGAL','mpfr','gmp','boost_thread'],'cpppath':[external_libraries_dir+'ESBTL/include']},
     'json': {'default': 1,'cpppath':[external_libraries_dir+'jsoncpp/dist'],'libs':['jsoncpp'],'libpath':[external_libraries_dir+'jsoncpp/dist']},
-    'osg': {'default': 1,'cpppath':[external_libraries_dir+'osg/include'],'libs':['osg','osgDB','osgGA','osgViewer','libOpenThreads','libosgUtil','libosgText'],'libpath':[external_libraries_dir+'osg/lib']},
-    'gl': {'default': 1,'libs':['GL']}
+    'osg': {'default': 0,'cpppath':[external_libraries_dir+'osg/include'],'libs':['osg','osgDB','osgGA','osgViewer','libOpenThreads','libosgUtil','libosgText'],'libpath':[external_libraries_dir+'osg/lib']},
+    'gl': {'default': 0,'flags': ['VIEWER'],'libs':['GL']}
 }
 
 env=Environment(variables=variables,ENV={'PATH' : os.environ['PATH'], 'LD_LIBRARY_PATH' : os.environ['LD_LIBRARY_PATH']})
+#env['USE_GL']=1
+#env['USE_OSG']=1
 
 base_env=Environment()
 
@@ -41,14 +43,16 @@ def Load_External(env):
             env.Append(LINKFLAGS=lib['linkflags'])
 
 def Automatic_Program(target,source,env):
-    Load_External(env)
-    program=env.Program(target=target,source=source)
-    env.Install('#bin',target)
+    local_env=env.Clone()
+    Load_External(local_env)
+    program=local_env.Program(target=target,source=source)
+    local_env.Install('#bin',target)
     
 def Automatic_Library(target,source,env):
-    Load_External(env)
-    library=env.SharedLibrary(target=target,source=source)
-    env.Install('#bin',library)
+    local_env=env.Clone()
+    Load_External(local_env)
+    library=local_env.SharedLibrary(target=target,source=source)
+    local_env.Install('#bin',library)
 
 build_base='build/'+env['TYPE']
 
@@ -66,7 +70,7 @@ elif env['TYPE']=='release':
 
 env.Append(CPPPATH="#Library")
 #env.Append(CXXFLAGS="-Wall -Winit-self -Woverloaded-virtual -Wstrict-aliasing=2 -fno-strict-aliasing -Wno-unused-but-set-variable -Werror")
-directories=SConscript('Library/SConscript',variant_dir=build_base+'/Library',exports={'env': env,'Automatic_Library': Automatic_Library})
+directories=SConscript('Library/SConscript',variant_dir=build_base+'/Library',exports={'env': env,'Automatic_Library': Automatic_Library,'Load_External': Load_External})
 
 env_projects=env.Clone()
 env_projects.Append(LIBS=directories)

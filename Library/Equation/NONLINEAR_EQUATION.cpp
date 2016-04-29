@@ -129,6 +129,7 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T time,const bool sto
     //Merge_Block_Matrices(system.hessian_blocks,hessian_addition);
     //accurate_hessian=jacobian.adjoint()*jacobian+hessian_addition;
     hessian=jacobian.adjoint()*jacobian;
+    LOG::cout<<"HESSIAN"<<std::endl<<hessian<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(NONLINEAR_EQUATION)

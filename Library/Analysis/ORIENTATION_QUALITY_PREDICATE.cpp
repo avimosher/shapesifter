@@ -7,12 +7,12 @@
 using namespace Mechanics;
 //////////////////////////////////////////////////////////////////////
 template<class TV> typename TV::Scalar ORIENTATION_QUALITY_PREDICATE<TV>::
-Sample_Point(const TV& point,const TV& offset,const DATA<TV>& data,RIGID_STRUCTURE<TV>& receptor,const RIGID_STRUCTURE<TV>& occluder,const T height,const T one_over_distance_limit_squared)
+Sample_Point(const TV& point,const TV& offset,const DATA<TV>& data,const RIGID_STRUCTURE<TV>& occluder,const T height,const T one_over_distance_limit_squared)
 {
-    receptor.frame.position=point+offset;
+    receptor_frame.position=point+offset;
     std::array<TV,2> offsets;
-    TV displacement=SUBSTRUCTURE<TV>::Displacement(data,occluder.frame,receptor.frame,occluder.Substructure(0),receptor.Substructure(0),offsets);
-    if(displacement.squaredNorm()>sqr(receptor.Substructure(0).radius+occluder.Substructure(0).radius)){
+    TV displacement=SUBSTRUCTURE<TV>::Displacement(data,occluder.frame,receptor_frame,occluder.Substructure(0),receptor_substructure,offsets);
+    if(displacement.squaredNorm()>sqr(receptor_substructure.radius+occluder.Substructure(0).radius)){
         return 1-(sqr(height)+offset.squaredNorm())*one_over_distance_limit_squared;}
     return 0;
 }
@@ -37,17 +37,17 @@ Scalar(const SIMULATION<TV>& simulation)
     T distance_factor=(1-sqr(height/distance_limit))/2;
     if(occluder){
         TV central_point=binding_site;central_point(2)=occluder->frame.position(2);
-        receptor.frame.position=central_point;
-        TV direction=SUBSTRUCTURE<TV>::Displacement(simulation.data,occluder->frame,receptor.frame,occluder->Substructure(0),receptor.Substructure(0),offsets);
+        receptor_frame.position=central_point;
+        TV direction=SUBSTRUCTURE<TV>::Displacement(simulation.data,occluder->frame,receptor_frame,occluder->Substructure(0),receptor_substructure,offsets);
         T distance=direction.norm();direction.normalize();
         T contact_disk_radius=sqrt(sqr(distance_limit)-sqr(height));
         T one_over_distance_limit_squared=1/sqr(distance_limit);
-        if(distance<contact_disk_radius+receptor.Substructure(0).radius+occluder->Substructure(0).radius){
-            distance_factor=Sample_Point(central_point,TV(),simulation.data,receptor,*occluder,height,one_over_distance_limit_squared)/4;
+        if(distance<contact_disk_radius+receptor_substructure.radius+occluder->Substructure(0).radius){
+            distance_factor=Sample_Point(central_point,TV(),simulation.data,*occluder,height,one_over_distance_limit_squared)/4;
             for(int s1=-1;s1<=1;s1+=2){
-                distance_factor+=Sample_Point(central_point,s1*TV::Unit(0)*root_two_thirds*contact_disk_radius,simulation.data,receptor,*occluder,height,one_over_distance_limit_squared)/8;
+                distance_factor+=Sample_Point(central_point,s1*TV::Unit(0)*root_two_thirds*contact_disk_radius,simulation.data,*occluder,height,one_over_distance_limit_squared)/8;
                 for(int s2=-1;s2<=1;s2+=2){
-                    distance_factor+=Sample_Point(central_point,contact_disk_radius*(s1*TV::Unit(0)*one_over_root_six+s2*TV::Unit(2)*one_over_root_two),simulation.data,receptor,*occluder,height,one_over_distance_limit_squared)/8;}}}}
+                    distance_factor+=Sample_Point(central_point,contact_disk_radius*(s1*TV::Unit(0)*one_over_root_six+s2*TV::Unit(2)*one_over_root_two),simulation.data,*occluder,height,one_over_distance_limit_squared)/8;}}}}
 
     T vertical_angle=Angle_Between(target_bond_orientation,binder_frame.orientation*binder_bond_vector);
     if(fabs(vertical_angle)>out_of_bond_angle_limit){return 0;}
@@ -68,7 +68,6 @@ DEFINE_AND_REGISTER_TEMPLATE_PARSER(ORIENTATION_QUALITY_PREDICATE,PREDICATE)
     Parse_Vector(node["target_bond_orientation"],predicate->target_bond_orientation);
     Parse_Vector(node["binder_bond_vector"],predicate->binder_bond_vector);
     Parse_Scalar(node["target_height"],predicate->target_height);
-    // TODO: this will break because the Substructure hasn't been set up
-    Parse_Scalar(node["receptor_radius"],predicate->receptor.Substructure(0).radius);
+    Parse_Scalar(node["receptor_radius"],predicate->receptor_substructure.radius);
     return predicate;
 }

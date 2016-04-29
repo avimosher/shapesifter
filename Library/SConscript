@@ -1,7 +1,7 @@
 import os
 import json
 
-Import('env Automatic_Library')
+Import('env Automatic_Library Load_External')
 
 ignore=[]
 
@@ -40,8 +40,10 @@ def Find_Sources(dirs,sources=[],ignore=[]):
 
 def Sublibrary(env,name,dir):
     cpps,headers=Find_Sources([dir])
-    objects=Automatic_Objects(env,cpps)
-    return Automatic_Library(target=name,source=objects,env=env)
+    local_env=env.Clone()
+    Load_External(local_env)
+    objects=Automatic_Objects(local_env,cpps)
+    return Automatic_Library(target=name,source=objects,env=local_env)
 
 name='Mechanics'
 Sublibrary(env,name,'.')

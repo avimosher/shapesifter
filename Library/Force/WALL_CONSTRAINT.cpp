@@ -146,6 +146,7 @@ Compute_Derivatives(DATA<TV>& data,FORCE<TV>& force,MATRIX_BUNDLE<TV>& system)
     system.Flatten_Jacobian_Block(data,force,*rigid_data,*this,balance_force_terms);
 }
 ///////////////////////////////////////////////////////////////////////
+#ifdef VIEWER
 template<class TV> void WALL_CONSTRAINT<TV>::
 Viewer(const DATA<TV>& data,osg::Node* node)
 {
@@ -184,6 +185,7 @@ Viewer(const DATA<TV>& data,osg::Node* node)
         group->addChild(wall_constraint_group);
     }
 }
+#endif
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(WALL_CONSTRAINT)
 DEFINE_AND_REGISTER_PARSER(WALL_CONSTRAINT,void)

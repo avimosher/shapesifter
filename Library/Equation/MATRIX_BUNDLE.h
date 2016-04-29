@@ -101,14 +101,14 @@ public:
     template<class SUBTYPE1,class SUBTYPE2,class T_MATRIX>
     void Flatten_Jacobian_Block(const DATA<TV>& data,const FORCE<TV>& force,const SUBTYPE1& row_object,const SUBTYPE2& column_object,const std::vector<Triplet<T_MATRIX>>& terms){
         SparseMatrix<T>& block=Matrix_Block(data,force,row_object,column_object);
-        block.resize(row_object.DOF(),column_object.DOF());
+        block.resize(row_object.Rows(),column_object.Columns());
         Flatten_Matrix(terms,block);
     }
 
     template<class SUBTYPE1,class SUBTYPE2>
     void Build_Jacobian_Block(const DATA<TV>& data,const FORCE<TV>& force,const SUBTYPE1& row_object,const SUBTYPE2& column_object,const std::vector<Triplet<T>>& terms){
         SparseMatrix<T>& block=Matrix_Block(data,force,row_object,column_object);
-        block.resize(row_object.DOF(),column_object.DOF());
+        block.resize(row_object.Rows(),column_object.Columns());
         block.setFromTriplets(terms.begin(),terms.end());
     }
 

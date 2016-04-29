@@ -4,7 +4,9 @@
 #include <Utilities/RANDOM.h>
 #include <fstream>
 #include <iostream>
+#ifdef VIEWER
 #include <osg/Group>
+#endif
 using namespace Mechanics;
 /////////////////////////////////////////////////////////////////////// 
 template<class TV> DATA<TV>::
@@ -101,11 +103,13 @@ Eliminate_Rotation()
     for(auto data_type : (*this)){data_type->Eliminate_Rotation(*this);}
 }
 /////////////////////////////////////////////////////////////////////// 
+#ifdef VIEWER
 template<class TV> void DATA<TV>::
 Viewer(osg::Group*& root)
 {
     for(auto data_type : (*this)){data_type->Viewer(root);}
 }
+#endif
 /////////////////////////////////////////////////////////////////////// 
 GENERIC_TYPE_DEFINITION(DATA)
 DEFINE_AND_REGISTER_PARSER(DATA,void)

@@ -2,6 +2,7 @@
 #define __ORIENTATION_QUALITY_PREDICATE__
 
 #include <Analysis/PREDICATE.h>
+#include <Data/SUBSTRUCTURE.h>
 namespace Mechanics{
 template<class TV>
 class ORIENTATION_QUALITY_PREDICATE:public PREDICATE<TV>
@@ -9,7 +10,9 @@ class ORIENTATION_QUALITY_PREDICATE:public PREDICATE<TV>
     typedef typename TV::Scalar T;
 public:
     using PREDICATE<TV>::subtype;
-    RIGID_STRUCTURE<TV> receptor;
+    FRAME<TV> receptor_frame;
+    T receptor_radius;
+    SUBSTRUCTURE<TV> receptor_substructure;
     std::string binder_name;
     std::string occluder_name;
     T distance_limit;
@@ -21,7 +24,7 @@ public:
     
     ORIENTATION_QUALITY_PREDICATE() {subtype=PREDICATE<TV>::SCALAR;}
 
-    T Sample_Point(const TV& point,const TV& offset,const DATA<TV>& data,RIGID_STRUCTURE<TV>& receptor,const RIGID_STRUCTURE<TV>& occluder,const T height,const T one_over_distance_limit_squared);
+    T Sample_Point(const TV& point,const TV& offset,const DATA<TV>& data,const RIGID_STRUCTURE<TV>& occluder,const T height,const T one_over_distance_limit_squared);
     T Scalar(const SIMULATION<TV>& simulation);
     DEFINE_TYPE_NAME("orientation_quality");
 };

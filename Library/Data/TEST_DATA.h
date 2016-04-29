@@ -4,11 +4,13 @@
 #include <Data/DATA_TYPE.h>
 #include <Utilities/CEREAL_HELPERS.h>
 #include <iostream>
+#ifdef VIEWER
 #include <osg/Geode>
 #include <osg/Node>
 #include <osg/PositionAttitudeTransform>
 #include <osg/ShapeDrawable>
 #include <osgWidget/Box>
+#endif
 
 namespace Mechanics{
 
@@ -47,6 +49,7 @@ public:
         return internal_data;
     }
 
+#ifdef VIEWER
     virtual void Viewer(osg::Node* node) {
         std::cout<<"Viewing"<<std::endl;
         osg::Group* group=node->asGroup();
@@ -70,6 +73,7 @@ public:
         osg::Vec3 pos(internal_data,internal_data,internal_data);
         transform->setPosition(pos);
     }
+#endif
 
     DEFINE_TYPE_NAME("TEST_DATA")
 };

@@ -204,6 +204,7 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
     system.Build_Jacobian_Block(data,force,*this,*rigid_data,constraint_terms);
 }
 ///////////////////////////////////////////////////////////////////////
+#ifdef VIEWER
 template<class TV> void ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::
 Viewer(const DATA<TV>& data,osg::Node* node)
 {
@@ -255,6 +256,7 @@ Viewer(const DATA<TV>& data,osg::Node* node)
     }
     group->addChild(volume_exclusion_group);
 }
+#endif
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(ASSOCIATION_DISSOCIATION_CONSTRAINT)
 DEFINE_AND_REGISTER_PARSER(ASSOCIATION_DISSOCIATION_CONSTRAINT,void)

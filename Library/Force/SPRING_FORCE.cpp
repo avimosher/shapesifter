@@ -61,6 +61,7 @@ Compute_Derivatives(DATA<TV>& data,FORCE<TV>& force,MATRIX_BUNDLE<TV>& system)
     system.Build_Jacobian_Block(data,force,*rigid_data,*this,terms);
 }
 ///////////////////////////////////////////////////////////////////////
+#ifdef VIEWER
 template<class TV> void SPRING_FORCE<TV>::
 Viewer(const DATA<TV>& data,osg::Node* node)
 {
@@ -79,6 +80,7 @@ Viewer(const DATA<TV>& data,osg::Node* node)
         for(int j=0;j<2;j++){points[j]=rigid_data->structures[spring.index[j]]->frame*spring.offset[j];}
         updateLine((osg::Geode*)relative_position_group->getChild(i),points);}
 }
+#endif
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(SPRING_FORCE)
 DEFINE_AND_REGISTER_PARSER(SPRING_FORCE,void)

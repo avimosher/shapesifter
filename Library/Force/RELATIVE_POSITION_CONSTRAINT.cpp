@@ -83,6 +83,7 @@ Compute_Derivatives(DATA<TV>& data,FORCE<TV>& force,MATRIX_BUNDLE<TV>& system)
     system.Flatten_Hessian_Block(data,force,*rigid_data,*this,force_constraint_terms);
 }
 ///////////////////////////////////////////////////////////////////////
+#ifdef VIEWER
 template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::
 Viewer(const DATA<TV>& data,osg::Node* node)
 {
@@ -106,6 +107,7 @@ Viewer(const DATA<TV>& data,osg::Node* node)
         updateLine<TV>((osg::Geode*)relative_position_group->getChild(i),{firstAttachment,secondAttachment});
     }
 }
+#endif
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(RELATIVE_POSITION_CONSTRAINT)
 DEFINE_AND_REGISTER_PARSER(RELATIVE_POSITION_CONSTRAINT,void)
