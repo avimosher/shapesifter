@@ -18,7 +18,10 @@ external_libraries={
 }
 
 env=Environment(variables=variables)#,ENV={'PATH' : os.environ['PATH'], 'LD_LIBRARY_PATH' : os.environ['LD_LIBRARY_PATH']})
+#env['USE_OSG']=1
+#env['USE_GL']=1
 base_env=Environment()
+
 
 base_env.Append(CPPPATH=external_libraries['json']['cpppath'])
 builder=base_env.SharedObject

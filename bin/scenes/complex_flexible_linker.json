@@ -1,7 +1,7 @@
 {
     "output_directory": "runs/chimeric",
     "dt": 1,
-    "last_time": 100,
+    "last_time": 1000,
     "root": [
         {"type": "DATA",
          "eta": 3.5},
@@ -12,7 +12,7 @@
              "axis": [1,0,0],
              "angle": -90},
          "radius": 1.75,
-         "collision_extent": 2.3,
+         "capsule_extent": 2.3,
          "name": "EGFRvIII",
          "kinematic": true
         },
@@ -22,7 +22,7 @@
              "axis": [1,0,0],
              "angle": 90},
          "radius": 1.435,
-         "collision_extent": 0.34,
+         "capsule_extent": 0.34,
          "name": "scFv"
         },
         {"type": "RIGID_STRUCTURE",
@@ -31,7 +31,7 @@
              "axis": [0,1,0],
              "angle": 90},
          "radius": 1.16,
-         "collision_extent": 0.27,
+         "capsule_extent": 0.27,
          "name": "interferon"
         },
         {"type": "TRUST_REGION",
@@ -51,7 +51,7 @@
          "structure1": "scFv",
          "offset1": [-1.015,0,1.355],
          "structure2": "interferon",
-         "offset2": [0,0,1.43],
+         "offset2": [0,0,-1.43],
          "links": 6,
          "link_radius": 0.2,
          "link_offset": [1.2,0,0]

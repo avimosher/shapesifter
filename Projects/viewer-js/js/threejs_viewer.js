@@ -5,6 +5,7 @@ if (typeof define !== 'function'){
 define(['three'],function(THREE){
 
     var initScene;
+    var randomColor=require('randomcolor');
 
     function readSceneData(callback, scene){
 
@@ -19,9 +20,8 @@ define(['three'],function(THREE){
         }
     }
 
-    function chooseColor(i){
-        var randomColor=require('randomcolor');
-        return randomColor();
+    function chooseColor(s){
+        return randomColor(s);
     }
 
     function createColor(i){
@@ -47,22 +47,20 @@ define(['three'],function(THREE){
         for (var i = 0; i < scene_data.root.length; i++){
             if (scene_data.root[i].type == "RIGID_STRUCTURE"){
 
-                // extract radius and collision extent
+                // extract radius and capsule extent
                 var radius = scene_data.root[i].radius; 
-                var collision_extent = scene_data.root[i].collision_extent * 2;
+                var capsule_extent = scene_data.root[i].capsule_extent;
 
                 // capsules
-                if (collision_extent > 0){
+                if (capsule_extent > 0){
                     // container object for capsule elements
                     var merged = new THREE.Geometry();
 
-                    //texture test
-                    var texture = new THREE.CanvasTexture( createColor(i) );
                     //var proteinMaterial = new THREE.MeshBasicMaterial( { map: texture, wireframe: false } );
-                    var proteinMaterial = new THREE.MeshLambertMaterial( { map: texture, wireframe: true } );
+                    var proteinMaterial = new THREE.MeshLambertMaterial( { wireframe: true, color: chooseColor(scene_data.root[i].name) } );
             
                     // define cylinder and two spheres to create a capsule
-                    var cylinder = new THREE.CylinderGeometry(radius, radius, collision_extent, 17);
+                    var cylinder = new THREE.CylinderGeometry(radius, radius, capsule_extent*2, 17);
                     var matrix = new THREE.Matrix4();
                     matrix.makeRotationX(Math.PI/2);
                     cylinder.applyMatrix(matrix);
@@ -71,11 +69,11 @@ define(['three'],function(THREE){
 
                     // set position of bottom and top spheres
                     var m1 = new THREE.Matrix4();
-                    m1.makeTranslation(0,0,collision_extent/2);
+                    m1.makeTranslation(0,0,capsule_extent);
                     top.applyMatrix(m1);
 
                     var m2 = new THREE.Matrix4();
-                    m2.makeTranslation(0,0,-collision_extent/2);
+                    m2.makeTranslation(0,0,-capsule_extent);
                     bottom.applyMatrix(m2);
 
                     // add spheres and cylinder to merged object
@@ -92,8 +90,8 @@ define(['three'],function(THREE){
                 // spheres
                 else{
                     //var linkerMaterial = new THREE.MeshLambertMaterial( {color: 0xCCFF33, wireframe: false});
-                    var linkerMaterial = new THREE.MeshLambertMaterial( {color: chooseColor(i), wireframe: true});
-                    var linkerChainGeometry = new THREE.SphereGeometry(radius, 8, 8);
+                    var linkerMaterial = new THREE.MeshLambertMaterial( {color: chooseColor(scene_data.root[i].name), wireframe: true});
+                    var linkerChainGeometry = new THREE.SphereGeometry(radius, 17, 17);
                     var linkerChain = new THREE.Mesh(linkerChainGeometry, linkerMaterial);
                     linkerChain.name = scene_data.root[i].name;
                     structures.add(linkerChain);
@@ -214,6 +212,19 @@ define(['three'],function(THREE){
     var scene;
     var camera;
     var controls;
+    var sceneInitialized=false;
+    var structures=new THREE.Object3D();
+    var linkers=new THREE.Object3D();
+    var forces=new THREE.Object3D();
+
+    // prep animation
+    var frame_index = 0;
+    var orientation_quat = new THREE.Quaternion();
+    var running;
+    var writing;
+    var titles = true;
+    var frame_total = 0;
+
 
     var initializeViewer = function() {
         // set the scene size
@@ -265,18 +276,51 @@ define(['three'],function(THREE){
         /*readSceneData(function (parsed_scene){
           scene_data = parsed_scene;
           }, scene_file);*/
+        window.onkeydown=function(e){
+            switch(e.keyCode){
+                case 189: // - - back
+                incrementFrame(-1);
+                update();
+                break;
+
+                case 187: // + - forward
+                incrementFrame(1);
+                update();
+                break;
+
+                case 27: // esc - quit
+                var ipc=require('electron').ipcRenderer;
+                ipc.sendSync('synchronous-message','quit');
+                break;
+
+                case 80: // p - toggle play
+                running=!running;
+                break;
+
+                case 82: // r - reset
+                running=false;
+                frame_index=0;
+                incrementFrame(0);
+                update();
+                break;
+
+                case 84: // t - titles
+                titles=!titles;
+                if(titles){
+                    window.$("#label").show();}
+                else{
+                    window.$("#label").hide();}
+                break;
+
+                case 87: // w - toggle writing
+                writing=!writing;
+                break;
+                
+                default:
+                break;
+            };
+        };
     }
-
-    var sceneInitialized=false;
-    var structures=new THREE.Object3D();
-    var linkers=new THREE.Object3D();
-    var forces=new THREE.Object3D();
-
-    // prep animation
-    var frame_index = 0;
-    var orientation_quat = new THREE.Quaternion();
-    var running;
-    var frame_total = 0;
 
     function update() {
         // update structures
@@ -301,31 +345,39 @@ define(['three'],function(THREE){
         },forces, structures);
     }
 
+    function incrementFrame(increment){
+        frame_index += increment;
+        if (frame_index >= frame_total){
+            frame_index = frame_total - 1;
+        }
+        if (frame_index < 0){
+            frame_index = 0;
+        }
+        window.$("#label").text("Frame "+frame_index);
+    }
+
     function render() {
         if (running) {
+            incrementFrame(1);
             update();
-
-            // next frame
-            frame_index += 1;
-
-            // check for end of frames
-            if (frame_index == frame_total-1){
-                frame_index = 0;
-                //running = false;
-            }
         }
 
         renderer.render(scene, camera);
         controls.update();
-        try{
-            var remote=require('remote');
-            remote.getCurrentWindow().capturePage(function(buf){
-                var S=require('string');
-                remote.require('fs').writeFile(frame_directory+'/screenshot.'+S(frame_index).padLeft(5,'0')+'.png',buf.toPng(),function(){
-                    requestAnimationFrame(render);
-                })});
+        if(!writing){
+            requestAnimationFrame(render);
         }
-        catch(err){}
+        else{
+            try{
+                var remote=require('remote');
+                remote.getCurrentWindow().capturePage(function(buf){
+                    var S=require('string');
+                    remote.require('fs').writeFile(frame_directory+'/screenshot.'+S(frame_index).padLeft(5,'0')+'.png',buf.toPng(),function(){
+                        requestAnimationFrame(render);
+                    })});
+            }
+            catch(err){}
+        }
     };
 
     var module={};
@@ -361,8 +413,10 @@ define(['three'],function(THREE){
         // prep animation
         frame_index = 0;
         orientation_quat = new THREE.Quaternion();
-        running = true;
+        running = false;
+        writing = false;
 
+        incrementFrame(0);
         update();
 
         if(!sceneInitialized){

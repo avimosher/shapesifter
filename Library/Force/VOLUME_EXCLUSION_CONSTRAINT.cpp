@@ -97,7 +97,6 @@ Identify_Interactions_And_Compute_Errors(DATA<TV>& data,FORCE<TV>& force,const T
     
     std::array<TV,2> offsets;
     std::array<FORCE_VECTOR,2> force_directions;
-    LOG::cout<<"Before loop"<<std::endl;
     for(int s1=0;s1<structures.size();s1++){
         auto structure1=structures[s1];
         for(int ss1=0;ss1<structure1->Substructures().size();ss1++){
@@ -113,7 +112,6 @@ Identify_Interactions_And_Compute_Errors(DATA<TV>& data,FORCE<TV>& force,const T
                 T threshold=substructure1.radius+substructure2.radius;
                 T constraint_violation=relative_position.norm()-threshold;
                 T slack_distance=-.005,push_out_distance=1e-8;
-                LOG::cout<<"s1: "<<s1<<" ss1: "<<ss1<<" s2: "<<s2.first<<" ss2: "<<ss2<<" viol: "<<constraint_violation<<std::endl;
                 if(constraint_violation<0){
                     INDICES indices={s1,s2.first,ss1,ss2};
                     auto& memory=force_memory[indices];
@@ -132,13 +130,13 @@ Identify_Interactions_And_Compute_Errors(DATA<TV>& data,FORCE<TV>& force,const T
                         /*if(right_hand_side_force<0 && constraint_violation<remembered_threshold){
                             // TODO: switch the constraint force back on
                             }*/
-                        if(right_hand_side_force>=0){
+                        //if(right_hand_side_force>=0){
                             constraint_force_indices.push_back(constraint_indices.size());
-                        }
+                            //}
                         rhs.push_back(constraint_violation-slack_distance-push_out_distance);
                         constraints.push_back(std::make_tuple(force_directions,spins,offsets,relative_position));
                         constraint_indices.push_back(indices);}
-                    if((constraint_violation>=slack_distance || right_hand_side_force<0) && (std::get<MEMORY_COUNT>(constant_memory)==call_count || std::get<MEMORY_COUNT>(memory)==call_count)){
+                    if((constraint_violation>=slack_distance/* || right_hand_side_force<0*/) && (std::get<MEMORY_COUNT>(constant_memory)==call_count || std::get<MEMORY_COUNT>(memory)==call_count)){
                         if(std::get<MEMORY_COUNT>(memory)==call_count){ // this will hold whether the remembered force is positive or negative
                                 std::get<MEMORY_FORCE>(constant_memory)=std::get<MEMORY_FORCE>(memory)/sqr(constraint_violation);
                         }
@@ -147,7 +145,6 @@ Identify_Interactions_And_Compute_Errors(DATA<TV>& data,FORCE<TV>& force,const T
                         CONSTANT_FORCE constant_force(spins,offsets,relative_position,threshold);
                         constant_forces.push_back(constant_force);
                         constant_force_indices.push_back(indices);}
-                    LOG::cout<<"RHS force: "<<right_hand_side_force<<std::endl;
                     right_hand_side.template block<t+d,1>(s1*(t+d),0)-=force_directions[0]*right_hand_side_force;
                     right_hand_side.template block<t+d,1>(s2.first*(t+d),0)+=force_directions[1]*right_hand_side_force;}}}}
     equations_changed=new_constraints>0 || old_constraints!=constraint_count.peek();

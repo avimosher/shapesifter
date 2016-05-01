@@ -27,6 +27,9 @@ process.stdin.on('end',function(){
 });
 
 ipc.on('synchronous-message',function(event,arg){
+    if(arg === "quit"){
+        app.quit();
+    }
     event.returnValue=parsedData;
 });
 

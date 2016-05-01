@@ -61,6 +61,7 @@ public:
             CEREAL_NVP(moi),
             CEREAL_NVP(twist),
             CEREAL_NVP(substructures),
+            CEREAL_NVP(kinematic),
             CEREAL_NVP(initialized));}
 
     void Initialize_Inertia(const T eta);
