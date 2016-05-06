@@ -2,7 +2,7 @@ if (typeof define !== 'function'){
     var define=require('amdefine')(module);
 }
 
-define(['underscore','mathjs','random_helpers'],function(_,math,random_helpers){
+define(['mathjs','three','./random_helpers'],function(math,THREE,random_helpers){
     return {handle: function(node,structureNodes,forceNodes){
         var links=node['links'];
         var color=node['color'];
@@ -28,9 +28,7 @@ define(['underscore','mathjs','random_helpers'],function(_,math,random_helpers){
         var position=math.add(structure1['position'],firstStructureOffset);
 
         var constraints=[];
-        var springs=[];
-        var stiffness=node['stiffness'];
-        var distance=math.sqrt(node['link_offset'].reduce((x,s) => x+s*s),0);
+        var distance=math.sqrt(node['link_offset'].reduce((x,s) => x+s*s,0));
         var collisionExtent=0;
         var subnodeOffset=0;
         if(node['collision_extent']){
@@ -41,9 +39,10 @@ define(['underscore','mathjs','random_helpers'],function(_,math,random_helpers){
         for(var i=0;i<links;i++){
             var subnode={};
             position=math.add(position,math.add(node['link_offset'],[0,0,collisionExtent]));
+            //console.log(position);
             subnode['type']='RIGID_STRUCTURE';
             subnode['radius']=node['link_radius'];
-            subnode['position']=position;
+            subnode['position']=position.slice();
             if(color){subnode['color']=color;}
             position=math.add(position,[0,0,collisionExtent]);
             subnode['name']=random_helpers.name();
@@ -51,6 +50,7 @@ define(['underscore','mathjs','random_helpers'],function(_,math,random_helpers){
             subnodes.push(subnode);
             structureNodes[subnode['name']]=subnode;
         }
+
 
         constraints.push({'structure1': node['structure1'],
                           'offset1': node['offset1'],
@@ -62,35 +62,12 @@ define(['underscore','mathjs','random_helpers'],function(_,math,random_helpers){
                           'structure2': node['structure2'],
                           'offset2': node['offset2'],
                           'distance': distance});
-        springs.push({'structure1': node['structure1'],
-                      'offset1': node['offset1'],
-                      'structure2': subnodes[1]['name'],
-                      'offset2': [0,0,-subnodeOffset],
-                      'distance': 2*distance,
-                      'stiffness': stiffness});
-        springs.push({'structure1': subnodes[subnodes.length-2]['name'],
-                      'offset1': [0,0,subnodeOffset],
-                      'structure2': node['structure2'],
-                      'offset2': node['offset2'],
-                      'distance': 2*distance,
-                      'stiffness': stiffness});
-
         structureNodes[node['structure2']]['position']=math.add(position,math.add([0,0,collisionExtent],math.subtract(node['link_offset'],secondStructureOffset)));
         for(var i=1;i<links;i++){
             constraints.push({'structure1': subnodes[i-1]['name'],
                               'offset1': [0,0,subnodeOffset],
                               'structure2': subnodes[i]['name'],
                               'offset2': [0,0,-subnodeOffset],
-                              'distance': distance});
-            if(i>1){
-                springs.push({'structure1': subnodes[i-2]['name'],
-                              'offset1': [0,0,subnodeOffset],
-                              'structure2': subnodes[i]['name'],
-                              'offset2': [0,0,-subnodeOffset],
-                              'distance': 2*distance,
-                              'stiffness': stiffness});
-            }
-        }
-        forceNodes.push({'type': 'SPRING_FORCE','springs': springs});
+                              'distance': distance});}
         forceNodes.push({'type': 'RELATIVE_POSITION_CONSTRAINT','constraints': constraints});
     }}});

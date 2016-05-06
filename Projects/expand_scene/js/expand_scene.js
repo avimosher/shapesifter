@@ -24,8 +24,7 @@ define(function(){
         
         function handle(node,structureNodes,forceNodes){
             try{
-                var m=require(node['type']);
-                require(node['type']).handle(node,structureNodes,forceNodes);
+                require('./'+node['type']).handle(node,structureNodes,forceNodes);
             }catch(err){
                 //console.log(err);
                 //console.log('could not find '+node['type']);

@@ -2,7 +2,7 @@ if (typeof define !== 'function'){
     var define=require('amdefine')(module);
 }
 
-define(['Chance'],function(Chance){
+define(['chance'],function(Chance){
     var module={};
     module.chance=new Chance(812321);
 

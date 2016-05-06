@@ -293,6 +293,18 @@ define(['three'],function(THREE){
                 ipc.sendSync('synchronous-message','quit');
                 break;
 
+                case 71: // g - go to frame
+                var dialog=require('vex-js/js/vex.dialog');
+                dialog.open({message: 'Go to frame',
+                             input: "<input name=\"frame\" type=\"text\" placeholder=\"\" required />\n",
+                             callback: function(frame){
+                                 alert(frame);
+                                 frame_index=frame;
+                                 incrementFrame(0);
+                                 update();
+                             }});
+                break;
+
                 case 80: // p - toggle play
                 running=!running;
                 break;

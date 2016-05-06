@@ -1,4 +1,4 @@
-expand=require('expand_scene');
+expand=require('./js/expand_scene');
 
 var parsedData;
 var inputChunks=[];
