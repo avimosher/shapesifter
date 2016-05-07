@@ -2,6 +2,11 @@
   "name": "expand_scene",
   "version": "0.1.0",
   "main": "main.js",
+  "description": "scene file preprocessor for Shapesifter",
+  "repository": {
+      "type": "git",
+      "url": "https://github.com/avimosher/shapesifter"},
+  "license": "MIT",
   "dependencies": {
     "amdefine": "^1.0.0",
     "chance": "^1.0.1",
