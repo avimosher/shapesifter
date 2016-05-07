@@ -29,10 +29,11 @@ AVERAGE_AGGREGATOR()
 {}
 //////////////////////////////////////////////////////////////////////
 template<class TV> void AVERAGE_AGGREGATOR<TV>::
-Print_Report(std::ostream& out)
+Print_Report(Json::Value& node)
 {
-    if(t_count>0){out<<t_total/t_count;}
-    if(tv_count>0){out<<tv_total/tv_count;}
+    if(subtype==PREDICATE<TV>::SCALAR){
+        node=Json::Value(t_total/std::max(1,t_count));}
+    else{Set_Vector(tv_total/std::max(1,tv_count),node);}
 }
 //////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(AVERAGE_AGGREGATOR)
@@ -49,12 +50,11 @@ SUM_AGGREGATOR()
 {}
 //////////////////////////////////////////////////////////////////////
 template<class TV> void SUM_AGGREGATOR<TV>::
-Print_Report(std::ostream& out)
+Print_Report(Json::Value& node)
 {
     if(subtype==PREDICATE<TV>::SCALAR){
-        out<<t_total;}
-    else{
-        out<<tv_total;}
+        node=Json::Value(t_total);}
+    else{Set_Vector(tv_total,node);}
 }
 //////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(SUM_AGGREGATOR)
@@ -70,10 +70,12 @@ HISTOGRAM_AGGREGATOR()
 {}
 //////////////////////////////////////////////////////////////////////
 template<class TV> void HISTOGRAM_AGGREGATOR<TV>::
-Print_Report(std::ostream& out)
+Print_Report(Json::Value& node)
 {
-    std::cout<<bins[1];
-    for(int i=1;i<number_of_bins;i++) std::cout<<"\t"<<bins[i]<<std::endl;
+    node=Json::Value(Json::arrayValue);
+    //std::cout<<bins[1];
+    for(int i=0;i<number_of_bins;i++){node.append(bins[i]);}
+    //std::cout<<"\t"<<bins[i]<<std::endl;
 }
 //////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(HISTOGRAM_AGGREGATOR)
@@ -94,10 +96,16 @@ RECORD_AGGREGATOR()
 {}
 //////////////////////////////////////////////////////////////////////
 template<class TV> void RECORD_AGGREGATOR<TV>::
-Print_Report(std::ostream& out)
+Print_Report(Json::Value& node)
 {
-    for(int i=0;i<scalar_record.size();i++){std::cout<<scalar_record[i]<<std::endl;}
-    for(int i=0;i<vector_record.size();i++){std::cout<<vector_record[i]<<std::endl;}
+    node=Json::Value(Json::arrayValue);
+    if(subtype==PREDICATE<TV>::SCALAR){
+        for(int i=0;i<scalar_record.size();i++){node.append(scalar_record[i]);}}
+    else{
+        for(int i=0;i<vector_record.size();i++){
+            Json::Value element;
+            Set_Vector(vector_record[i],element);
+            node.append(element);}}
 }
 //////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(RECORD_AGGREGATOR)

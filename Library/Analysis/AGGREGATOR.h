@@ -21,7 +21,7 @@ public:
     virtual void Aggregate_Subtype(const T aggregate){}
     virtual void Aggregate_Subtype(const TV& aggregate){}
     void Aggregate(std::shared_ptr<PREDICATE<TV>> predicate,const SIMULATION<TV>& simulation);
-    virtual void Print_Report(std::ostream& out){}
+    virtual void Print_Report(Json::Value& node){}
 };
 
 template<class TV>
@@ -33,6 +33,8 @@ class AVERAGE_AGGREGATOR:public AGGREGATOR<TV>
     int tv_count;
     TV tv_total;
 public:
+    using AGGREGATOR<TV>::subtype;
+
     AVERAGE_AGGREGATOR();
     ~AVERAGE_AGGREGATOR(){};
 
@@ -42,7 +44,7 @@ public:
     virtual void Aggregate_Subtype(const TV& aggregate)
     {tv_count++;tv_total+=aggregate;}
 
-    virtual void Print_Report(std::ostream& out);
+    virtual void Print_Report(Json::Value& node);
     DEFINE_TYPE_NAME("average")
 };
 
@@ -56,6 +58,7 @@ class SUM_AGGREGATOR:public AGGREGATOR<TV>
     TV tv_total;
 public:
     using AGGREGATOR<TV>::subtype;
+
     SUM_AGGREGATOR();
 
     virtual void Aggregate_Subtype(const T aggregate)
@@ -64,7 +67,7 @@ public:
     virtual void Aggregate_Subtype(const TV& aggregate)
     {tv_count++;tv_total+=aggregate;}
 
-    virtual void Print_Report(std::ostream& out);
+    virtual void Print_Report(Json::Value& node);
     DEFINE_TYPE_NAME("sum")
 };
 
@@ -78,6 +81,8 @@ public:
     T maximum_value;
     T bin_width;
     std::vector<int> bins;
+    using AGGREGATOR<TV>::subtype;
+
     HISTOGRAM_AGGREGATOR();
 
     virtual void Aggregate_Subtype(const T aggregate)
@@ -87,7 +92,7 @@ public:
     virtual void Aggregate_Subtype(const TV& aggregate)
     {}
 
-    virtual void Print_Report(std::ostream& out);
+    virtual void Print_Report(Json::Value& node);
     DEFINE_TYPE_NAME("histogram")
 };
 
@@ -98,6 +103,8 @@ class RECORD_AGGREGATOR:public AGGREGATOR<TV>
 public:
     std::vector<T> scalar_record;
     std::vector<TV> vector_record;
+    using AGGREGATOR<TV>::subtype;
+
     RECORD_AGGREGATOR();
 
     virtual void Aggregate_Subtype(const T aggregate)
@@ -106,7 +113,7 @@ public:
     virtual void Aggregate_Subtype(const TV& aggregate)
     {vector_record.push_back(aggregate);}
 
-    virtual void Print_Report(std::ostream& out);
+    virtual void Print_Report(Json::Value& node);
     DEFINE_TYPE_NAME("record")
 };
 

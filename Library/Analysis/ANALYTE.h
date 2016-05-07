@@ -11,6 +11,7 @@ class ANALYTE:public EVOLUTION_STEP<TV>
 {
     typedef typename TV::Scalar T;
 public:
+    using EVOLUTION_STEP<TV>::name;
     std::shared_ptr<PREDICATE<TV>> condition;
     std::shared_ptr<PREDICATE<TV>> predicate;
     std::shared_ptr<AGGREGATOR<TV>> aggregator;
@@ -18,7 +19,7 @@ public:
     ANALYTE(){}
 
     void Step(SIMULATION<TV>& simulation,const T dt,const T time);
-    void Finalize();
+    void Finalize(Json::Value& root);
     DEFINE_TYPE_NAME("ANALYTE")
 };
 }

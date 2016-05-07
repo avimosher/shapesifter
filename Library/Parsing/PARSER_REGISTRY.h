@@ -124,5 +124,12 @@ template<class TV> void Parse_Rotation(Json::Value& node,ROTATION<TV>& orientati
     else{orientation=default_orientation;}
 }
 
+template<class TV> void Set_Vector(const TV& vector,Json::Value& node)
+{
+    node=Json::Value(Json::arrayValue);
+    node.resize(vector.size());
+    for(int i=0;i<vector.size();i++){node[i]=vector[i];}
+}
+
 }
 #endif

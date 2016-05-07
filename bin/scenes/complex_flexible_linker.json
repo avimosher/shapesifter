@@ -1,7 +1,7 @@
 {
     "output_directory": "runs/chimeric",
     "dt": 1,
-    "last_time": 1000,
+    "last_time": 10,
     "root": [
         {"type": "DATA",
          "eta": 3.5},
@@ -59,6 +59,7 @@
         {"type": "VOLUME_EXCLUSION_CONSTRAINT"},
         {"type": "ANALYTE",
          "prerequisites": ["evolution"],
+         "name": "test",
          "predicate": {
              "type": "orientation_quality",
              "binder_name": "interferon",

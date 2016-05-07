@@ -15,16 +15,18 @@ Step(SIMULATION<TV>& simulation,const T dt,const T time)
 }
 ///////////////////////////////////////////////////////////////////////
 template<class TV> void ANALYTE<TV>::
-Finalize()
+Finalize(Json::Value& root)
 {
-    aggregator->Print_Report(std::cout);
-    std::cout<<std::endl;
+    Json::Value node;
+    aggregator->Print_Report(node);
+    root[name]=node;
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(ANALYTE)
 DEFINE_AND_REGISTER_PARSER(ANALYTE,void)
 {
     auto analyte=std::make_shared<ANALYTE<TV>>();
+    Parse_String(node["name"],analyte->name);
     analyte->aggregator=PARSER_REGISTRY<TV,AGGREGATOR<TV>>::Parse(node["aggregator"],simulation);
     if(node.isMember("condition")){analyte->condition=PARSER_REGISTRY<TV,PREDICATE<TV>>::Parse(node["condition"],simulation);}
     analyte->predicate=PARSER_REGISTRY<TV,PREDICATE<TV>>::Parse(node["predicate"],simulation);

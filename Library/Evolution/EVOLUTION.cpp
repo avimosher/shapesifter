@@ -31,7 +31,9 @@ Advance_One_Step(SIMULATION<TV>& simulation,const T dt,const T time)
 template<class TV> void EVOLUTION<TV>::
 Finalize()
 {
-    for(auto step: (*this)){step->Finalize();}
+    Json::Value root;
+    for(auto step: (*this)){step->Finalize(root);}
+    std::cout<<root<<std::endl;
 }
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(EVOLUTION)

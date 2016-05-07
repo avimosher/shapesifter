@@ -2,6 +2,7 @@
 #define __EVOLUTION_STEP__
 
 #include <Utilities/TYPE_UTILITIES.h>
+#include <json/json.h>
 
 namespace Mechanics{
 template<class TV> class SIMULATION;
@@ -28,7 +29,7 @@ public:
 
     void Full_Step(SIMULATION<TV>& simulation,const T dt,const T time);
     virtual void Step(SIMULATION<TV>& simulation,const T dt,const T time)=0;
-    virtual void Finalize(){}
+    virtual void Finalize(Json::Value& node){}
     virtual bool Success(){return true;}
 };
 }
