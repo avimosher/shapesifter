@@ -13,7 +13,6 @@ class EVOLUTION_STEP
     typedef typename TV::Scalar T;
 
 public:
-    std::string name;
     T up_to_date_time;
     std::vector<std::string> prerequisites;
 
@@ -24,8 +23,8 @@ public:
         return up_to_date_time>=time;
     }
 
-    std::string Name()
-    {return name;}
+    virtual std::string Name() const
+    {return "EVOLUTION_STEP";}
 
     void Full_Step(SIMULATION<TV>& simulation,const T dt,const T time);
     virtual void Step(SIMULATION<TV>& simulation,const T dt,const T time)=0;

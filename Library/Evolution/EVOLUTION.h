@@ -24,6 +24,13 @@ public:
         return *found;
     }
 
+    template<class SUBTYPE> std::shared_ptr<SUBTYPE> Find() const {
+        Finder<std::shared_ptr<EVOLUTION_STEP<TV>>> finder={SUBTYPE::Static_Name()};
+        auto found=std::find_if(this->begin(),this->end(),finder);
+        return std::static_pointer_cast<SUBTYPE>(*found);
+    }
+
+
     T Compute_Dt(SIMULATION<TV>& simulation,const T time,const T target_time,bool& done);
     void Advance_One_Step(SIMULATION<TV>& simulation,const T dt,const T time);
     void Finalize();

@@ -87,7 +87,6 @@ DEFINE_AND_REGISTER_PARSER(LINE_SEARCH,void)
 {
     auto step=std::make_shared<LINE_SEARCH<TV>>();
     step->equation=std::make_shared<NONLINEAR_EQUATION<TV>>();
-    Parse_String(node["name"],step->name);
     simulation.evolution.push_back(step);
     return 0;
 }
