@@ -2,7 +2,7 @@ if (typeof define !== 'function'){
     var define=require('amdefine')(module);
 }
 
-define(['random_helpers'],function(random_helpers){
+define(['./random_helpers'],function(random_helpers){
     return {handle: function(node,structureNodes,forceNodes){
         bodies=node['bodies'];
         for(var i=0;i<bodies;i++){
