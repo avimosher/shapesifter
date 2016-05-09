@@ -46,7 +46,6 @@ define(['three'],function(THREE){
     function updateStructures(index, structures){
         const fs=require('fs');
         try{
-            fs.openSync(frame_directory+'/frame.'+index,'r+');
             var frame_data=JSON.parse(fs.readFileSync(frame_directory+'/frame.'+index));
             for (var i = 0; i < structures.children.length; i++){
                 frame_handle = frame_data.value2[0].ptr_wrapper.data.value0[i].ptr_wrapper.data;
@@ -54,7 +53,7 @@ define(['three'],function(THREE){
                 try{
                     require('./'+structure.type).update(frame_handle, structure);}
                 catch(e){console.log(e);}}}
-        catch(err){}
+        catch(err){console.log(err);}
     }
 
     function updateForces(forces, structures){
@@ -119,6 +118,7 @@ define(['three'],function(THREE){
           scene_data = parsed_scene;
           }, scene_file);*/
         window.onkeydown=function(e){
+            var continueProcessing=false;
             switch(e.keyCode){
                 case 189: // - - back
                 incrementFrame(-1);
@@ -134,14 +134,36 @@ define(['three'],function(THREE){
                 break;
 
                 case 71: // g - go to frame
-                var dialog=require('vex-js/js/vex.dialog');
-                dialog.open({message: 'Go to frame',
+                var dialogPolyfill=require('dialog-polyfill');
+                var dialog=$('<dialog>');
+                dialog.append($('<p>',{'text': 'Go to frame'}));
+                var text=$('<input>',{'type': 'text'});
+                var goToFrame=function(){
+                    dialog[0].close();
+                    console.log(text.val());
+                    frame_index=parseInt(text.val());
+                    incrementFrame(0);
+                    dialog[0].remove();
+                };
+                text.keypress(function(e){
+                        if(e.which==13){
+                            goToFrame();
+                            return false;}});
+                dialog.append(text);
+                var button=$('<button>',{'text': 'Go'});
+                button.on('click',goToFrame);
+                dialog.append($('<p>').append(button));
+                $('body').append(dialog);
+                dialog[0].showModal();
+                //$("#dialog")[0].showModal();
+                
+                /*dialog.open({message: 'Go to frame',
                              input: "<input name=\"frame\" type=\"text\" placeholder=\"\" required />\n",
                              callback: function(frame){
                                  alert(frame);
                                  frame_index=frame;
                                  incrementFrame(0);
-                             }});
+                                 }});*/
                 break;
 
                 case 80: // p - toggle play
@@ -167,8 +189,10 @@ define(['three'],function(THREE){
                 break;
                 
                 default:
+                    continueProcessing=true;
                 break;
             };
+            return continueProcessing;
         };
     }
 
