@@ -7,14 +7,8 @@
 #include <Indexing/RIGID_STRUCTURE_INDEX_MAP.h>
 #include <Math/R1XRCXR2INV.h>
 #include <Parsing/PARSER_REGISTRY.h>
-#include <Utilities/OSG_HELPERS.h>
 #include <Utilities/RANDOM.h>
 #include <unsupported/Eigen/BVH>
-#ifdef VIEWER
-#include <osg/Geometry>
-#include <osg/Geode>
-#include <osg/LineWidth>
-#endif
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> std::shared_ptr<FORCE_REFERENCE<typename TV::Scalar>> ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::
@@ -206,59 +200,6 @@ Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_
     system.Build_Jacobian_Block(data,force,*this,*rigid_data,constraint_terms);
 }
 ///////////////////////////////////////////////////////////////////////
-#ifdef VIEWER
-template<class TV> void ASSOCIATION_DISSOCIATION_CONSTRAINT<TV>::
-Viewer(const DATA<TV>& data,osg::Node* node)
-{
-    osg::Group* group=node->asGroup();
-    group->removeChild(getNamedChild(group,Static_Name()));
-    auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
-    osg::Group* volume_exclusion_group=new osg::Group();
-    volume_exclusion_group->setName(Static_Name());
-    for(int i=0;i<constraints.size();i++){
-        auto lineGeometry=new osg::Geometry();
-        auto vertices=new osg::Vec3Array(2);
-
-        auto interaction_index=constraints[i];
-        auto interaction_type=interaction_types[std::get<0>(interaction_index)];
-        int first_site_index=std::get<1>(interaction_index),second_site_index=std::get<2>(interaction_index);
-        auto first_site=interaction_type.sites[0][first_site_index],second_site=interaction_type.sites.back()[second_site_index];
-        int body_index1=std::get<0>(first_site),body_index2=std::get<0>(second_site);
-        TV v1=interaction_type.site_offsets[0],v2=interaction_type.site_offsets.back();
-        auto rigid_structure1=rigid_data->structures[body_index1],rigid_structure2=rigid_data->structures[body_index2];
-        auto firstAttachment=rigid_structure1->frame*(v1/2);
-        auto secondAttachment=firstAttachment+data.Minimum_Offset(firstAttachment,rigid_structure2->frame*(v2/2));
-        //auto firstAttachment=rigid_structure1->frame.position;
-        //auto secondAttachment=firstAttachment+data.Minimum_Offset(firstAttachment,rigid_structure2->frame.position);
-        (*vertices)[0].set(firstAttachment(0),firstAttachment(1),firstAttachment(2));
-        (*vertices)[1].set(secondAttachment(0),secondAttachment(1),secondAttachment(2));
-        lineGeometry->setVertexArray(vertices);
-        auto colors=new osg::Vec4Array;
-        osg::Vec4 color;
-        color[3]=1;
-        color[std::get<0>(interaction_index)]=1;
-        colors->push_back(color);
-        //colors->push_back(osg::Vec4(1.0f,0.0f,0.0f,1.0f));
-        lineGeometry->setColorArray(colors);
-        lineGeometry->setColorBinding(osg::Geometry::BIND_OVERALL);
-        auto normals=new osg::Vec3Array;
-        normals->push_back(osg::Vec3f(0.0f,-1.0f,0.0f));
-        lineGeometry->setNormalArray(normals);
-        lineGeometry->setNormalBinding(osg::Geometry::BIND_OVERALL);
-        osg::StateSet* stateset=new osg::StateSet;
-        osg::LineWidth* lineWidth=new osg::LineWidth();
-        lineWidth->setWidth(4.0f);
-        stateset->setAttributeAndModes(lineWidth,osg::StateAttribute::ON);
-        stateset->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
-        lineGeometry->setStateSet(stateset);
-        lineGeometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES,0,2));
-        auto lineGeode=new osg::Geode();
-        lineGeode->addDrawable(lineGeometry);
-        volume_exclusion_group->addChild(lineGeode);
-    }
-    group->addChild(volume_exclusion_group);
-}
-#endif
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(ASSOCIATION_DISSOCIATION_CONSTRAINT)
 DEFINE_AND_REGISTER_PARSER(ASSOCIATION_DISSOCIATION_CONSTRAINT,void)

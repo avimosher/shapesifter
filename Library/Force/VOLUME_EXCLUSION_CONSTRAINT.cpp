@@ -9,15 +9,10 @@
 #include <Utilities/EIGEN_HELPERS.h>
 #include <Utilities/HASHING.h>
 #include <Utilities/LOG.h>
-#include <Utilities/OSG_HELPERS.h>
 #include <Utilities/RANDOM.h>
 #include <iostream>
 #include <math.h>
 #include <unsupported/Eigen/BVH>
-#ifdef VIEWER
-#include <osg/Geometry>
-#include <osg/Geode>
-#endif
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> std::shared_ptr<FORCE_REFERENCE<typename TV::Scalar>> VOLUME_EXCLUSION_CONSTRAINT<TV>::
@@ -185,39 +180,6 @@ Compute_Derivatives(DATA<TV>& data,FORCE<TV>& force,MATRIX_BUNDLE<TV>& system)
     system.Flatten_Jacobian_Block(data,force,*rigid_data,*this,forces);
 }
 ///////////////////////////////////////////////////////////////////////
-#ifdef VIEWER
-template<class TV> void VOLUME_EXCLUSION_CONSTRAINT<TV>::
-Viewer(const DATA<TV>& data,osg::Node* node)
-{
-    osg::Group* group=node->asGroup();
-    group->removeChild(getNamedChild(group,Static_Name()));
-    auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
-    osg::Group* volume_exclusion_group=new osg::Group();
-    volume_exclusion_group->setName(Static_Name());
-    for(int i=0;i<constraints.size();i++){
-        auto lineGeometry=new osg::Geometry();
-        auto vertices=new osg::Vec3Array(2);
-        const auto& constraint=constraint_indices[i];
-        auto rigid_structure1=rigid_data->structures[constraint[0]];
-        auto rigid_structure2=rigid_data->structures[constraint[1]];
-        auto firstAttachment=rigid_structure1->frame.position;
-        auto secondAttachment=rigid_structure2->frame.position;
-        osg::Vec4 color(1.0f,0.0f,0.0f,1.0f);
-        auto lineGeode=createLine(color);
-        updateLine<TV>(lineGeode,{firstAttachment,secondAttachment});
-        volume_exclusion_group->addChild(lineGeode);
-
-        if(errors.rows()==constraints.size()){
-            osg::Vec4 errorColor(1.0f,1.0f,1.0f,1.0f);
-            auto errorLineGeode=createLine(errorColor);
-            TV mean=(firstAttachment+secondAttachment)/2;
-            TV offset=mean+TV::Unit(2)*errors(i);
-            updateLine<TV>(errorLineGeode,{mean,offset});
-            volume_exclusion_group->addChild(errorLineGeode);}
-    }
-    group->addChild(volume_exclusion_group);
-}
-#endif
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(VOLUME_EXCLUSION_CONSTRAINT)
 DEFINE_AND_REGISTER_PARSER(VOLUME_EXCLUSION_CONSTRAINT,void)

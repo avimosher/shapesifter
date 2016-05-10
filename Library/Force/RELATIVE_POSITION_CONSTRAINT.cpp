@@ -10,7 +10,6 @@
 #include <Utilities/EIGEN_HELPERS.h>
 #include <Utilities/LOG.h>
 #include <Utilities/MATH.h>
-#include <Utilities/OSG_HELPERS.h>
 #include <iostream>
 #include <math.h>
 using namespace Mechanics;
@@ -82,32 +81,6 @@ Compute_Derivatives(DATA<TV>& data,FORCE<TV>& force,MATRIX_BUNDLE<TV>& system)
     system.Flatten_Hessian_Block(data,force,*this,*rigid_data,constraint_force_terms);
     system.Flatten_Hessian_Block(data,force,*rigid_data,*this,force_constraint_terms);
 }
-///////////////////////////////////////////////////////////////////////
-#ifdef VIEWER
-template<class TV> void RELATIVE_POSITION_CONSTRAINT<TV>::
-Viewer(const DATA<TV>& data,osg::Node* node)
-{
-    osg::Group* group=node->asGroup();
-    osg::Group* relative_position_group=(osg::Group*)getNamedChild(group,Static_Name());
-    if(!relative_position_group){
-        relative_position_group=new osg::Group();
-        relative_position_group->setName(Static_Name());
-        for(int i=0;i<constraints.size();i++){
-//            relative_position_group->addChild(createLine(osg::Vec4(1.0f,1.0f,0.0f,1.0f)));}
-            relative_position_group->addChild(createLine(osg::Vec4(0.3f,0.3f,0.3f,1.0f)));}
-        group->addChild(relative_position_group);
-    }
-    auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
-    for(int i=0;i<constraints.size();i++){
-        const CONSTRAINT& constraint=constraints[i];
-        auto rigid_structure1=rigid_data->structures[constraint.s1];
-        auto rigid_structure2=rigid_data->structures[constraint.s2];
-        auto firstAttachment=rigid_structure1->frame*constraint.v1;
-        auto secondAttachment=rigid_structure2->frame*constraint.v2;
-        updateLine<TV>((osg::Geode*)relative_position_group->getChild(i),{firstAttachment,secondAttachment});
-    }
-}
-#endif
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(RELATIVE_POSITION_CONSTRAINT)
 DEFINE_AND_REGISTER_PARSER(RELATIVE_POSITION_CONSTRAINT,void)

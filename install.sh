@@ -50,18 +50,5 @@ then
     patch ESBTL/include/ESBTL/line_reader.h patches/ESBTL/line_reader.h.patch
 fi
 
-
-if [ ! -d osg ]
-then
-    wget http://trac.openscenegraph.org/downloads/developer_releases/OpenSceneGraph-3.2.1.zip
-    unzip OpenSceneGraph-3.2.1.zip
-    mv OpenSceneGraph-3.2.1 osg
-fi
-
-cd osg
-./configure
-make
-cd ..
-
 cd ..
 scons

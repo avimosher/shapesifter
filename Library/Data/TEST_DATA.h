@@ -4,13 +4,6 @@
 #include <Data/DATA_TYPE.h>
 #include <Utilities/CEREAL_HELPERS.h>
 #include <iostream>
-#ifdef VIEWER
-#include <osg/Geode>
-#include <osg/Node>
-#include <osg/PositionAttitudeTransform>
-#include <osg/ShapeDrawable>
-#include <osgWidget/Box>
-#endif
 
 namespace Mechanics{
 
@@ -48,32 +41,6 @@ public:
     virtual T Print() {
         return internal_data;
     }
-
-#ifdef VIEWER
-    virtual void Viewer(osg::Node* node) {
-        std::cout<<"Viewing"<<std::endl;
-        osg::Group* group=node->asGroup();
-        osg::PositionAttitudeTransform* transform=NULL;
-        for(int i=0;i<group->getNumChildren();i++){
-            if(group->getChild(i)->getName()=="TEST_DATA") {
-                transform=(osg::PositionAttitudeTransform*)group->getChild(i);
-                break;
-            }
-        }
-        if(!transform){
-            transform=new osg::PositionAttitudeTransform();
-            osg::Geode* basicShapesGeode=new osg::Geode();
-            osg::Box* unitCube=new osg::Box(osg::Vec3(0,0,0),1.0f);
-            osg::ShapeDrawable* unitCubeDrawable=new osg::ShapeDrawable(unitCube);
-            basicShapesGeode->addDrawable(unitCubeDrawable);
-            transform->addChild(basicShapesGeode);
-            transform->setName("TEST_DATA");
-            group->addChild(transform);
-        }
-        osg::Vec3 pos(internal_data,internal_data,internal_data);
-        transform->setPosition(pos);
-    }
-#endif
 
     DEFINE_TYPE_NAME("TEST_DATA")
 };

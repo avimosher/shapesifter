@@ -45,13 +45,5 @@ Equations_Changed() const
         if(force->Equations_Changed()){return true;}}
     return false;
 }
-/////////////////////////////////////////////////////////////////////// 
-#ifdef VIEWER
-template<class TV> void FORCE<TV>::
-Viewer(const DATA<TV>& data,osg::Group*& root)
-{
-    for(auto force_type : (*this)){force_type->Viewer(data,root);}
-}
-#endif
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(FORCE)

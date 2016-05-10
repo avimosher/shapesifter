@@ -10,7 +10,6 @@
 #include <Utilities/EIGEN_HELPERS.h>
 #include <Utilities/LOG.h>
 #include <Utilities/MATH.h>
-#include <Utilities/OSG_HELPERS.h>
 #include <iostream>
 #include <math.h>
 using namespace Mechanics;
@@ -60,27 +59,6 @@ Compute_Derivatives(DATA<TV>& data,FORCE<TV>& force,MATRIX_BUNDLE<TV>& system)
     system.Build_Jacobian_Block(data,force,*this,*rigid_data,terms);
     system.Build_Jacobian_Block(data,force,*rigid_data,*this,terms);
 }
-///////////////////////////////////////////////////////////////////////
-#ifdef VIEWER
-template<class TV> void SPRING_FORCE<TV>::
-Viewer(const DATA<TV>& data,osg::Node* node)
-{
-    osg::Group* group=node->asGroup();
-    osg::Group* relative_position_group=(osg::Group*)getNamedChild(group,Static_Name());
-    if(!relative_position_group){
-        relative_position_group=new osg::Group();
-        relative_position_group->setName(Static_Name());
-        osg::Vec4 color(0.0f,1.0f,1.0f,1.0f);
-        for(int i=0;i<springs.size();i++){relative_position_group->addChild(createLine(color));}
-        group->addChild(relative_position_group);}
-    auto rigid_data=data.template Find<RIGID_STRUCTURE_DATA<TV>>();
-    for(int i=0;i<springs.size();i++){
-        const SPRING& spring=springs[i];
-        std::array<TV,2> points;
-        for(int j=0;j<2;j++){points[j]=rigid_data->structures[spring.index[j]]->frame*spring.offset[j];}
-        updateLine((osg::Geode*)relative_position_group->getChild(i),points);}
-}
-#endif
 ///////////////////////////////////////////////////////////////////////
 GENERIC_TYPE_DEFINITION(SPRING_FORCE)
 DEFINE_AND_REGISTER_PARSER(SPRING_FORCE,void)

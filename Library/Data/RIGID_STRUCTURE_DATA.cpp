@@ -2,16 +2,6 @@
 #include <Data/RIGID_STRUCTURE_DATA.h>
 #include <Driver/SIMULATION.h>
 #include <Parsing/PARSER_REGISTRY.h>
-#include <Utilities/OSG_HELPERS.h>
-#ifdef VIEWER
-#include <osg/Geode>
-#include <osg/LineWidth>
-#include <osg/Node>
-#include <osg/PolygonMode>
-#include <osg/Shape>
-#include <osg/ShapeDrawable>
-#include <osgWidget/Box>
-#endif
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> int RIGID_STRUCTURE_DATA<TV>::
@@ -122,58 +112,6 @@ Kinematic_Projection(SparseMatrix<T>& kinematic_projection)
     kinematic_projection.resize(s*index,s*structures.size());
     kinematic_projection.setFromTriplets(projection_terms.begin(),projection_terms.end());
 }
-///////////////////////////////////////////////////////////////////////
-#ifdef VIEWER
-template<class TV> void RIGID_STRUCTURE_DATA<TV>::
-Viewer(osg::Node* node)
-{
-    osg::Group* group=node->asGroup();
-    osg::Group* rigid_group=NULL;
-    for(int i=0;i<group->getNumChildren();i++){
-        if(group->getChild(i)->getName()=="RIGID_STRUCTURE_DATA")
-        {rigid_group=(osg::Group*)group->getChild(i);}}
-    if(!rigid_group){
-        rigid_group=new osg::Group();
-        rigid_group->setName("RIGID_STRUCTURE_DATA");
-        for(int i=0;i<structures.size();i++){
-            auto transform=new osg::PositionAttitudeTransform();
-            auto basicShapesGeode=new osg::Geode();
-            for(auto& substructure : structures[i]->Substructures()){
-                osg::Vec4 color;
-                if(substructure.color){
-                    color=osg::Vec4((*substructure.color)[0]/255,(*substructure.color)[1]/255,(*substructure.color)[2]/255,(*substructure.color)[3]/255);}
-                else{color=colorMap(structures[i]->name);}
-                
-                if(substructure.capsule_extent.norm()){
-                    auto cylinder=new osg::Cylinder(osg::Vec3(0,0,0),substructure.radius,2*substructure.capsule_extent.norm());
-                    auto cylinderDrawable=new osg::ShapeDrawable(cylinder);
-                    cylinderDrawable->setColor(color);
-                    basicShapesGeode->addDrawable(cylinderDrawable);
-                    auto topSphere=new osg::Sphere(osg::Vec3(0,0,substructure.capsule_extent.norm()),substructure.radius);
-                    auto topSphereDrawable=new osg::ShapeDrawable(topSphere);
-                    topSphereDrawable->setColor(color);
-                    basicShapesGeode->addDrawable(topSphereDrawable);
-                    auto bottomSphere=new osg::Sphere(osg::Vec3(0,0,-substructure.capsule_extent.norm()),substructure.radius);
-                    auto bottomSphereDrawable=new osg::ShapeDrawable(bottomSphere);
-                    bottomSphereDrawable->setColor(color);
-                    basicShapesGeode->addDrawable(bottomSphereDrawable);}
-                else{
-                    auto unitSphere=new osg::Sphere(osg::Vec3(substructure.offset[0],substructure.offset[1],substructure.offset[2]),substructure.radius);
-                    auto unitSphereDrawable=new osg::ShapeDrawable(unitSphere);
-                    unitSphereDrawable->setColor(color);
-                    basicShapesGeode->addDrawable(unitSphereDrawable);}}
-            basicShapesGeode->getOrCreateStateSet()->setAttribute(new osg::PolygonMode(osg::PolygonMode::FRONT_AND_BACK,osg::PolygonMode::FILL));
-            transform->addChild(basicShapesGeode);
-            rigid_group->addChild(transform);
-        }
-        group->addChild(rigid_group);
-    }
-    for(int i=0;i<structures.size();i++){
-        auto transform=(osg::PositionAttitudeTransform*)rigid_group->getChild(i);
-        OSG_HELPERS<TV>::Initialize_Transform(structures[i]->frame,transform);
-    }
-}
-#endif
 ///////////////////////////////////////////////////////////////////////
 GENERIC_CEREAL_REGISTRATION(RIGID_STRUCTURE_DATA)
 GENERIC_TYPE_DEFINITION(RIGID_STRUCTURE_DATA)

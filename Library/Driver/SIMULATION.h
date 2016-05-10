@@ -2,9 +2,6 @@
 #define __SIMULATION__
 
 #include <Utilities/TYPE_UTILITIES.h>
-#ifdef VIEWER
-#include <osg/Group>
-#endif
 #include <memory>
 
 namespace Mechanics{
@@ -40,9 +37,6 @@ public:
 
     void Write(const std::string& frame_title);
     bool Read(const int frame);
-#ifdef VIEWER
-    void Viewer(osg::Group*& root,bool hide_titles);
-#endif
 };
 }
 #endif

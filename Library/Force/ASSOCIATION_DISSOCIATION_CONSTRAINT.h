@@ -122,9 +122,6 @@ public:
     ROTATION<TV> Find_Appropriate_Rotation(const ROTATION<TV>& rotation1,const ROTATION<TV>& rotation2);
     void Interaction_Candidates(DATA<TV>& data,const T dt,int type_index,int type1,int type2);
     void Linearize(DATA<TV>& data,FORCE<TV>& force,const T dt,const T target_time,MATRIX_BUNDLE<TV>& system,bool stochastic);
-#ifdef VIEWER
-    void Viewer(const DATA<TV>& data,osg::Node* node);
-#endif
     DEFINE_TYPE_NAME("ASSOCIATION_DISSOCIATION_CONSTRAINT")
 };
 }

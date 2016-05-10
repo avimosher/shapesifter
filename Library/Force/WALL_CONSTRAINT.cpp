@@ -7,7 +7,6 @@
 #include <Indexing/RIGID_STRUCTURE_INDEX_MAP.h>
 #include <Parsing/PARSER_REGISTRY.h>
 #include <Utilities/HASHING.h>
-#include <Utilities/OSG_HELPERS.h>
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class TV> std::shared_ptr<FORCE_REFERENCE<typename TV::Scalar>> WALL_CONSTRAINT<TV>::

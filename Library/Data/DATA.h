@@ -7,9 +7,6 @@
 #include <Utilities/TYPE_UTILITIES.h>
 #include <memory>
 #include <Eigen/Geometry>
-#ifdef VIEWER
-#include <osg/Group>
-#endif
 #include <unordered_map>
 
 namespace Mechanics{
@@ -69,9 +66,6 @@ public:
     void Store_Errors(const Matrix<T,Dynamic,1>& errors);
     void Step();
     void Eliminate_Rotation();
-#ifdef VIEWER
-    void Viewer(osg::Group*& root);
-#endif
     DEFINE_TYPE_NAME("DATA")
 };
 }

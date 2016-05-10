@@ -6,9 +6,6 @@
 #include <Utilities/TYPE_UTILITIES.h>
 #include <limits>
 #include <Eigen/SparseCore>
-#ifdef VIEWER
-#include <osg/Node>
-#endif
 
 namespace Mechanics{
 template<class TV> class DATA;
@@ -45,9 +42,6 @@ public:
     virtual void Archive(cereal::BinaryInputArchive& archive){};
     virtual void Archive(cereal::JSONOutputArchive& archive){};
     virtual void Archive(cereal::JSONInputArchive& archive){};
-#ifdef VIEWER
-    virtual void Viewer(const DATA<TV>& data,osg::Node* node){};
-#endif
     virtual bool Equations_Changed() const{return false;}
     virtual std::string Name() const{return "FORCE_TYPE";}
 };

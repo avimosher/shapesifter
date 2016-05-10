@@ -9,15 +9,10 @@
 #include <Utilities/EIGEN_HELPERS.h>
 #include <Utilities/LOG.h>
 #include <Utilities/MATH.h>
-#include <Utilities/OSG_HELPERS.h>
 #include <Utilities/RANDOM.h>
 #include <iostream>
 #include <stdexcept>
 #include <math.h>
-#ifdef VIEWER
-#include <osg/Geometry>
-#include <osg/Geode>
-#endif
 using namespace Mechanics;
 ///////////////////////////////////////////////////////////////////////
 template<class T> ROTATION<Matrix<T,3,1>> Find_Appropriate_Rotation(const ROTATION<Matrix<T,3,1>>& rotation1,const ROTATION<Matrix<T,3,1>>& rotation2)
