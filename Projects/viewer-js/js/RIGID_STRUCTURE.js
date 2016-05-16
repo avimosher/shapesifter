@@ -12,7 +12,7 @@ define(['three'],function(THREE){
         return randomColor(s);
     }
 
-    module.create=function(node,structures,forces){
+    module.create=function(node,data,structures,forces){
         // extract radius and capsule extent
         var radius = node.radius; 
         var capsule_extent = node.capsule_extent;

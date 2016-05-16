@@ -5,7 +5,7 @@ if (typeof define !== 'function'){
 define(['three'],function(THREE){
 
     var initScene;
-    var frame_directory='';
+    var frameDirectory='';
     var scene;
     var camera;
     var controls;
@@ -14,11 +14,11 @@ define(['three'],function(THREE){
     var forces=new THREE.Object3D();
 
     // prep animation
-    var frame_index = 0;
+    var frameIndex = 0;
     var running;
     var writing;
     var titles = true;
-    var frame_total = 0;
+    var frameTotal = 0;
 
 
     function readSceneData(callback, scene){
@@ -30,12 +30,20 @@ define(['three'],function(THREE){
             console.log('Failed to read' + scene);}
     }
 
-    function createStructuresForces(scene_data, structures, forces) {
-        for (var i = 0; i < scene_data.root.length; i++){
-            try{require('./'+scene_data.root[i].type).create(scene_data.root[i],structures,forces);}
+    function extractData(sceneData){
+        for (var i = 0; i < sceneData.root.length; i++){
+            if(sceneData.root[i].type === 'DATA'){
+                return sceneData.root[i];
+            }
+        }
+    }
+
+    function createStructuresForces(sceneData, data, structures, forces) {
+        for (var i = 0; i < sceneData.root.length; i++){
+            try{require('./'+sceneData.root[i].type).create(sceneData.root[i],data,structures,forces);}
             catch(e){
-                //console.log(scene_data.root[i].type);
-                //console.log(e);
+                console.log(sceneData.root[i].type);
+                console.log(e);
             }}
         /*var loader=new THREE.OBJLoader();
           loader.load('untitled.obj',function(object){
@@ -46,12 +54,12 @@ define(['three'],function(THREE){
     function updateStructures(index, structures){
         const fs=require('fs');
         try{
-            var frame_data=JSON.parse(fs.readFileSync(frame_directory+'/frame.'+index));
+            var frameData=JSON.parse(fs.readFileSync(frameDirectory+'/frame.'+index));
             for (var i = 0; i < structures.children.length; i++){
-                frame_handle = frame_data.value2[0].ptr_wrapper.data.value0[i].ptr_wrapper.data;
-                var structure = structures.getObjectByName(frame_handle.name);
+                frameHandle = frameData.value2[0].ptr_wrapper.data.value0[i].ptr_wrapper.data;
+                var structure = structures.getObjectByName(frameHandle.name);
                 try{
-                    require('./'+structure.type).update(frame_handle, structure);}
+                    require('./'+structure.type).update(frameHandle, structure);}
                 catch(e){console.log(e);}}}
         catch(err){console.log(err);}
     }
@@ -64,7 +72,7 @@ define(['three'],function(THREE){
     function countFrames(callback){
         // find number of frames in frame folder
         var fs=require('fs');
-        callback(fs.readdirSync(frame_directory).length);
+        callback(fs.readdirSync(frameDirectory).length);
     }
 
     var initializeViewer = function() {
@@ -113,9 +121,9 @@ define(['three'],function(THREE){
         scene.add(ambientLight);
 
         // read scene data
-        // var scene_data;
+        // var sceneData;
         /*readSceneData(function (parsed_scene){
-          scene_data = parsed_scene;
+          sceneData = parsed_scene;
           }, scene_file);*/
         window.onkeydown=function(e){
             var continueProcessing=false;
@@ -141,7 +149,7 @@ define(['three'],function(THREE){
                 var goToFrame=function(){
                     dialog[0].close();
                     console.log(text.val());
-                    frame_index=parseInt(text.val());
+                    frameIndex=parseInt(text.val());
                     incrementFrame(0);
                     dialog[0].remove();
                 };
@@ -161,7 +169,7 @@ define(['three'],function(THREE){
                              input: "<input name=\"frame\" type=\"text\" placeholder=\"\" required />\n",
                              callback: function(frame){
                                  alert(frame);
-                                 frame_index=frame;
+                                 frameIndex=frame;
                                  incrementFrame(0);
                                  }});*/
                 break;
@@ -172,7 +180,7 @@ define(['three'],function(THREE){
 
                 case 82: // r - reset
                 running=false;
-                frame_index=0;
+                frameIndex=0;
                 incrementFrame(0);
                 break;
 
@@ -198,18 +206,18 @@ define(['three'],function(THREE){
 
     function update() {
         // update structures
-        updateStructures(frame_index, structures);
+        updateStructures(frameIndex, structures);
 
         // update forces
         updateForces(forces, structures);
     }
 
     function incrementFrame(increment){
-        frame_index += increment;
-        if (frame_index >= frame_total){
-            frame_index = frame_total - 1;}
-        if (frame_index < 0){frame_index = 0;}
-        window.$("#label").text("Frame "+frame_index);
+        frameIndex += increment;
+        if (frameIndex >= frameTotal){
+            frameIndex = frameTotal - 1;}
+        if (frameIndex < 0){frameIndex = 0;}
+        window.$("#label").text("Frame "+frameIndex);
         update();
     }
 
@@ -224,7 +232,7 @@ define(['three'],function(THREE){
                 var remote=require('remote');
                 remote.getCurrentWindow().capturePage(function(buf){
                     var S=require('string');
-                    remote.require('fs').writeFile(frame_directory+'/screenshot.'+S(frame_index).padLeft(5,'0')+'.png',buf.toPng(),function(){
+                    remote.require('fs').writeFile(frameDirectory+'/screenshot.'+S(frameIndex).padLeft(5,'0')+'.png',buf.toPng(),function(){
                         requestAnimationFrame(render);
                     })});}
             catch(err){}}
@@ -237,21 +245,24 @@ define(['three'],function(THREE){
             scene.remove(forces);}
         else{
             var ipc=require('electron').ipcRenderer;
-            scene_data=ipc.sendSync('synchronous-message','');}
+            sceneData=ipc.sendSync('synchronous-message','');}
 
-        frame_directory=scene_data['output_directory'];
+        frameDirectory=sceneData['output_directory'];
+
+        // extract 'data' from scene (world information)
+        var data=extractData(sceneData);
 
         // create structures and forces
-        createStructuresForces(scene_data, structures, forces);
+        createStructuresForces(sceneData, data, structures, forces);
 
         // count total frames
-        frame_total = 0;
+        frameTotal = 0;
         countFrames(function (frames){
-            frame_total += frames;
+            frameTotal += frames;
         });
 
         // prep animation
-        frame_index = 0;
+        frameIndex = 0;
         running = false;
         writing = false;
 

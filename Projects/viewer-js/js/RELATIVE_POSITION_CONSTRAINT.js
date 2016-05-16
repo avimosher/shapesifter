@@ -5,7 +5,7 @@ if (typeof define !== 'function'){
 define(['three'],function(THREE){
     var module={};
 
-    module.create=function(node,structures,forces){
+    module.create=function(node,data,structures,forces){
         var material = new THREE.LineBasicMaterial({color: 0xff0000, linewidth: 1});
         // loop over all constraints
         for (var j=0; j < node.constraints.length; j++){
