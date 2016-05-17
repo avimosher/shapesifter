@@ -30,7 +30,7 @@ define(['mathjs','./random_helpers'],function(math,random_helpers){
         var constraints=[];
         var springs=[];
         var stiffness=node['stiffness'];
-        var distance=math.sqrt(node['link_offset'].reduce((x,s) => x+s*s,0));
+        var distance=math.sqrt(node['link_offset'].reduce(function(x,s){return x+s*s;},0));
         var collisionExtent=0;
         var subnodeOffset=0;
         if(node['collision_extent']){

@@ -28,7 +28,7 @@ define(['mathjs','three','./random_helpers'],function(math,THREE,random_helpers)
         var position=math.add(structure1['position'],firstStructureOffset);
 
         var constraints=[];
-        var distance=math.sqrt(node['link_offset'].reduce((x,s) => x+s*s,0));
+        var distance=math.sqrt(node['link_offset'].reduce(function(x,s){return x+s*s;},0));
         var collisionExtent=0;
         var subnodeOffset=0;
         if(node['collision_extent']){
