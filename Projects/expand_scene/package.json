@@ -4,13 +4,15 @@
   "main": "main.js",
   "description": "scene file preprocessor for Shapesifter",
   "repository": {
-      "type": "git",
-      "url": "https://github.com/avimosher/shapesifter"},
+    "type": "git",
+    "url": "https://github.com/avimosher/shapesifter"
+  },
   "license": "MIT",
   "dependencies": {
     "amdefine": "^1.0.0",
     "chance": "^1.0.1",
     "mathjs": "^3.1.0",
+    "requirejs": "^2.2.0",
     "three": "^0.75.0",
     "underscore": "^1.8.3"
   }
