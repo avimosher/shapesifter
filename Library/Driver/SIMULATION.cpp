@@ -5,7 +5,6 @@
 #include <Force/FORCE.h>
 #include <Force/FORCE_TYPE.h>
 #include <Utilities/CEREAL_HELPERS.h>
-#include <Utilities/OSG_HELPERS.h>
 #include <Utilities/RANDOM.h>
 #include <fstream>
 #include <Eigen/Geometry>

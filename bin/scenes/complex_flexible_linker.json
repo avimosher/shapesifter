@@ -34,8 +34,7 @@
          "capsule_extent": 0.27,
          "name": "interferon"
         },
-        {"type": "TRUST_REGION",
-         "name": "evolution"},
+        {"type": "TRUST_REGION"},
         {"type": "BROWNIAN_FORCE",
          "temperature": 300},
         {"type": "RELATIVE_POSITION_CONSTRAINT",
@@ -58,7 +57,6 @@
         },
         {"type": "VOLUME_EXCLUSION_CONSTRAINT"},
         {"type": "ANALYTE",
-         "prerequisites": ["evolution"],
          "name": "test",
          "predicate": {
              "type": "orientation_quality",
