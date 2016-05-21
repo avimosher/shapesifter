@@ -4,4 +4,4 @@
 1. Install Node.js (https://nodejs.org/en/download/).
 2. Download release (https://github.com/avimosher/shapesifter/releases).
 3. Unzip release, navigate to Shapesifter directory in console, and run "./install.sh" (downloads Node modules locally, no permissions required).
-4. Start simulating!  [Tutorial](https://github.com/avimosher/shapesifter/wiki/Tutorial)
+4. Follow the [tutorial](https://github.com/avimosher/shapesifter/wiki/Tutorial) to start simulating!
