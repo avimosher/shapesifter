@@ -34,6 +34,7 @@ def Find_Sources(dirs,sources=[],ignore=[]):
         for root,dirs,files in os.walk(os.path.join(build_directory,subdir)):
             modified_root=root[build_directory_length:]
             local_sources.extend(filter(lambda filename: source_filter(filename,ignore),map(lambda file: os.path.join(modified_root,file),files)))
+
     cpps=filter(lambda s:s.endswith('.cpp'),local_sources)
     headers=filter(lambda s:s.endswith('.h'),local_sources)
     return cpps,headers
