@@ -50,5 +50,12 @@ then
     patch ESBTL/include/ESBTL/line_reader.h patches/ESBTL/line_reader.h.patch
 fi
 
+cd Projects
+cd viewer-js
+npm install
+cd ../expand_scene
+npm install
+cd ../..
+
 cd ..
 scons
