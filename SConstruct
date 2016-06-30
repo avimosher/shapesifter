@@ -11,7 +11,8 @@ external_libraries={
     'catch': {'default': 1, 'libs':[''], 'cpppath':[external_libraries_dir+'catch']},
     'cereal': {'default': 1, 'libs':[''],'cpppath':[external_libraries_dir+'cereal/include']},
     'eigen': {'default': 1, 'libs':[''],'cpppath':[external_libraries_dir+'eigen',external_libraries_dir+'eigen/unsupported']},
-    'ESBTL': {'default': 0, 'flags': ['NDEBUG'],'libs':['CGAL','mpfr','gmp','boost_thread'],'cpppath':[external_libraries_dir+'ESBTL/include']},
+    'ESBTL': {'default': 0, 'flags': ['NDEBUG'],'libs':['CGAL','mpfr','gmp'],'cpppath':[external_libraries_dir+'ESBTL/include']},
+    'gmm': {'default': 1, 'libs':[''], 'cpppath':[external_libraries_dir+'gmm']},
     'json': {'default': 1,'cpppath':[external_libraries_dir+'jsoncpp/dist'],'libs':['jsoncpp'],'libpath':[external_libraries_dir+'jsoncpp/dist']},
     'osg': {'default': 0,'cpppath':[external_libraries_dir+'osg/include'],'libs':['osg','osgDB','osgGA','osgViewer','libOpenThreads','libosgUtil','libosgText'],'libpath':[external_libraries_dir+'osg/lib']},
     'gl': {'default': 0,'flags': ['VIEWER'],'libs':['GL']}
@@ -52,7 +53,8 @@ def Automatic_Library(target,source,env):
     library=local_env.SharedLibrary(target=target,source=source)
     local_env.Install('#bin',library)
 
-build_base='build/'+env['TYPE']
+print(env['PLATFORM'])
+build_base='build/'+env['PLATFORM']+'/'+env['TYPE']
 
 def Find_SConscripts(env,dir):
     for c in glob.glob(os.path.join(dir,"*","SConscript")):

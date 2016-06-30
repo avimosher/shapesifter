@@ -27,6 +27,10 @@ public:
     double& x(){return (*this)[0];}
     double& y(){return (*this)[1];}
     double& z(){return (*this)[2];}
+
+    const double& x() const{return (*this)[0];}
+    const double& y() const{return (*this)[1];}
+    const double& z() const{return (*this)[2];}
 };
 
 #endif
