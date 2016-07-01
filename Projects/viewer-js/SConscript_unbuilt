@@ -1,0 +1,3 @@
+Import('env')
+
+env.Install("#Shapesifter/viewer",["js","main.js","index.html","package.json"])

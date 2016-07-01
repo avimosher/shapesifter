@@ -19,16 +19,24 @@ external_libraries={
 }
 
 env=Environment(variables=variables)#,ENV={'PATH' : os.environ['PATH'], 'LD_LIBRARY_PATH' : os.environ['LD_LIBRARY_PATH']})
-#env['USE_OSG']=1
-#env['USE_GL']=1
 base_env=Environment()
 
+
+if env['PLATFORM']=='darwin':
+    env['PLATFORM_ALIAS']='OSX'
+elif env['PLATFORM']=='posix':
+    env['PLATFORM_ALIAS']='Linux'
+
+build_base='build/'+env['PLATFORM']+'/'+env['TYPE']
 
 base_env.Append(CPPPATH=external_libraries['json']['cpppath'])
 builder=base_env.SharedObject
 jsoncpp='#External_Libraries/jsoncpp/dist/jsoncpp.cpp'
 jsoncpp_obj=builder(target=os.path.splitext(jsoncpp)[0],source=jsoncpp)
-base_env.SharedLibrary(target='#External_Libraries/jsoncpp/dist/jsoncpp',source=jsoncpp_obj)
+jsonlib=base_env.SharedLibrary(target='#External_Libraries/jsoncpp/dist/jsoncpp',source=jsoncpp_obj)
+env.Install("#Shapesifter/"+env['PLATFORM_ALIAS'],jsonlib)
+env.Install("#bin/"+env['PLATFORM_ALIAS'],jsonlib)
+
 
 def Load_External(env):
     for name,lib in external_libraries.items():
@@ -45,23 +53,23 @@ def Automatic_Program(target,source,env):
     local_env=env.Clone()
     Load_External(local_env)
     program=local_env.Program(target=target,source=source)
-    local_env.Install('#bin',target)
+    local_env.Install('#bin/'+env['PLATFORM_ALIAS'],target)
+    return target
     
 def Automatic_Library(target,source,env):
     local_env=env.Clone()
     Load_External(local_env)
     library=local_env.SharedLibrary(target=target,source=source)
-    local_env.Install('#bin',library)
-
-print(env['PLATFORM'])
-build_base='build/'+env['PLATFORM']+'/'+env['TYPE']
+    local_env.Install('#bin/'+env['PLATFORM_ALIAS'],library)
+    return library
 
 def Find_SConscripts(env,dir):
     for c in glob.glob(os.path.join(dir,"*","SConscript")):
         env.SConscript(c,variant_dir=build_base+'/'+os.path.dirname(c),exports={'env': env,'Automatic_Program': Automatic_Program})
+    for c in glob.glob(os.path.join(dir,"*","SConscript_unbuilt")):
+        env.SConscript(c,exports={'env': env})
 
 # Compiler flags
-#env.Append(CXXFLAGS="-DEIGEN_INITIALIZE_MATRICES_BY_ZERO")
 env.Append(CXXFLAGS="-std=c++1y -frounding-math")
 if env['TYPE']=='debug':        
     env.Append(CXXFLAGS="-g")
@@ -78,6 +86,9 @@ env_projects.Append(LIBPATH=['#'+build_base+'/Library'])
 
 Find_SConscripts(env_projects,'Projects')
 Find_SConscripts(env_projects,'Tests')
+env.SConscript('bin/SConscript',exports={'env': env})
 
-    
 
+#############################################################
+# Build release structure
+#############################################################

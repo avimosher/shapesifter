@@ -1,5 +1,5 @@
 Import('env Automatic_Program')
 
 env=env.Clone(USE_ESBTL=1)
-Automatic_Program(target='convert_structure',source=['main.cpp'],env=env)
-
+target=Automatic_Program(target='convert_structure',source=['main.cpp'],env=env)
+env.Install("#Shapesifter/"+env['PLATFORM_ALIAS'],target);

@@ -47,6 +47,6 @@ def Sublibrary(env,name,dir):
     return Automatic_Library(target=name,source=objects,env=local_env)
 
 name='Mechanics'
-Sublibrary(env,name,'.')
+env.Install("#Shapesifter/"+env['PLATFORM_ALIAS'],Sublibrary(env,name,'.'))
 
 Return('name')

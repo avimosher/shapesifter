@@ -1,0 +1,6 @@
+Import('env')
+
+env.Install("#Shapesifter",["expand_scene.sh","simulate.sh","viewer.sh","convert_structure.sh","scenes"])
+Command("#Shapesifter/install.sh","npm_install.sh",Copy("$TARGET","$SOURCE"))
+Command("#Shapesifter/runs",[],Mkdir("Shapesifter/runs"))
+#env.Install("#Shapesifter/install.sh","npm_install.sh")
